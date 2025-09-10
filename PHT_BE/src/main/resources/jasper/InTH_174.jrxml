@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 5.6.1.final using JasperReports Library version 5.6.1  -->
+<!-- 2024-10-14T15:37:23 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="InTH_174" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c9017d65-770f-4235-8ebb-7167348510f7">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="New Data Adapter 1"/>
+	<parameter name="p_shkb" class="java.lang.String"/>
+	<parameter name="p_ngay_bk" class="java.lang.String"/>
+	<parameter name="p_so_bk" class="java.lang.String"/>
+	<parameter name="p_id" class="java.lang.String"/>
+	<parameter name="p_ngay" class="java.lang.String"/>
+	<parameter name="p_ngay_tao" class="java.lang.String"/>
+	<parameter name="p_tk_kbnn" class="java.lang.String"/>
+	<parameter name="p_ten_tk_kbnn" class="java.lang.String"/>
+	<parameter name="p_tongtien_chu" class="java.lang.String"/>
+	<parameter name="p_tongtien_phi" class="java.lang.String"/>
+	<parameter name="p_phiPhaiTra" class="java.lang.String"/>
+	<parameter name="p_phiVat" class="java.lang.String"/>
+	<parameter name="p_tongPhiPhaiTra" class="java.lang.String"/>
+	<parameter name="p_tongPhiPhaiTraChu" class="java.lang.String"/>
+	<queryString language="SQL">
+		<![CDATA[select TK_KBNN SO_TK, TEN_TK_KBNN TEN_TK,so_tk_nh,ten_tk_nh from TCS_DM_KHOBAC_UYQUYEN where shkb =  $P{p_shkb}]]>
+	</queryString>
+	<field name="SO_TK" class="java.lang.String"/>
+	<field name="TEN_TK" class="java.lang.String"/>
+	<field name="SO_TK_NH" class="java.lang.String"/>
+	<field name="TEN_TK_NH" class="java.lang.String"/>
+	<group name="Group1">
+		<groupHeader>
+			<band height="130">
+				<staticText>
+					<reportElement x="0" y="0" width="278" height="20" uuid="20ca621f-34fe-4c81-8036-604b068aad15"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[I. Đối với các khoản ủy nhiệm thu vào tài khoản của KBNN]]></text>
+				</staticText>
+				<subreport>
+					<reportElement x="-20" y="20" width="595" height="110" isRemoveLineWhenBlank="true" uuid="c143bf94-c0b7-429c-98dc-77353e9425d9"/>
+					<subreportParameter name="p_so_bk">
+						<subreportParameterExpression><![CDATA[$P{p_so_bk}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_ngay_bk">
+						<subreportParameterExpression><![CDATA[$P{p_ngay_bk}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_id">
+						<subreportParameterExpression><![CDATA[$P{p_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_shkb">
+						<subreportParameterExpression><![CDATA[$P{p_shkb}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA["/jasper/PrintTH_174_1.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="103">
+				<property name="local_mesure_unitheight" value="pixel"/>
+				<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				<staticText>
+					<reportElement x="0" y="10" width="390" height="20" uuid="c04ca7be-d8d0-471b-bfd4-263d6255f9fc"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[BẢNG KÊ TÍNH PHÍ ĐƯỢC CHUYỂN ĐỔI TỪ BẢNG KÊ TÍNH PHÍ ĐIỆN TỬ]]></text>
+				</staticText>
+				<textField>
+					<reportElement x="89" y="30" width="100" height="13" uuid="3b0859d6-4010-469a-ad51-8f0f73f0ef9f"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{p_ngay_tao}]]></textFieldExpression>
+				</textField>
+				<staticText>
+					<reportElement x="10" y="43" width="100" height="17" uuid="8cf92717-7459-48dd-af1a-79a34a8b0e51"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Thanh toán viên	]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="160" y="43" width="100" height="17" uuid="8d1ec80b-ea73-4c53-8ff5-ca278bc52cf5"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Kế toán trưởng]]></text>
+				</staticText>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="Group2">
+		<groupHeader>
+			<band height="100">
+				<staticText>
+					<reportElement x="0" y="0" width="278" height="20" uuid="eeb403a9-1608-43b3-992b-99980b64db3c"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[II. Đối với các khoản quyết toán tài khoản chuyên thu]]></text>
+				</staticText>
+				<subreport>
+					<reportElement x="-20" y="20" width="595" height="70" uuid="509a6736-32d6-4c36-8cd1-96083becdcd8"/>
+					<subreportParameter name="p_so_bk">
+						<subreportParameterExpression><![CDATA[$P{p_so_bk}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_ngay_bk">
+						<subreportParameterExpression><![CDATA[$P{p_ngay_bk}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_id">
+						<subreportParameterExpression><![CDATA[$P{p_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_shkb">
+						<subreportParameterExpression><![CDATA[$P{p_shkb}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA["/jasper/PrintTH_174_2.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="182">
+				<staticText>
+					<reportElement x="0" y="0" width="176" height="20" uuid="dde5eca4-86b9-48d0-b30a-26d705f9c8e5">
+						<property name="local_mesure_unitwidth" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[V. Phí phải trả(bằng số)(I+II+III+IVa-IVb) :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="20" width="65" height="20" uuid="7108e5b4-1fbb-4b67-9fb1-1e93f0364c3b">
+						<property name="local_mesure_unitwidth" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[VI. VAT(10%) :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="40" width="130" height="20" uuid="c90cfa54-f636-4c74-8aea-5ec1364ca03f">
+						<property name="local_mesure_unitwidth" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[VII. Tổng phí phải trả(bằng số) :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="60" width="140" height="20" uuid="103d7188-0e7e-45be-8230-14f692f2dd4a"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[VIII. Tổng phí phải trả(bằng chữ) :]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="80" width="179" height="20" uuid="4a663ea6-8046-4d01-89c2-7ed75bc46b21"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[IX. Thông tin tài khoản ngân hàng nhận phí:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="140" width="110" height="20" uuid="99af8e92-b42f-4908-85e0-8e7e3c9186f8"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Ngân hàng gửi điện đi lúc:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="31" y="120" width="55" height="20" uuid="a1b7bb0c-3c0a-42d5-9e8e-4701673c0bca">
+						<property name="local_mesure_unitwidth" value="pixel"/>
+						<property name="com.jaspersoft.studio.unit.width" value="px"/>
+					</reportElement>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="false"/>
+					</textElement>
+					<text><![CDATA[- Số tài khoản:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="31" y="100" width="59" height="20" uuid="bc7cd288-dc8a-4cba-b5b1-8610d1c237ca"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="false"/>
+					</textElement>
+					<text><![CDATA[- Tên tài khoản:]]></text>
+				</staticText>
+				<staticText>
+					<reportElement x="0" y="160" width="110" height="20" uuid="6031bf06-77c2-47df-95c1-311dc9bec341"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[Ngân hàng nhận điện lúc:]]></text>
+				</staticText>
+				<textField isBlankWhenNull="true">
+					<reportElement x="176" y="0" width="100" height="20" uuid="43825c3c-49a8-4bd1-a561-f95e0878745c"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{p_phiPhaiTra}==null?"0":$P{p_phiPhaiTra}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="65" y="20" width="100" height="20" uuid="3a3790d9-cf07-4433-bda0-9bed0368e62c"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{p_phiVat}==null?"0":$P{p_phiVat}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="130" y="40" width="100" height="20" uuid="11efe98e-9d79-41e6-9323-50dfeee2daf7"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{p_tongPhiPhaiTra}==null?"0":$P{p_tongPhiPhaiTra}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="140" y="60" width="220" height="20" uuid="c05dac79-4b5a-46e1-8a6e-fd248c4eacbb"/>
+					<textElement textAlignment="Left" verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{p_tongPhiPhaiTraChu}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="86" y="120" width="125" height="20" uuid="8b7a7c6f-fc10-467e-a989-3e72ea7105c0"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{SO_TK_NH}]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="90" y="100" width="125" height="20" uuid="cb89d305-c2cb-4867-9934-1fbfe963c25e"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{TEN_TK_NH}]]></textFieldExpression>
+				</textField>
+			</band>
+		</groupFooter>
+	</group>
+	<group name="Group3">
+		<groupHeader>
+			<band height="112">
+				<staticText>
+					<reportElement x="0" y="0" width="350" height="20" uuid="75f6619f-bbaa-4433-af34-6317e072ebb4"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[III. Đối với các khoản kết chuyển tài khoản chuyên thu tổng hợp về NHNN]]></text>
+				</staticText>
+				<subreport>
+					<reportElement x="-20" y="20" width="595" height="90" uuid="25286daa-11b5-4a50-9a7d-b831056cd296"/>
+					<subreportParameter name="p_so_bk">
+						<subreportParameterExpression><![CDATA[$P{p_so_bk}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_ngay_bk">
+						<subreportParameterExpression><![CDATA[$P{p_ngay_bk}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_id">
+						<subreportParameterExpression><![CDATA[$P{p_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_shkb">
+						<subreportParameterExpression><![CDATA[$P{p_shkb}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA["/jasper/PrintTH_174_3.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="120">
+				<staticText>
+					<reportElement x="0" y="0" width="350" height="20" uuid="fca52fdf-b977-4174-8b3f-f907d218e7f8"/>
+					<textElement verticalAlignment="Middle">
+						<font fontName="Times New Roman" size="9" isBold="true"/>
+					</textElement>
+					<text><![CDATA[IV. Số liệu điều chỉnh(nếu có):]]></text>
+				</staticText>
+				<subreport>
+					<reportElement x="-20" y="20" width="595" height="100" uuid="aedd581d-07d3-4051-9579-a99345299d9b"/>
+					<subreportParameter name="p_so_bk">
+						<subreportParameterExpression><![CDATA[$P{p_so_bk}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_ngay_bk">
+						<subreportParameterExpression><![CDATA[$P{p_ngay_bk}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_id">
+						<subreportParameterExpression><![CDATA[$P{p_id}]]></subreportParameterExpression>
+					</subreportParameter>
+					<subreportParameter name="p_shkb">
+						<subreportParameterExpression><![CDATA[$P{p_shkb}]]></subreportParameterExpression>
+					</subreportParameter>
+					<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
+					<subreportExpression><![CDATA["/jasper/PrintTH_174_4.jasper"]]></subreportExpression>
+				</subreport>
+			</band>
+		</groupFooter>
+	</group>
+	<title>
+		<band splitType="Stretch">
+			<property name="local_mesure_unitheight" value="pixel"/>
+			<property name="com.jaspersoft.studio.unit.height" value="px"/>
+		</band>
+	</title>
+	<columnHeader>
+		<band height="108" splitType="Prevent">
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="132" y="56" width="290" height="12" isRemoveLineWhenBlank="true" uuid="f3b36694-9a1c-46de-bebf-294d28893496">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{p_ngay}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="132" y="80" width="290" height="12" isRemoveLineWhenBlank="true" uuid="26b37cb0-935b-4843-aa38-5c443f887191">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Số tài khoản : "+$F{SO_TK}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="132" y="92" width="290" height="12" isRemoveLineWhenBlank="true" uuid="5bbf1f96-f286-4f6a-8ade-6b7231249f57">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Tên tài khoản : "+$F{TEN_TK}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="132" y="68" width="290" height="12" isRemoveLineWhenBlank="true" uuid="abe09c71-bb8f-4514-9ab6-82f57a71fe15">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Trạng thái đối chiếu: Chênh lệch/Khớp đúng"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="0" y="0" width="290" height="12" isRemoveLineWhenBlank="true" uuid="31022a0a-1cdc-4426-934f-698c30fe6fea">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Left" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["NGÂN HÀNG TMCP PHÁT TRIỂN TPHCM"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="414" y="0" width="100" height="12" uuid="5ed60272-c176-481a-9211-88407bf41235">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="9" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Mẫu 09c - TTSPĐT"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="374" y="0" width="180" height="30" isRemoveLineWhenBlank="true" uuid="294f1253-c487-4115-a1c8-116e91417868">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Bottom">
+					<font fontName="Times New Roman" size="8" isBold="false"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Ban hành theo quy trình TTSPĐT"+
+"ngày  /  / 2019 giữa KBNN và NHTM"]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement isPrintRepeatedValues="false" x="60" y="30" width="430" height="30" isRemoveLineWhenBlank="true" uuid="5c2ee9dd-495b-4261-8d80-0fa011c7d475">
+					<property name="local_mesure_unitheight" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.height" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="14" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["BẢNG KÊ TÍNH PHÍ TỔNG HỢP BẰNG VIỆT NAM ĐỒNG"]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnHeader>
+</jasperReport>

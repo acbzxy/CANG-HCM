@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 5.6.1.final using JasperReports Library version 5.6.1  -->
+<!-- 2025-03-05T14:01:55 -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="NGAY_DC" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="595" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="c222f895-c28d-4718-9c6b-f25cd670b518">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="New Data Adapter 1"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="id" class="java.lang.Integer"/>
+	<queryString language="SQL">
+		<![CDATA[select tcs_pck_tdt.fnc_cv_YYYYDDDHHMISS_to_date(tu_ngay_dc) tu_ngay_dc,tcs_pck_tdt.fnc_cv_YYYYDDDHHMISS_to_date(den_ngay_dc) den_ngay_dc from tcs_ctu_hdr_tdt_dc
+group by msg_inbox,tu_ngay_dc,den_ngay_dc
+having msg_inbox in (
+select msg_inbox from TCS_DCHIEU_BCDC a
+where 1=1
+AND a.ID_DC = $P{id} 
+group by msg_inbox
+)]]>
+	</queryString>
+	<field name="TU_NGAY_DC" class="java.lang.String"/>
+	<field name="DEN_NGAY_DC" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="30" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement positionType="Float" x="7" y="0" width="540" height="30" uuid="30071fb8-ce6b-4225-9e80-7188b430684e">
+					<property name="local_mesure_unitwidth" value="pixel"/>
+					<property name="com.jaspersoft.studio.unit.width" value="px"/>
+				</reportElement>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="Times New Roman" size="12" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA["Thời gian đối chiếu: từ " + $F{TU_NGAY_DC} + " đến " +  $F{DEN_NGAY_DC}]]></textFieldExpression>
+			</textField>
+		</band>
+	</title>
+</jasperReport>
