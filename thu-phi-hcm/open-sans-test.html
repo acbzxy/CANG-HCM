@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 Open Sans Font Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 2.5rem;
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .weight-sample {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .weight-title {
+            font-size: 1.1rem;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .sample-text {
+            font-size: 1.3rem;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .vietnamese-text {
+            font-size: 1rem;
+            color: #4a5568;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .english-text {
+            font-size: 1rem;
+            color: #718096;
+        }
+
+        /* Font weights */
+        .weight-300 { font-weight: 300; }
+        .weight-400 { font-weight: 400; }
+        .weight-500 { font-weight: 500; }
+        .weight-600 { font-weight: 600; }
+        .weight-700 { font-weight: 700; }
+        .weight-800 { font-weight: 800; }
+
+        /* Italic styles */
+        .italic { font-style: italic; }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        .info-box {
+            background: #e6fffa;
+            border: 1px solid #81e6d9;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .success-icon {
+            color: #38a169;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .comparison-card {
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .old-font {
+            font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #fed7d7;
+            border-color: #fc8181;
+        }
+
+        .new-font {
+            font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+            background: #c6f6d5;
+            border-color: #68d391;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            margin: 10px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .computed-font {
+            font-family: monospace;
+            background: #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Open Sans Font Test</h1>
+        
+        <div class="info-box">
+            <div class="success-icon">✅</div>
+            <strong>Font Open Sans đã được áp dụng cho toàn hệ thống!</strong><br>
+            <small>Font được load từ Google Fonts với đầy đủ weights và italic styles</small>
+        </div>
+
+        <div class="weight-sample">
+            <div class="weight-title">Light (300)</div>
+            <div class="sample-text weight-300">
+                Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+            </div>
+            <div class="vietnamese-text weight-300">
+                Font nhẹ nhàng, thanh thoát cho văn bản phụ và ghi chú
+            </div>
+            <div class="english-text weight-300">
+                The quick brown fox jumps over the lazy dog
+            </div>
+        </div>
+
+        <div class="weight-sample">
+            <div class="weight-title">Regular (400)</div>
+            <div class="sample-text weight-400">
+                Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+            </div>
+            <div class="vietnamese-text weight-400">
+                Font chuẩn cho nội dung chính, dễ đọc và rõ ràng
+            </div>
+            <div class="english-text weight-400">
+                The quick brown fox jumps over the lazy dog
+            </div>
+        </div>
+
+        <div class="weight-sample">
+            <div class="weight-title">Medium (500)</div>
+            <div class="sample-text weight-500">
+                Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+            </div>
+            <div class="vietnamese-text weight-500">
+                Font trung bình cho các thông tin quan trọng
+            </div>
+            <div class="english-text weight-500">
+                The quick brown fox jumps over the lazy dog
+            </div>
+        </div>
+
+        <div class="weight-sample">
+            <div class="weight-title">SemiBold (600)</div>
+            <div class="sample-text weight-600">
+                Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+            </div>
+            <div class="vietnamese-text weight-600">
+                Font bán đậm cho tiêu đề phụ và làm nổi bật
+            </div>
+            <div class="english-text weight-600">
+                The quick brown fox jumps over the lazy dog
+            </div>
+        </div>
+
+        <div class="weight-sample">
+            <div class="weight-title">Bold (700)</div>
+            <div class="sample-text weight-700">
+                Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+            </div>
+            <div class="vietnamese-text weight-700">
+                Font đậm cho tiêu đề và thông tin đặc biệt quan trọng
+            </div>
+            <div class="english-text weight-700">
+                The quick brown fox jumps over the lazy dog
+            </div>
+        </div>
+
+        <div class="weight-sample">
+            <div class="weight-title">ExtraBold (800)</div>
+            <div class="sample-text weight-800">
+                Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+            </div>
+            <div class="vietnamese-text weight-800">
+                Font rất đậm cho các tiêu đề chính và logo
+            </div>
+            <div class="english-text weight-800">
+                The quick brown fox jumps over the lazy dog
+            </div>
+        </div>
+
+        <!-- Italic Samples -->
+        <div class="weight-sample">
+            <div class="weight-title">Italic Styles</div>
+            <div class="sample-text weight-400 italic">
+                Regular Italic: Hệ thống thu phí Hải quan TP.HCM
+            </div>
+            <div class="sample-text weight-600 italic">
+                SemiBold Italic: Hệ thống thu phí Hải quan TP.HCM
+            </div>
+            <div class="english-text weight-400 italic">
+                Italic styles for emphasis and quotes
+            </div>
+        </div>
+
+        <!-- Font Comparison -->
+        <h2 style="text-align: center; margin: 40px 0 20px; font-weight: 700;">So sánh Font</h2>
+        <div class="comparison">
+            <div class="comparison-card old-font">
+                <h3 style="margin-top: 0; font-weight: 600;">❌ Font cũ (Inter)</h3>
+                <p style="font-size: 1.1rem;">Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh</p>
+                <p style="font-size: 0.9rem; color: #666;">The quick brown fox jumps over the lazy dog</p>
+                <div class="computed-font" id="old-font"></div>
+            </div>
+            <div class="comparison-card new-font">
+                <h3 style="margin-top: 0; font-weight: 600;">✅ Font mới (Open Sans)</h3>
+                <p style="font-size: 1.1rem;">Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh</p>
+                <p style="font-size: 0.9rem; color: #666;">The quick brown fox jumps over the lazy dog</p>
+                <div class="computed-font" id="new-font"></div>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Font Weights</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">✓</div>
+                <div class="stat-label">Italic Support</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">✓</div>
+                <div class="stat-label">Vietnamese</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Google Fonts</div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <button onclick="checkFonts()">🔍 Kiểm tra Font Loading</button>
+            <button onclick="location.reload()">🔄 Reload Page</button>
+        </div>
+
+        <div id="font-status" style="margin-top: 30px;"></div>
+    </div>
+
+    <script>
+        function checkFonts() {
+            const oldFontEl = document.querySelector('.old-font p');
+            const newFontEl = document.querySelector('.new-font p');
+            const bodyEl = document.body;
+
+            document.getElementById('old-font').textContent = 
+                'Font: ' + window.getComputedStyle(oldFontEl).fontFamily;
+            document.getElementById('new-font').textContent = 
+                'Font: ' + window.getComputedStyle(newFontEl).fontFamily;
+
+            const bodyFont = window.getComputedStyle(bodyEl).fontFamily;
+            const statusEl = document.getElementById('font-status');
+            
+            if (bodyFont.includes('Open Sans')) {
+                statusEl.innerHTML = `
+                    <div style="background: #c6f6d5; border: 2px solid #68d391; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h3 style="color: #2f855a; margin-top: 0;">✅ THÀNH CÔNG!</h3>
+                        <p style="color: #276749;">Font Open Sans đã được áp dụng thành công cho toàn trang!</p>
+                        <div style="font-family: monospace; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                            Computed font: ${bodyFont}
+                        </div>
+                    </div>
+                `;
+            } else {
+                statusEl.innerHTML = `
+                    <div style="background: #fed7d7; border: 2px solid #fc8181; padding: 20px; border-radius: 10px; text-align: center;">
+                        <h3 style="color: #c53030; margin-top: 0;">❌ CHƯA HOẠT ĐỘNG</h3>
+                        <p style="color: #991b1b;">Font Open Sans chưa được load. Đang sử dụng:</p>
+                        <div style="font-family: monospace; background: rgba(0,0,0,0.1); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                            ${bodyFont}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-check khi load
+        window.addEventListener('load', function() {
+            setTimeout(checkFonts, 1000);
+        });
+    </script>
+</body>
+</html>

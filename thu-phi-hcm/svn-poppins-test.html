@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 SVN-Poppins Font Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', 'SVN-Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            padding: 40px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            padding: 50px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 3rem;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+
+        .section {
+            margin: 40px 0;
+            padding: 30px;
+            background: #f8fafc;
+            border-radius: 20px;
+            border-left: 6px solid #6366f1;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            color: #6366f1;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        .sample-text {
+            font-size: 1.5rem;
+            color: #1f2937;
+            margin-bottom: 18px;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+
+        .english-text {
+            font-size: 1rem;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        /* Poppins font weights showcase */
+        .thin { font-weight: 100; }      /* Thin */
+        .extralight { font-weight: 200; } /* Extra Light */
+        .light { font-weight: 300; }     /* Light */
+        .normal { font-weight: 400; }    /* Regular */
+        .medium { font-weight: 500; }    /* Medium */
+        .semibold { font-weight: 600; }  /* Semi Bold */
+        .bold { font-weight: 700; }      /* Bold */
+        .extrabold { font-weight: 800; } /* Extra Bold */
+        .black { font-weight: 900; }     /* Black */
+        .italic { font-style: italic; }
+
+        .weights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+
+        .weight-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+        }
+
+        .weight-card:hover {
+            border-color: #6366f1;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .weight-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #6366f1;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .font-card {
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+
+        .font-card:hover {
+            border-color: #6366f1;
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+
+        .poppins-card {
+            background: linear-gradient(135deg, #f0f4ff, #faf5ff);
+            border-color: #6366f1;
+        }
+
+        .other-card {
+            background: #f9fafb;
+            border-color: #d1d5db;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #f0f4ff, #faf5ff);
+            border: 3px solid #6366f1;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .success-icon {
+            color: #10b981;
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            margin: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .computed-font {
+            font-family: 'Courier New', monospace;
+            background: #f3f4f6;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            margin-top: 15px;
+            word-break: break-all;
+            border: 1px solid #d1d5db;
+        }
+
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .pros {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border: 3px solid #10b981;
+            padding: 30px;
+            border-radius: 20px;
+        }
+
+        .cons {
+            background: linear-gradient(135deg, #fecaca, #fca5a5);
+            border: 3px solid #ef4444;
+            padding: 30px;
+            border-radius: 20px;
+        }
+
+        .pros h3 { color: #065f46; margin-top: 0; font-weight: 700; }
+        .cons h3 { color: #991b1b; margin-top: 0; font-weight: 700; }
+
+        ul { padding-left: 25px; }
+        li { margin-bottom: 10px; font-weight: 500; }
+
+        .vietnamese-showcase {
+            background: linear-gradient(135deg, #fef3c7, #fed7aa);
+            border: 3px solid #f59e0b;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .vietnamese-title {
+            color: #92400e;
+            font-weight: 800;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .diacritics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .diacritic-sample {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #f59e0b;
+        }
+
+        .diacritic-char {
+            font-size: 3rem;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+
+        .diacritic-word {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #78350f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 SVN-Poppins Font Showcase</h1>
+        
+        <div class="info-box">
+            <div class="success-icon">✨</div>
+            <strong style="font-size: 1.3rem; font-weight: 700;">Font SVN-Poppins đã được áp dụng cho hệ thống!</strong><br><br>
+            <div style="font-size: 1.1rem; color: #4b5563;">
+                Modern geometric font với 9 font weights, perfect cho Vietnamese content
+            </div>
+        </div>
+
+        <!-- All Font Weights -->
+        <h2 style="text-align: center; margin: 60px 0 40px; font-weight: 800; font-size: 2.5rem; color: #1f2937;">
+            📊 Tất cả Font Weights (100-900)
+        </h2>
+        
+        <div class="weights-grid">
+            <div class="weight-card">
+                <div class="weight-number thin">100</div>
+                <div class="section-title">Thin (100)</div>
+                <div class="sample-text thin">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description thin">
+                    Font cực mỏng cho decorative elements và large headings
+                </div>
+                <div class="english-text thin">
+                    The quick brown fox jumps over the lazy dog
+                </div>
+            </div>
+
+            <div class="weight-card">
+                <div class="weight-number extralight">200</div>
+                <div class="section-title">Extra Light (200)</div>
+                <div class="sample-text extralight">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description extralight">
+                    Font rất mỏng cho subtle typography và elegant designs
+                </div>
+                <div class="english-text extralight">
+                    The quick brown fox jumps over the lazy dog
+                </div>
+            </div>
+
+            <div class="weight-card">
+                <div class="weight-number light">300</div>
+                <div class="section-title">Light (300)</div>
+                <div class="sample-text light">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description light">
+                    Font nhẹ cho body text và secondary content
+                </div>
+                <div class="english-text light">
+                    The quick brown fox jumps over the lazy dog
+                </div>
+            </div>
+
+            <div class="weight-card" style="border-color: #10b981; background: linear-gradient(135deg, #d1fae5, #ecfdf5);">
+                <div class="weight-number normal" style="color: #10b981;">400</div>
+                <div class="section-title" style="color: #10b981;">Regular (400) ⭐</div>
+                <div class="sample-text normal">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description normal">
+                    Font chuẩn cho nội dung chính - readable và balanced
+                </div>
+                <div class="english-text normal">
+                    The quick brown fox jumps over the lazy dog
+                </div>
+            </div>
+
+            <div class="weight-card">
+                <div class="weight-number medium">500</div>
+                <div class="section-title">Medium (500)</div>
+                <div class="sample-text medium">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description medium">
+                    Font trung bình cho buttons và UI elements
+                </div>
+                <div class="english-text medium">
+                    The quick brown fox jumps over the lazy dog
+                </div>
+            </div>
+
+            <div class="weight-card">
+                <div class="weight-number semibold">600</div>
+                <div class="section-title">Semi Bold (600)</div>
+                <div class="sample-text semibold">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description semibold">
+                    Font đậm vừa cho subheadings và emphasis
+                </div>
+                <div class="english-text semibold">
+                    The quick brown fox jumps over the lazy dog
+                </div>
+            </div>
+
+            <div class="weight-card" style="border-color: #f59e0b; background: linear-gradient(135deg, #fef3c7, #fffbeb);">
+                <div class="weight-number bold" style="color: #f59e0b;">700</div>
+                <div class="section-title" style="color: #f59e0b;">Bold (700) ⭐</div>
+                <div class="sample-text bold">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description bold">
+                    Font đậm cho headings và important information
+                </div>
+                <div class="english-text bold">
+                    The quick brown fox jumps over the lazy dog
+                </div>
+            </div>
+
+            <div class="weight-card">
+                <div class="weight-number extrabold">800</div>
+                <div class="section-title">Extra Bold (800)</div>
+                <div class="sample-text extrabold">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description extrabold">
+                    Font rất đậm cho major headings và branding
+                </div>
+                <div class="english-text extrabold">
+                    The quick brown fox jumps over the lazy dog
+                </div>
+            </div>
+
+            <div class="weight-card">
+                <div class="weight-number black">900</div>
+                <div class="section-title">Black (900)</div>
+                <div class="sample-text black">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description black">
+                    Font đậm nhất cho maximum impact và display purposes
+                </div>
+                <div class="english-text black">
+                    The quick brown fox jumps over the lazy dog
+                </div>
+            </div>
+        </div>
+
+        <!-- Italic Showcase -->
+        <h2 style="text-align: center; margin: 60px 0 40px; font-weight: 800; font-size: 2.5rem; color: #1f2937;">
+            🎭 Italic Styles
+        </h2>
+        
+        <div class="weights-grid">
+            <div class="weight-card">
+                <div class="section-title">Normal + Italic</div>
+                <div class="sample-text normal italic">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description normal italic">
+                    Font regular italic cho quotes và emphasis
+                </div>
+            </div>
+            
+            <div class="weight-card">
+                <div class="section-title">Medium + Italic</div>
+                <div class="sample-text medium italic">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description medium italic">
+                    Font medium italic cho subtle emphasis
+                </div>
+            </div>
+            
+            <div class="weight-card">
+                <div class="section-title">Bold + Italic</div>
+                <div class="sample-text bold italic">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </div>
+                <div class="description bold italic">
+                    Font bold italic cho maximum emphasis
+                </div>
+            </div>
+        </div>
+
+        <!-- Vietnamese Diacritics Test -->
+        <div class="vietnamese-showcase">
+            <div class="vietnamese-title">🇻🇳 Vietnamese Diacritics Test</div>
+            <div class="diacritics-grid">
+                <div class="diacritic-sample">
+                    <div class="diacritic-char">Ă</div>
+                    <div class="diacritic-word">Ăn</div>
+                </div>
+                <div class="diacritic-sample">
+                    <div class="diacritic-char">Â</div>
+                    <div class="diacritic-word">Ấm</div>
+                </div>
+                <div class="diacritic-sample">
+                    <div class="diacritic-char">Đ</div>
+                    <div class="diacritic-word">Đẹp</div>
+                </div>
+                <div class="diacritic-sample">
+                    <div class="diacritic-char">Ê</div>
+                    <div class="diacritic-word">Êm</div>
+                </div>
+                <div class="diacritic-sample">
+                    <div class="diacritic-char">Ô</div>
+                    <div class="diacritic-word">Ôm</div>
+                </div>
+                <div class="diacritic-sample">
+                    <div class="diacritic-char">Ơ</div>
+                    <div class="diacritic-word">Ơn</div>
+                </div>
+                <div class="diacritic-sample">
+                    <div class="diacritic-char">Ư</div>
+                    <div class="diacritic-word">Ừ</div>
+                </div>
+                <div class="diacritic-sample">
+                    <div class="diacritic-char">Ỳ</div>
+                    <div class="diacritic-word">Ỷ</div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 25px; font-size: 1.3rem; font-weight: 600; color: #92400e;">
+                "Hệ thống thu phí Hải quan TP.HCM - Thuận tiện, nhanh chóng và hiệu quả!"
+            </div>
+        </div>
+
+        <!-- Font Comparison -->
+        <h2 style="text-align: center; margin: 60px 0 40px; font-weight: 800; font-size: 2.5rem; color: #1f2937;">
+            📊 So sánh với fonts khác
+        </h2>
+        <div class="comparison">
+            <div class="font-card poppins-card">
+                <h3 style="margin-top: 0; font-weight: 800; color: #1f2937;">✅ Poppins (Current)</h3>
+                <p style="font-size: 1.3rem; font-family: 'Poppins', sans-serif; font-weight: 400;">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </p>
+                <p style="font-size: 1.1rem; font-weight: 600; font-family: 'Poppins', sans-serif;">
+                    Bold: Thu phí dễ dàng và nhanh chóng
+                </p>
+                <p style="font-size: 0.95rem; color: #666; font-family: 'Poppins', sans-serif; font-weight: 300;">
+                    Modern geometric, 9 weights, excellent readability
+                </p>
+                <div class="computed-font" id="poppins-font"></div>
+            </div>
+            
+            <div class="font-card other-card">
+                <h3 style="margin-top: 0; font-weight: 700; color: #666;">📝 Arial</h3>
+                <p style="font-size: 1.3rem; font-family: Arial, sans-serif;">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </p>
+                <p style="font-size: 1.1rem; font-weight: bold; font-family: Arial, sans-serif;">
+                    Bold: Thu phí dễ dàng và nhanh chóng
+                </p>
+                <p style="font-size: 0.95rem; color: #666; font-family: Arial, sans-serif;">
+                    System font, reliable but basic, limited weights
+                </p>
+                <div class="computed-font" id="arial-font"></div>
+            </div>
+
+            <div class="font-card other-card">
+                <h3 style="margin-top: 0; font-weight: 700; color: #666;">🎨 Montserrat</h3>
+                <p style="font-size: 1.3rem; font-family: 'Montserrat', sans-serif;">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </p>
+                <p style="font-size: 1.1rem; font-weight: 600; font-family: 'Montserrat', sans-serif;">
+                    Bold: Thu phí dễ dàng và nhanh chóng
+                </p>
+                <p style="font-size: 0.95rem; color: #666; font-family: 'Montserrat', sans-serif; font-weight: 300;">
+                    Modern geometric, similar to Poppins, urban-inspired
+                </p>
+                <div class="computed-font" id="montserrat-font"></div>
+            </div>
+
+            <div class="font-card other-card">
+                <h3 style="margin-top: 0; font-weight: 700; color: #666;">🌐 Open Sans</h3>
+                <p style="font-size: 1.3rem; font-family: 'Open Sans', sans-serif;">
+                    Hệ thống thu phí Hải quan Thành phố Hồ Chí Minh
+                </p>
+                <p style="font-size: 1.1rem; font-weight: 600; font-family: 'Open Sans', sans-serif;">
+                    Bold: Thu phí dễ dàng và nhanh chóng
+                </p>
+                <p style="font-size: 0.95rem; color: #666; font-family: 'Open Sans', sans-serif; font-weight: 300;">
+                    Humanist sans-serif, friendly and readable
+                </p>
+                <div class="computed-font" id="opensans-font"></div>
+            </div>
+        </div>
+
+        <!-- Pros and Cons -->
+        <h2 style="text-align: center; margin: 60px 0 40px; font-weight: 800; font-size: 2.5rem; color: #1f2937;">
+            ⚖️ Ưu nhược điểm SVN-Poppins
+        </h2>
+        <div class="pros-cons">
+            <div class="pros">
+                <h3>✅ Ưu điểm</h3>
+                <ul>
+                    <li><strong>Modern Design:</strong> Geometric, clean và contemporary</li>
+                    <li><strong>9 Font Weights:</strong> Từ Thin (100) đến Black (900)</li>
+                    <li><strong>Full Italic:</strong> Tất cả weights có italic</li>
+                    <li><strong>Excellent Readability:</strong> Perfect cho screens</li>
+                    <li><strong>Vietnamese:</strong> Perfect diacritics support</li>
+                    <li><strong>Professional:</strong> Suitable cho business/government</li>
+                    <li><strong>Versatile:</strong> Body text + headings đều đẹp</li>
+                    <li><strong>Web Optimized:</strong> Google Fonts tối ưu</li>
+                    <li><strong>Popular:</strong> Được sử dụng rộng rãi globally</li>
+                </ul>
+            </div>
+            
+            <div class="cons">
+                <h3>❌ Nhược điểm</h3>
+                <ul>
+                    <li><strong>Loading Time:</strong> Cần tải từ Google Fonts</li>
+                    <li><strong>Network Dependent:</strong> Cần internet để load</li>
+                    <li><strong>Common:</strong> Rất phổ biến, ít distinctive</li>
+                    <li><strong>File Size:</strong> Lớn nếu load nhiều weights</li>
+                    <li><strong>Fallback Risk:</strong> Có thể fail nếu CDN down</li>
+                    <li><strong>FOIT/FOUT:</strong> Flash of invisible/unstyled text</li>
+                    <li><strong>Performance:</strong> Slower than system fonts</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">9</div>
+                <div class="stat-label">Font Weights</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">⚡</div>
+                <div class="stat-label">Google Fonts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Vietnamese OK</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">🎨</div>
+                <div class="stat-label">Modern Design</div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 50px;">
+            <button onclick="checkFonts()">🔍 Kiểm tra Font Loading</button>
+            <button onclick="location.reload()">🔄 Reload Page</button>
+            <button onclick="testWeights()">📊 Test All Weights</button>
+        </div>
+
+        <div id="font-status" style="margin-top: 40px;"></div>
+
+        <!-- Summary -->
+        <div style="text-align: center; margin-top: 50px; padding: 40px; background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899); border-radius: 24px; color: white;">
+            <h2 style="font-weight: 800; font-size: 2.5rem; margin-bottom: 20px;">
+                🎨 SVN-Poppins Font Summary
+            </h2>
+            <p style="font-size: 1.3rem; font-weight: 600; margin-bottom: 25px;">
+                Modern geometric font với 9 weights - Perfect balance between style và functionality
+            </p>
+            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 18px;">
+                <span style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 25px; font-weight: 600;">
+                    ✅ 9 Weights (100-900)
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 25px; font-weight: 600;">
+                    ✅ Full Italic Support
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 25px; font-weight: 600;">
+                    ✅ Vietnamese Perfect
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 25px; font-weight: 600;">
+                    ✅ Modern & Clean
+                </span>
+                <span style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 25px; font-weight: 600;">
+                    ✅ Excellent Readability
+                </span>
+            </div>
+            <p style="margin-top: 25px; font-size: 1.1rem; opacity: 0.95;">
+                💡 Perfect choice cho modern government systems với yêu cầu professional appearance
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function checkFonts() {
+            const poppinsEl = document.querySelector('.poppins-card p');
+            const arialEl = document.querySelector('[style*="Arial"] p');
+            const bodyEl = document.body;
+
+            const poppinsFont = window.getComputedStyle(poppinsEl).fontFamily;
+            const arialFont = window.getComputedStyle(arialEl).fontFamily;
+            const bodyFont = window.getComputedStyle(bodyEl).fontFamily;
+
+            document.getElementById('poppins-font').textContent = 'Font: ' + poppinsFont;
+            document.getElementById('arial-font').textContent = 'Font: ' + arialFont;
+            if (document.getElementById('montserrat-font')) {
+                const montserratEl = document.querySelector('[style*="Montserrat"] p');
+                const montserratFont = window.getComputedStyle(montserratEl).fontFamily;
+                document.getElementById('montserrat-font').textContent = 'Font: ' + montserratFont;
+            }
+            if (document.getElementById('opensans-font')) {
+                const opensansEl = document.querySelector('[style*="Open Sans"] p');
+                const opensansFont = window.getComputedStyle(opensansEl).fontFamily;
+                document.getElementById('opensans-font').textContent = 'Font: ' + opensansFont;
+            }
+
+            const statusEl = document.getElementById('font-status');
+            
+            if (bodyFont.toLowerCase().includes('poppins')) {
+                statusEl.innerHTML = `
+                    <div style="background: linear-gradient(135deg, #d1fae5, #a7f3d0); border: 3px solid #10b981; padding: 30px; border-radius: 20px; text-align: center;">
+                        <h3 style="color: #065f46; margin-top: 0; font-weight: 800;">✅ THÀNH CÔNG!</h3>
+                        <p style="color: #065f46; font-weight: 700; font-size: 1.2rem;">Font Poppins/SVN-Poppins đã được áp dụng thành công!</p>
+                        <div style="font-family: monospace; background: rgba(0,0,0,0.1); padding: 18px; border-radius: 10px; margin-top: 20px; font-size: 14px;">
+                            Body font: ${bodyFont}
+                        </div>
+                        <div style="margin-top: 20px; font-weight: 700; color: #065f46;">
+                            🎨 Modern geometric design với 9 font weights!
+                        </div>
+                    </div>
+                `;
+            } else {
+                statusEl.innerHTML = `
+                    <div style="background: linear-gradient(135deg, #fecaca, #fca5a5); border: 3px solid #ef4444; padding: 30px; border-radius: 20px; text-align: center;">
+                        <h3 style="color: #991b1b; margin-top: 0; font-weight: 800;">❌ CHƯA HOẠT ĐỘNG</h3>
+                        <p style="color: #991b1b; font-weight: 700;">Poppins chưa được áp dụng. Đang sử dụng:</p>
+                        <div style="font-family: monospace; background: rgba(0,0,0,0.1); padding: 18px; border-radius: 10px; margin-top: 20px; font-size: 14px;">
+                            ${bodyFont}
+                        </div>
+                        <div style="margin-top: 20px; font-weight: 700; color: #991b1b;">
+                            💡 Try: Hard refresh (Ctrl+Shift+R) hoặc check network connection
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function testWeights() {
+            const weights = ['100', '200', '300', '400', '500', '600', '700', '800', '900'];
+            const testEl = document.createElement('div');
+            testEl.style.position = 'fixed';
+            testEl.style.top = '50%';
+            testEl.style.left = '50%';
+            testEl.style.transform = 'translate(-50%, -50%)';
+            testEl.style.background = 'white';
+            testEl.style.padding = '30px';
+            testEl.style.borderRadius = '20px';
+            testEl.style.boxShadow = '0 25px 50px rgba(0,0,0,0.3)';
+            testEl.style.zIndex = '9999';
+            testEl.style.maxWidth = '90vw';
+            testEl.style.maxHeight = '80vh';
+            testEl.style.overflow = 'auto';
+            
+            let html = '<h3 style="text-align: center; margin-top: 0; font-weight: 800; color: #1f2937;">🎨 All Poppins Weights Test</h3>';
+            weights.forEach(weight => {
+                html += `<div style="margin: 20px 0; padding: 15px; background: #f8fafc; border-radius: 10px; border-left: 4px solid #6366f1;">
+                    <div style="font-weight: ${weight}; font-size: 1.5rem; color: #1f2937; margin-bottom: 8px;">
+                        Weight ${weight}: Thu phí Hải quan TP.HCM
+                    </div>
+                    <div style="font-weight: ${weight}; font-size: 1rem; color: #6b7280;">
+                        Font weight ${weight} - readability test
+                    </div>
+                </div>`;
+            });
+            html += '<button onclick="this.parentElement.remove()" style="background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; margin-top: 20px; cursor: pointer; font-weight: 600; display: block; margin-left: auto; margin-right: auto;">❌ Close</button>';
+            
+            testEl.innerHTML = html;
+            document.body.appendChild(testEl);
+        }
+
+        // Auto-check khi load
+        window.addEventListener('load', function() {
+            setTimeout(checkFonts, 1500);
+        });
+
+        // Console info
+        console.log(`
+🎨 SVN-POPPINS FONT CHARACTERISTICS:
+✅ Modern: Contemporary geometric design
+✅ Complete: 9 weights (100-900) + full italic
+✅ Readable: Excellent screen readability  
+✅ Vietnamese: Perfect diacritics support
+✅ Professional: Suitable for business/gov
+✅ Versatile: Great for both body text & headings
+✅ Web-optimized: Google Fonts delivery
+❌ Loading: Requires network connection
+❌ Common: Very popular worldwide
+
+💡 BEST USE CASES:
+- Modern web applications
+- Professional government sites  
+- Clean, contemporary interfaces
+- Multi-weight typography systems
+- Vietnamese content platforms
+        `);
+    </script>
+</body>
+</html>

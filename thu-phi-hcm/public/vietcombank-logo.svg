@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200">
+  <!-- Vietcombank Official Logo - Based on provided image -->
+  <defs>
+    <linearGradient id="vietcombankGradient" x1="20%" y1="10%" x2="80%" y2="90%">
+      <stop offset="0%" style="stop-color:#9CCC65;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#66BB6A;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#4CAF50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2E7D32;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Main triangular shield shape -->
+  <path d="M 200 25 
+           C 165 30, 130 45, 110 65
+           C 95 80, 85 95, 85 110
+           C 85 125, 95 140, 110 155
+           C 130 175, 165 190, 200 195
+           C 235 190, 270 175, 290 155
+           C 305 140, 315 125, 315 110
+           C 315 95, 305 80, 290 65
+           C 270 45, 235 30, 200 25 Z" 
+        fill="url(#vietcombankGradient)" 
+        stroke="none"/>
+  
+  <!-- Inner white triangular cutout -->
+  <path d="M 200 55
+           L 165 95
+           L 200 135
+           L 235 95
+           Z" 
+        fill="white" 
+        stroke="none"/>
+  
+  <!-- Vietcombank text -->
+  <text x="200" y="180" 
+        font-family="Arial, Helvetica, sans-serif" 
+        font-size="32" 
+        font-weight="bold" 
+        text-anchor="middle" 
+        letter-spacing="2px"
+        fill="#2E7D32">Vietcombank</text>
+</svg>

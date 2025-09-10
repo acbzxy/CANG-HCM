@@ -1,0 +1,3 @@
+﻿STT,DOANH NGHIỆP,SỐ TK,NGÀY ĐĂNG KÝ,LOẠI HÌNH,HẢI QUAN,ĐỊ LƯU KHO,DỊCH BÁO THUẾ,NGÀY GETOUT,TỔNG TL,ĐVT,LOẠI PHÍ,CHI TIẾT HÀNG CONT,SỐ TIỀN,KHAI PHÍ,BIỆN LAI,MÃ PL HH,MIỄN PHÍ,GHI CHÚ
+1,"CÔNG TY CP THƯƠNG MẠI XYZ",1000021418,20/12/2021,"Đã khai báo phí nhưng chưa nộp","Cục Hải quan Vũng Tàu",KHO003,20/12/2021,21/12/2021,400,Tấn,"Phí kho bãi","Container 20 feet",800,000,"Đã khai báo phí nhưng chưa nộp",Lần 1,PL003,Có,"Hoàn thành"
+2,"CÔNG TY TNHH PQR LOGISTICS",1000021423,10/08/2025,"Đã khai báo phí nhưng chưa nộp","Cục Hải quan Đồng Nai",KHO008,10/08/2025,11/08/2025,2,800,Tấn,"Phí dịch vụ","Hàng rời",5,600,000,"Đã khai báo phí nhưng chưa nộp",Lần 1,PL008,Không,"Đã có thông báo"

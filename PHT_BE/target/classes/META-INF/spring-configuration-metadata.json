@@ -1,0 +1,172 @@
+{
+  "groups": [
+    {
+      "name": "backend",
+      "type": "com.pht.config.BackEndProperties",
+      "sourceType": "com.pht.config.BackEndProperties"
+    },
+    {
+      "name": "backend.async",
+      "type": "com.pht.config.BackEndProperties$AsyncProperties",
+      "sourceType": "com.pht.config.BackEndProperties"
+    },
+    {
+      "name": "backend.http-logging",
+      "type": "com.pht.config.BackEndProperties$HttpLogging",
+      "sourceType": "com.pht.config.BackEndProperties"
+    },
+    {
+      "name": "backend.logging-integration",
+      "type": "com.pht.config.BackEndProperties$LoggingIntegration",
+      "sourceType": "com.pht.config.BackEndProperties"
+    },
+    {
+      "name": "backend.security",
+      "type": "com.pht.config.BackEndProperties$Security",
+      "sourceType": "com.pht.config.BackEndProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "backend.add-info-to-response-body",
+      "type": "java.lang.Boolean",
+      "description": "Add information like: request_id, start_time, end_time, execution_time to response body.",
+      "sourceType": "com.pht.config.BackEndProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "backend.async.core-pool-size",
+      "type": "java.lang.Integer",
+      "sourceType": "com.pht.config.BackEndProperties$AsyncProperties",
+      "defaultValue": 5
+    },
+    {
+      "name": "backend.async.logging-stats-delay-millis",
+      "type": "java.lang.Integer",
+      "sourceType": "com.pht.config.BackEndProperties$AsyncProperties",
+      "defaultValue": 30000
+    },
+    {
+      "name": "backend.async.logging-stats-enabled",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.pht.config.BackEndProperties$AsyncProperties",
+      "defaultValue": true
+    },
+    {
+      "name": "backend.async.max-pool-size",
+      "type": "java.lang.Integer",
+      "sourceType": "com.pht.config.BackEndProperties$AsyncProperties",
+      "defaultValue": 10
+    },
+    {
+      "name": "backend.async.queue-capacity",
+      "type": "java.lang.Integer",
+      "sourceType": "com.pht.config.BackEndProperties$AsyncProperties",
+      "defaultValue": 30
+    },
+    {
+      "name": "backend.async.thread-name-prefix",
+      "type": "java.lang.String",
+      "sourceType": "com.pht.config.BackEndProperties$AsyncProperties",
+      "defaultValue": "CoreAsyncTaskExecutor-"
+    },
+    {
+      "name": "backend.http-logging.body-max-length",
+      "type": "java.lang.Integer",
+      "description": "Set the max length for the request or response body and truncate if it reaches the max length.",
+      "sourceType": "com.pht.config.BackEndProperties$HttpLogging",
+      "defaultValue": 0
+    },
+    {
+      "name": "backend.http-logging.exclude-headers",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "com.pht.config.BackEndProperties$HttpLogging"
+    },
+    {
+      "name": "backend.http-logging.log-request",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.pht.config.BackEndProperties$HttpLogging",
+      "defaultValue": false
+    },
+    {
+      "name": "backend.http-logging.log-response",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.pht.config.BackEndProperties$HttpLogging",
+      "defaultValue": false
+    },
+    {
+      "name": "backend.http-logging.masking-attributes",
+      "type": "java.util.List<java.lang.String>",
+      "description": "Hide sensitive information.",
+      "sourceType": "com.pht.config.BackEndProperties$HttpLogging"
+    },
+    {
+      "name": "backend.http-logging.style",
+      "type": "com.pht.common.constants.LogStyle",
+      "sourceType": "com.pht.config.BackEndProperties$HttpLogging"
+    },
+    {
+      "name": "backend.locale-change-by-param",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.pht.config.BackEndProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "backend.locale-header-name",
+      "type": "java.lang.String",
+      "sourceType": "com.pht.config.BackEndProperties"
+    },
+    {
+      "name": "backend.logging-integration.send-audit-log",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.pht.config.BackEndProperties$LoggingIntegration",
+      "defaultValue": false
+    },
+    {
+      "name": "backend.logging-integration.send-request-response-log",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.pht.config.BackEndProperties$LoggingIntegration",
+      "defaultValue": false
+    },
+    {
+      "name": "backend.message-basenames",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "com.pht.config.BackEndProperties"
+    },
+    {
+      "name": "backend.message-default-locale",
+      "type": "java.lang.String",
+      "sourceType": "com.pht.config.BackEndProperties"
+    },
+    {
+      "name": "backend.migrate-db-locations",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "com.pht.config.BackEndProperties"
+    },
+    {
+      "name": "backend.migrate-db-on-start",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.pht.config.BackEndProperties",
+      "defaultValue": false
+    },
+    {
+      "name": "backend.redis-command-topic",
+      "type": "java.lang.String",
+      "sourceType": "com.pht.config.BackEndProperties",
+      "defaultValue": "cmd"
+    },
+    {
+      "name": "backend.redis-serializer",
+      "type": "com.pht.common.constants.CoreConstants$RedisSerializer",
+      "sourceType": "com.pht.config.BackEndProperties"
+    },
+    {
+      "name": "backend.security.any-request-permit-all",
+      "type": "java.lang.Boolean",
+      "description": "Set 'false' for authenticated.",
+      "sourceType": "com.pht.config.BackEndProperties$Security",
+      "defaultValue": true
+    }
+  ],
+  "hints": []
+}

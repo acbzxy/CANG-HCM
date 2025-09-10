@@ -1,0 +1,472 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure body and html are transparent for background */
+html, body, #root {
+  background: transparent !important;
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    font-family: 'Poppins', 'SVN-Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    @apply text-gray-900;
+    line-height: 1.6;
+    background: transparent !important;
+    overflow-x: hidden;
+  }
+  
+  * {
+    @apply box-border;
+  }
+}
+
+@layer components {
+  /* Original Sidebar Styles */
+  .original-main-container {
+    @apply flex min-h-screen bg-gray-50;
+  }
+  
+  .original-sidebar {
+    @apply fixed left-0 top-0 h-full w-64 bg-blue-900 text-white shadow-lg z-40 transition-transform duration-300;
+  }
+  
+  .original-sidebar.collapsed {
+    @apply -translate-x-full;
+  }
+  
+  .original-main-content {
+    @apply flex-1 ml-64 pt-16 min-h-screen transition-all duration-300;
+  }
+  
+  .original-main-content.sidebar-collapsed {
+    @apply ml-0;
+  }
+  
+  .original-sidebar-header {
+    @apply p-4 border-b border-blue-800;
+  }
+  
+  .original-user-profile {
+    @apply flex items-center space-x-3;
+  }
+  
+  .original-profile-img {
+    @apply w-10 h-10 rounded-full;
+  }
+  
+  .original-user-details {
+    @apply flex-1;
+  }
+  
+  .original-user-status {
+    @apply text-sm font-medium;
+  }
+  
+  .original-user-role {
+    @apply text-xs text-blue-300;
+  }
+  
+  .original-sidebar-nav {
+    @apply flex-1 overflow-y-auto;
+  }
+  
+  .original-nav-menu {
+    @apply space-y-1 p-2;
+  }
+  
+  .original-nav-item {
+    @apply list-none;
+  }
+  
+  .original-nav-link {
+    @apply flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium text-blue-100 hover:text-white hover:bg-blue-800 transition-colors duration-200 cursor-pointer;
+  }
+  
+  .original-nav-link.active {
+    @apply bg-blue-700 text-white;
+  }
+  
+  .original-submenu {
+    @apply ml-6 mt-1 space-y-1 overflow-hidden transition-all duration-300;
+  }
+  
+  .original-submenu.show {
+    @apply block;
+  }
+  
+  .original-submenu-item {
+    @apply list-none;
+  }
+  
+  .original-submenu-link {
+    @apply flex items-center px-3 py-2 text-sm text-blue-200 hover:text-white hover:bg-blue-800 rounded-md transition-colors duration-200;
+  }
+  
+  .original-submenu-link.active {
+    @apply bg-blue-600 text-white;
+  }
+
+  /* Header Styles */
+  .original-header {
+    @apply fixed top-0 left-64 right-0 bg-white shadow-sm border-b border-gray-200 z-30 transition-all duration-300;
+  }
+  
+  .original-header-content {
+    @apply flex items-center justify-between px-6 py-3;
+  }
+  
+  .original-header-left {
+    @apply flex items-center space-x-4;
+  }
+  
+  .original-menu-toggle {
+    @apply p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors duration-200;
+  }
+  
+  .original-header-right {
+    @apply flex items-center space-x-4;
+  }
+  
+  .original-user-info {
+    @apply text-sm text-gray-700;
+  }
+  
+  .original-btn-logout {
+    @apply px-3 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors duration-200;
+  }
+  
+  /* Responsive header when sidebar is collapsed */
+  .sidebar-collapsed .original-header {
+    @apply left-0;
+  }
+
+  /* Button variants */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+  }
+  
+  .btn-success {
+    @apply bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
+  }
+  
+  .btn-warning {
+    @apply bg-yellow-500 text-gray-900 hover:bg-yellow-600 focus:ring-yellow-500;
+  }
+  
+  .btn-danger {
+    @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+  }
+  
+  .btn-info {
+    @apply bg-cyan-600 text-white hover:bg-cyan-700 focus:ring-cyan-500;
+  }
+  
+  /* Form components */
+  .form-input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500;
+  }
+  
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+  }
+  
+  .form-group {
+    @apply mb-4;
+  }
+  
+  /* Card components */
+  .card {
+    @apply bg-white rounded-lg shadow-md border border-gray-200;
+  }
+  
+  .card-header {
+    @apply px-6 py-4 border-b border-gray-200 bg-gray-50;
+  }
+  
+  .card-body {
+    @apply px-6 py-4;
+  }
+  
+  .card-footer {
+    @apply px-6 py-4 border-t border-gray-200 bg-gray-50;
+  }
+  
+  /* Navigation */
+  .nav-link {
+    @apply flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors duration-200;
+  }
+  
+  .nav-link.active {
+    @apply bg-blue-50 text-blue-600 border-r-2 border-blue-600;
+  }
+  
+  /* Utilities */
+  .text-gradient {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+  }
+  
+  .shadow-card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .shadow-card-hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* Modern Custom Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+/* Animation Classes */
+.animate-slide-in {
+  animation: slideIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animate-slide-out {
+  animation: slideOut 0.3s cubic-bezier(0.55, 0.055, 0.675, 0.19);
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.animate-pulse-custom {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Staggered animations */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+
+/* Vietnamese text support - SVN-Poppins font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+body {
+  font-family: 'Poppins', 'SVN-Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Submenu toggle animation */
+.rotate-180 {
+  transform: rotate(180deg);
+}
+
+.frame-body {
+  @apply overflow-y-auto w-full bg-white relative;
+}
+
+.item-search {
+  @apply w-[120px] mb-[5px] inline-block mr-[2px] h-[33px] border border-[#c1c1c1] py-[3px] px-[5px];
+}
+
+.table-header {
+  @apply py-[10px] px-[3px] border-r text-center font-bold uppercase text-[13px];
+}
+
+.sticky-header {
+  @apply border-t border-[#e6e6e6] sticky top-[-1px] bg-[#f5f5f5] z-[1];
+}
+
+.modal-header {
+  @apply flex items-start justify-between px-[15px] py-[10px] rounded-none text-black;
+}
+
+.modal-title {
+  @apply capitalize text-[17px];
+}
+
+.modal-body {
+  @apply relative overflow-auto flex-1 p-4;
+}
+
+.progressbar {
+  counter-reset: step;
+}
+
+.progressbar li {
+  @apply relative list-none text-center font-bold text-[10px] uppercase tracking-[1px] w-full;
+}
+
+/* Circle số */
+.progressbar li::before {
+  content: counter(step);
+  counter-increment: step;
+  @apply block w-[25px] h-[25px] leading-[25px] text-[13px] text-[#333] bg-white rounded-full mx-auto mb-2 z-10 relative;
+}
+
+/* Line nối */
+.progressbar li::after {
+  content: "";
+  @apply absolute top-[12px] left-1/2 w-full h-[2px] bg-[#f7f3f3];
+  z-index: 0;
+}
+
+/* Ẩn line cuối cùng */
+.progressbar li:last-child::after {
+  content: none;
+}
+
+/* Active step */
+.progressbar li.active::before {
+  @apply bg-[#006cbf] text-white;
+}
+
+.item-frame {
+  @apply bg-white rounded-[2px] p-[10px] mb-[15px] relative;
+}
+
+.frame-body {
+  @apply overflow-y-auto w-full bg-white relative;
+}
+
+.item-search {
+  @apply w-[120px] mb-[5px] inline-block mr-[2px] h-[33px] border border-[#c1c1c1] py-[3px] px-[5px];
+}
+
+.table-header {
+  @apply py-[10px] px-[3px] border-r text-center font-bold uppercase text-[13px];
+}
+
+.sticky-header {
+  @apply border-t border-[#e6e6e6] sticky top-[-1px] bg-[#f5f5f5] z-[1];
+}
