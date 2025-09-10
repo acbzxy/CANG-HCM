@@ -90,6 +90,7 @@ com\pht\model\request\StramTpCreateRequest.class
 com\pht\utils\DateUtils.class
 com\pht\common\helper\ApplicationContextProvider.class
 com\pht\config\OpenAPIConfig.class
+com\pht\util\SequenceGenerator.class
 com\pht\constants\CommonConstants$NHOM_NV.class
 com\pht\controller\ToKhaiThongTinController.class
 com\pht\exception\CustomError.class
