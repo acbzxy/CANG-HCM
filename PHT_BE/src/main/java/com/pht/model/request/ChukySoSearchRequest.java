@@ -28,6 +28,6 @@ public class ChukySoSearchRequest {
     // Pagination
     private Integer page = 0;
     private Integer size = 10;
-    private String sortBy = "ngayTao";
+    private String sortBy = "id";
     private String sortDir = "desc";
 }

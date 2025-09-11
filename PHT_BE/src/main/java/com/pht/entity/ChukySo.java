@@ -7,13 +7,28 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(name = "CHUKY_SO")
+@Table(
+    name = "SCHU_KY_SO",
+    indexes = {
+        @Index(name = "IDX_SCHU_KY_SO_SERIAL_NUMBER", columnList = "SERIAL_NUMBER"),
+        @Index(name = "IDX_SCHU_KY_SO_MA_DOANH_NGHIEP", columnList = "MA_DOANH_NGHIEP"),
+        @Index(name = "IDX_SCHU_KY_SO_MA_SO_THUE", columnList = "MA_SO_THUE"),
+        @Index(name = "IDX_SCHU_KY_SO_IS_ACTIVE", columnList = "IS_ACTIVE"),
+        @Index(name = "IDX_SCHU_KY_SO_IS_DEFAULT", columnList = "IS_DEFAULT"),
+        @Index(name = "IDX_SCHU_KY_SO_TRANG_THAI", columnList = "TRANG_THAI")
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "UK_SCHU_KY_SO_SERIAL_NUMBER", columnNames = "SERIAL_NUMBER")
+    }
+)
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class ChukySo {
@@ -60,8 +75,18 @@ public class ChukySo {
     @Column(name = "PUBLIC_KEY", columnDefinition = "TEXT")
     private String publicKey;
 
+    // THÔNG TIN THUẬT TOÁN KÝ
+    @Column(name = "SIGNATURE_ALGORITHM", length = 100)
+    private String signatureAlgorithm;
+
+    @Column(name = "HASH_ALGORITHM", length = 100)
+    private String hashAlgorithm;
+
+    @Column(name = "THUMBPRINT", length = 100)
+    private String thumbprint;
+
     // THÔNG TIN TRẠNG THÁI
-    @Column(name = "TRANG_THAI", length = 50)
+    @Column(name = "TRANG_THAI", length = 50, nullable = false)
     private String trangThai;
 
     @Column(name = "LOAI_CHU_KY", length = 100)
@@ -70,26 +95,13 @@ public class ChukySo {
     @Column(name = "GHI_CHU", length = 500)
     private String ghiChu;
 
-    // THÔNG TIN AUDIT
-    @Column(name = "NGAY_TAO")
-    private LocalDateTime ngayTao;
-
-    @Column(name = "NGUOI_TAO", length = 100)
-    private String nguoiTao;
-
-    @Column(name = "NGAY_CAP_NHAT")
-    private LocalDateTime ngayCapNhat;
-
-    @Column(name = "NGUOI_CAP_NHAT", length = 100)
-    private String nguoiCapNhat;
-
     // THÔNG TIN BẢO MẬT
     @Column(name = "PASSWORD", length = 255)
     private String password;
 
-    @Column(name = "IS_ACTIVE")
-    private Boolean isActive;
+    @Column(name = "IS_ACTIVE", nullable = false)
+    private Boolean isActive = true;
 
-    @Column(name = "IS_DEFAULT")
-    private Boolean isDefault;
+    @Column(name = "IS_DEFAULT", nullable = false)
+    private Boolean isDefault = false;
 }

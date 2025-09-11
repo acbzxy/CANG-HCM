@@ -12,11 +12,6 @@ public abstract class ChukySo_ {
 
 	
 	/**
-	 * @see com.pht.entity.ChukySo#nguoiCapNhat
-	 **/
-	public static volatile SingularAttribute<ChukySo, String> nguoiCapNhat;
-	
-	/**
 	 * @see com.pht.entity.ChukySo#serialNumber
 	 **/
 	public static volatile SingularAttribute<ChukySo, String> serialNumber;
@@ -37,9 +32,9 @@ public abstract class ChukySo_ {
 	public static volatile SingularAttribute<ChukySo, String> certificateData;
 	
 	/**
-	 * @see com.pht.entity.ChukySo#ngayCapNhat
+	 * @see com.pht.entity.ChukySo#thumbprint
 	 **/
-	public static volatile SingularAttribute<ChukySo, LocalDateTime> ngayCapNhat;
+	public static volatile SingularAttribute<ChukySo, String> thumbprint;
 	
 	/**
 	 * @see com.pht.entity.ChukySo#validFrom
@@ -62,9 +57,9 @@ public abstract class ChukySo_ {
 	public static volatile SingularAttribute<ChukySo, String> issuer;
 	
 	/**
-	 * @see com.pht.entity.ChukySo#ngayTao
+	 * @see com.pht.entity.ChukySo#signatureAlgorithm
 	 **/
-	public static volatile SingularAttribute<ChukySo, LocalDateTime> ngayTao;
+	public static volatile SingularAttribute<ChukySo, String> signatureAlgorithm;
 	
 	/**
 	 * @see com.pht.entity.ChukySo#privateKey
@@ -107,14 +102,14 @@ public abstract class ChukySo_ {
 	public static volatile SingularAttribute<ChukySo, Long> id;
 	
 	/**
-	 * @see com.pht.entity.ChukySo#nguoiTao
-	 **/
-	public static volatile SingularAttribute<ChukySo, String> nguoiTao;
-	
-	/**
 	 * @see com.pht.entity.ChukySo
 	 **/
 	public static volatile EntityType<ChukySo> class_;
+	
+	/**
+	 * @see com.pht.entity.ChukySo#hashAlgorithm
+	 **/
+	public static volatile SingularAttribute<ChukySo, String> hashAlgorithm;
 	
 	/**
 	 * @see com.pht.entity.ChukySo#validTo
@@ -126,17 +121,16 @@ public abstract class ChukySo_ {
 	 **/
 	public static volatile SingularAttribute<ChukySo, String> maDoanhNghiep;
 
-	public static final String NGUOI_CAP_NHAT = "nguoiCapNhat";
 	public static final String SERIAL_NUMBER = "serialNumber";
 	public static final String GHI_CHU = "ghiChu";
 	public static final String SUBJECT = "subject";
 	public static final String CERTIFICATE_DATA = "certificateData";
-	public static final String NGAY_CAP_NHAT = "ngayCapNhat";
+	public static final String THUMBPRINT = "thumbprint";
 	public static final String VALID_FROM = "validFrom";
 	public static final String PUBLIC_KEY = "publicKey";
 	public static final String IS_ACTIVE = "isActive";
 	public static final String ISSUER = "issuer";
-	public static final String NGAY_TAO = "ngayTao";
+	public static final String SIGNATURE_ALGORITHM = "signatureAlgorithm";
 	public static final String PRIVATE_KEY = "privateKey";
 	public static final String PASSWORD = "password";
 	public static final String IS_DEFAULT = "isDefault";
@@ -145,7 +139,7 @@ public abstract class ChukySo_ {
 	public static final String MA_SO_THUE = "maSoThue";
 	public static final String LOAI_CHU_KY = "loaiChuKy";
 	public static final String ID = "id";
-	public static final String NGUOI_TAO = "nguoiTao";
+	public static final String HASH_ALGORITHM = "hashAlgorithm";
 	public static final String VALID_TO = "validTo";
 	public static final String MA_DOANH_NGHIEP = "maDoanhNghiep";
 

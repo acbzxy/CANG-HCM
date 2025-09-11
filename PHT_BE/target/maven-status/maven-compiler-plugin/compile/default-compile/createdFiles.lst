@@ -8,6 +8,7 @@ com\pht\utils\ConnUtil.class
 com\pht\entity\ToKhaiThongTinChiTiet.class
 com\pht\entity\SdiaDiemLuuKho.class
 com\pht\model\request\LayThongTinHaiQuanRequest.class
+com\pht\model\response\ImportCertificateResponse.class
 com\pht\utils\EsbUtils.class
 com\pht\model\response\SearchIcrFrontendResponse.class
 com\pht\service\impl\SmauPhiBienLaiServiceImpl.class
@@ -26,6 +27,7 @@ com\pht\entity\Sdvt_.class
 com\pht\utils\XExcelEngine.class
 com\pht\model\request\ChukySoCreateRequest.class
 com\pht\model\request\ParseHaiQuanDataRequest.class
+com\pht\model\request\ImportCertificateRequest.class
 com\pht\model\request\SloaiHinhSearchRequest.class
 com\pht\entity\SloaiBieuCuoc_.class
 com\pht\utils\ReplaceChar.class
@@ -49,7 +51,6 @@ com\pht\utils\PagingUtils.class
 com\pht\entity\ShaiQuan.class
 com\pht\model\request\SdoanhNghiepCreateRequest.class
 com\pht\common\helper\MessageHelper.class
-com\pht\controller\XmlGenerationController.class
 com\pht\model\request\SmauPhiBienLaiUpdateRequest.class
 com\pht\model\request\SloaiHinhUpdateRequest.class
 com\pht\common\constants\CommonConstants$DateTimePattern.class
@@ -103,13 +104,11 @@ com\pht\common\model\request\QueryRequest.class
 com\pht\entity\ShaiQuan_.class
 com\pht\constants\CommonConstants$DateTimePattern.class
 com\pht\common\model\AuditDetail.class
-com\pht\service\DigitalSignatureService.class
 com\pht\common\helper\AccountHelper.class
 com\pht\service\impl\StramTpServiceImpl.class
 com\pht\config\WebConfig.class
 com\pht\config\BackEndProperties$AsyncProperties.class
 com\pht\common\model\Export.class
-com\pht\model\request\KySoRequest.class
 com\pht\model\request\SdvtSearchRequest.class
 com\pht\model\response\ReplaceInvoiceResponse.class
 com\pht\utils\RegExUtils.class
@@ -120,7 +119,6 @@ com\pht\entity\SloaiThanhToan.class
 com\pht\entity\SmauPhiBienLai.class
 com\pht\utils\Attachments.class
 com\pht\model\response\ChiTietHaiQuanResponse.class
-com\pht\service\impl\ChuKySoServiceImpl.class
 com\pht\service\SloaiThanhToanService.class
 com\pht\model\response\HaiQuanXmlResponse.class
 com\pht\common\model\AuditDetail$AuditDetailBuilder.class
@@ -135,6 +133,7 @@ com\pht\exception\RestGlobalExceptionHandler.class
 com\fis\ws\util\XMLUtils.class
 com\pht\controller\SnganHangController.class
 com\pht\utils\SortUtils.class
+com\pht\service\DatabaseCertificateService.class
 com\pht\repository\SdvtRepository.class
 com\pht\utils\XMLUtils.class
 com\pht\common\constants\LogStyle.class
@@ -151,6 +150,7 @@ com\pht\model\request\SphuongThucVanTaiCreateRequest.class
 com\pht\controller\ShaiQuanController.class
 com\pht\repository\SloaiHinhRepository.class
 com\pht\model\request\XmlGenerationRequest.class
+com\pht\service\CertificateFileImportService.class
 com\pht\entity\SdoanhNghiep_.class
 com\pht\model\request\SloaiHinhCreateRequest.class
 com\pht\common\PageInfo.class
@@ -169,9 +169,9 @@ com\pht\model\request\ReplaceInvoiceRequest.class
 com\pht\utils\DateTimeUtils.class
 com\pht\service\IBaseService.class
 com\pht\model\request\BulkOperationRequest.class
-com\pht\model\response\KySoResponse.class
 com\pht\repository\SphuongThucVanTaiRepository.class
 com\pht\model\request\SloaiThanhToanCreateRequest.class
+com\pht\service\impl\CertificateImportServiceImpl.class
 com\pht\model\request\SearchInvoiceRequest$UserInfo.class
 com\pht\utils\Config.class
 com\pht\utils\ObjectUtils.class
@@ -196,6 +196,7 @@ com\pht\utils\ClassUtils.class
 com\pht\config\BackEndProperties$LoggingIntegration.class
 com\pht\common\model\ApiDataResponse.class
 com\pht\model\request\SloaiContSearchRequest.class
+com\pht\model\response\ImportCertificateResponse$ImportCertificateResponseBuilder.class
 com\pht\service\SloaiContService.class
 com\pht\model\request\SdoanhNghiepSearchRequest.class
 com\pht\interceptor\AddInfoResponseBodyAdvice.class
@@ -254,6 +255,7 @@ com\pht\common\model\response\PagingResponse$PagingResponseBuilder.class
 com\pht\entity\ToKhaiThongTin.class
 com\pht\model\request\SdiaDiemLuuKhoSearchRequest.class
 com\pht\service\StramTpService.class
+com\pht\service\CertificateImportService.class
 com\pht\utils\LogUtils.class
 com\pht\controller\SdiaDiemLuuKhoController.class
 com\pht\entity\SbieuCuoc.class
@@ -268,12 +270,14 @@ com\pht\model\request\SdiaDiemLuuKhoCreateRequest.class
 com\pht\service\impl\SbieuCuocServiceImpl.class
 com\pht\service\impl\SnganHangServiceImpl.class
 com\pht\controller\SloaiThanhToanController.class
+com\pht\service\impl\P12Data.class
 com\pht\common\constants\GipConstant.class
 com\pht\common\constants\CoreConstants.class
 com\pht\model\request\SloaiThanhToanUpdateRequest.class
 com\pht\entity\ToKhaiThongTinChiTiet_.class
 com\pht\model\request\CancelInvoiceRequest.class
 com\pht\model\request\SmauPhiBienLaiSearchRequest.class
+com\pht\service\impl\DatabaseCertificateServiceImpl.class
 com\pht\common\annotation\EnableJpaAudit.class
 com\pht\service\SloaiBieuCuocService.class
 com\pht\controller\ChuKySoController.class
@@ -293,6 +297,7 @@ com\pht\model\request\SearchInvoiceRequest.class
 com\pht\model\request\ReplaceInvoiceRequest$InvInfo$AdjInfo.class
 com\pht\type\LongTypeHandler.class
 com\pht\entity\SnganHang.class
+com\pht\model\request\ImportCertificateFileRequest.class
 com\pht\service\IFactory.class
 com\pht\service\impl\ShaiQuanServiceImpl.class
 com\pht\model\request\ShaiQuanSearchRequest.class
@@ -304,6 +309,7 @@ com\pht\model\request\ShaiQuanCreateRequest.class
 com\pht\entity\Sdvt.class
 com\pht\entity\SkhoCang_.class
 com\pht\utils\HttpUtils.class
+com\pht\service\impl\CertificateFileImportServiceImpl.class
 com\pht\service\impl\SdiaDiemLuuKhoServiceImpl.class
 com\pht\repository\SloaiBieuCuocRepository.class
 com\pht\model\response\NotificationResponse$NotificationResponseBuilder.class

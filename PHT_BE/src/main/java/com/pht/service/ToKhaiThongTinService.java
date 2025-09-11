@@ -24,4 +24,6 @@ public interface ToKhaiThongTinService extends BaseService<ToKhaiThongTin, Long>
     
     NotificationResponse createNotification(NotificationRequest request) throws BusinessException;
     
+    List<ToKhaiThongTin> findByTrangThai(String trangThai);
+    
 }

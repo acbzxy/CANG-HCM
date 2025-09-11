@@ -15,4 +15,7 @@ public class XmlGenerationRequest {
 
     @Schema(description = "Lần ký (1: lưu vào KYLAN1_XML, khác: lưu vào KYLAN2_XML)", example = "1", defaultValue = "1")
     private Integer lanKy = 1;
+
+    @Schema(description = "Serial Number của chữ ký số để ký XML (lấy từ danh sách chữ ký số có sẵn)", example = "1234567890ABCDEF")
+    private String serialNumber;
 }

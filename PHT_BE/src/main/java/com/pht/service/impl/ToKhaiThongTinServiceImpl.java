@@ -235,4 +235,10 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<ToKhaiThongTin, L
         
         return soThongBao;
     }
+    
+    @Override
+    public List<ToKhaiThongTin> findByTrangThai(String trangThai) {
+        log.info("Tìm tờ khai thông tin theo trạng thái: {}", trangThai);
+        return toKhaiThongTinRepository.findByTrangThai(trangThai);
+    }
 }

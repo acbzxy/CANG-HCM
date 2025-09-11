@@ -9,20 +9,21 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.pht.common.OrderBy;
 import com.pht.common.helper.ResponseHelper;
-import com.pht.common.model.ApiDataResponse;
 import com.pht.entity.ToKhaiThongTin;
+import com.pht.exception.BusinessException;
 import com.pht.model.request.NotificationRequest;
 import com.pht.model.request.ToKhaiThongTinRequest;
-import com.pht.model.request.UpdateTrangThaiRequest;
 import com.pht.model.request.UpdateTrangThaiPhatHanhRequest;
+import com.pht.model.request.UpdateTrangThaiRequest;
 import com.pht.model.response.NotificationResponse;
 import com.pht.service.ToKhaiThongTinService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -35,27 +36,84 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/tokhai-thongtin")
-@Tag(name = "Tờ khai thông tin", description = "Quản lý tờ khai thông tin")
+@Tag(name = "Tờ khai thông tin", description = "API quản lý tờ khai thông tin")
 public class ToKhaiThongTinController {
 
     private final ToKhaiThongTinService toKhaiThongTinService;
 
+    @Operation(summary = "Lấy danh sách tờ khai theo trạng thái")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Thành công", content = {
+                    @Content(schema = @Schema(implementation = com.pht.common.model.ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi", content = {
+                    @Content(schema = @Schema(implementation = com.pht.common.OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @GetMapping("/danh-sach")
+    public ResponseEntity<?> layDanhSachToKhai(
+            @Parameter(description = "Trạng thái tờ khai", example = "02")
+            @RequestParam(defaultValue = "02") String trangThai) {
+        try {
+            log.info("Nhận yêu cầu lấy danh sách tờ khai với trạng thái: {}", trangThai);
+            
+            List<ToKhaiThongTin> toKhaiList = toKhaiThongTinService.findByTrangThai(trangThai);
+            
+            log.info("Tìm thấy {} tờ khai với trạng thái {}", toKhaiList.size(), trangThai);
+            
+            return ResponseHelper.ok(toKhaiList);
+        } catch (Exception ex) {
+            log.error("Lỗi khi lấy danh sách tờ khai: ", ex);
+            return ResponseHelper.error(ex);
+        }
+    }
+
+    @Operation(summary = "Lấy danh sách tờ khai trạng thái 02")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Thành công", content = {
+                    @Content(schema = @Schema(implementation = com.pht.common.model.ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi", content = {
+                    @Content(schema = @Schema(implementation = com.pht.common.OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @GetMapping("/ds-nphi")
+    public ResponseEntity<?> layDanhSachToKhaiTrangThai02() {
+        try {
+            log.info("Nhận yêu cầu lấy danh sách tờ khai trạng thái 02");
+            
+            List<ToKhaiThongTin> toKhaiList = toKhaiThongTinService.findByTrangThai("02");
+            
+            log.info("Tìm thấy {} tờ khai với trạng thái 02", toKhaiList.size());
+            
+            return ResponseHelper.ok(toKhaiList);
+        } catch (Exception ex) {
+            log.error("Lỗi khi lấy danh sách tờ khai trạng thái 02: ", ex);
+            return ResponseHelper.error(ex);
+        }
+    }
+
     @Operation(summary = "Lấy danh sách tất cả tờ khai thông tin")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Thành công", content = {
-                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
+                    @Content(schema = @Schema(implementation = com.pht.common.model.ApiDataResponse.class), mediaType = "application/json")
             }),
             @ApiResponse(responseCode = "500", description = "Lỗi", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+                    @Content(schema = @Schema(implementation = com.pht.common.OrderBy.ApiErrorResponse.class), mediaType = "application/json")
             })
     })
     @GetMapping("/all")
-    public ResponseEntity<?> getAllToKhaiThongTin() {
+    public ResponseEntity<?> layDanhSachTatCaToKhai() {
         try {
-            List<ToKhaiThongTin> result = toKhaiThongTinService.getAllToKhaiThongTin();
-            return ResponseHelper.ok(result);
+            log.info("Nhận yêu cầu lấy danh sách tất cả tờ khai thông tin");
+            
+            List<ToKhaiThongTin> toKhaiList = toKhaiThongTinService.getAllToKhaiThongTin();
+            
+            log.info("Tìm thấy {} tờ khai thông tin", toKhaiList.size());
+            
+            return ResponseHelper.ok(toKhaiList);
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.error("Lỗi khi lấy danh sách tất cả tờ khai thông tin: ", ex);
             return ResponseHelper.error(ex);
         }
     }
@@ -63,22 +121,29 @@ public class ToKhaiThongTinController {
     @Operation(summary = "Lấy tờ khai thông tin theo ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Thành công", content = {
-                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
-            }),
-            @ApiResponse(responseCode = "404", description = "Không tìm thấy", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+                    @Content(schema = @Schema(implementation = com.pht.common.model.ApiDataResponse.class), mediaType = "application/json")
             }),
             @ApiResponse(responseCode = "500", description = "Lỗi", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+                    @Content(schema = @Schema(implementation = com.pht.common.OrderBy.ApiErrorResponse.class), mediaType = "application/json")
             })
     })
     @GetMapping("/{id}")
-    public ResponseEntity<?> getToKhaiThongTinById(@PathVariable Long id) {
+    public ResponseEntity<?> layToKhaiThongTinTheoId(
+            @Parameter(description = "ID tờ khai thông tin", example = "1")
+            @PathVariable Long id) {
         try {
-            ToKhaiThongTin result = toKhaiThongTinService.getToKhaiThongTinById(id);
-            return ResponseHelper.ok(result);
+            log.info("Nhận yêu cầu lấy tờ khai thông tin theo ID: {}", id);
+            
+            ToKhaiThongTin toKhai = toKhaiThongTinService.getToKhaiThongTinById(id);
+            
+            log.info("Tìm thấy tờ khai thông tin với ID: {}", id);
+            
+            return ResponseHelper.ok(toKhai);
+        } catch (BusinessException ex) {
+            log.error("Lỗi business khi lấy tờ khai thông tin theo ID {}: {}", id, ex.getMessage());
+            return ResponseHelper.error(ex);
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.error("Lỗi khi lấy tờ khai thông tin theo ID {}: ", id, ex);
             return ResponseHelper.error(ex);
         }
     }
@@ -86,22 +151,55 @@ public class ToKhaiThongTinController {
     @Operation(summary = "Tạo mới tờ khai thông tin")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Thành công", content = {
-                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
-            }),
-            @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+                    @Content(schema = @Schema(implementation = com.pht.common.model.ApiDataResponse.class), mediaType = "application/json")
             }),
             @ApiResponse(responseCode = "500", description = "Lỗi", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+                    @Content(schema = @Schema(implementation = com.pht.common.OrderBy.ApiErrorResponse.class), mediaType = "application/json")
             })
     })
     @PostMapping("/create")
-    public ResponseEntity<?> createToKhaiThongTin(@RequestBody ToKhaiThongTinRequest request) {
+    public ResponseEntity<?> taoMoiToKhaiThongTin(@RequestBody ToKhaiThongTinRequest request) {
         try {
-            ToKhaiThongTin result = toKhaiThongTinService.createToKhaiThongTin(request);
-            return ResponseHelper.ok(result);
+            log.info("Nhận yêu cầu tạo mới tờ khai thông tin");
+            
+            ToKhaiThongTin toKhai = toKhaiThongTinService.createToKhaiThongTin(request);
+            
+            log.info("Tạo mới tờ khai thông tin thành công với ID: {}", toKhai.getId());
+            
+            return ResponseHelper.ok(toKhai);
+        } catch (BusinessException ex) {
+            log.error("Lỗi business khi tạo mới tờ khai thông tin: {}", ex.getMessage());
+            return ResponseHelper.error(ex);
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.error("Lỗi khi tạo mới tờ khai thông tin: ", ex);
+            return ResponseHelper.error(ex);
+        }
+    }
+
+    @Operation(summary = "Tạo thông báo và thay đổi trạng thái sang 02")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Thành công", content = {
+                    @Content(schema = @Schema(implementation = com.pht.common.model.ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi", content = {
+                    @Content(schema = @Schema(implementation = com.pht.common.OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @PostMapping("/notification")
+    public ResponseEntity<?> taoThongBaoVaThayDoiTrangThai(@RequestBody NotificationRequest request) {
+        try {
+            log.info("Nhận yêu cầu tạo thông báo và thay đổi trạng thái sang 02");
+            
+            NotificationResponse response = toKhaiThongTinService.createNotification(request);
+            
+            log.info("Tạo thông báo và thay đổi trạng thái thành công");
+            
+            return ResponseHelper.ok(response);
+        } catch (BusinessException ex) {
+            log.error("Lỗi business khi tạo thông báo: {}", ex.getMessage());
+            return ResponseHelper.error(ex);
+        } catch (Exception ex) {
+            log.error("Lỗi khi tạo thông báo: ", ex);
             return ResponseHelper.error(ex);
         }
     }
@@ -109,89 +207,56 @@ public class ToKhaiThongTinController {
     @Operation(summary = "Cập nhật trạng thái tờ khai thông tin")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Thành công", content = {
-                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
-            }),
-            @ApiResponse(responseCode = "404", description = "Không tìm thấy", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+                    @Content(schema = @Schema(implementation = com.pht.common.model.ApiDataResponse.class), mediaType = "application/json")
             }),
             @ApiResponse(responseCode = "500", description = "Lỗi", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+                    @Content(schema = @Schema(implementation = com.pht.common.OrderBy.ApiErrorResponse.class), mediaType = "application/json")
             })
     })
     @PutMapping("/update-status")
-    public ResponseEntity<?> updateTrangThai(@RequestBody UpdateTrangThaiRequest request) {
+    public ResponseEntity<?> capNhatTrangThai(@RequestBody UpdateTrangThaiRequest request) {
         try {
-            ToKhaiThongTin result = toKhaiThongTinService.updateTrangThai(request);
-            return ResponseHelper.ok(result);
+            log.info("Nhận yêu cầu cập nhật trạng thái tờ khai thông tin");
+            
+            ToKhaiThongTin toKhai = toKhaiThongTinService.updateTrangThai(request);
+            
+            log.info("Cập nhật trạng thái tờ khai thông tin thành công với ID: {}", toKhai.getId());
+            
+            return ResponseHelper.ok(toKhai);
+        } catch (BusinessException ex) {
+            log.error("Lỗi business khi cập nhật trạng thái: {}", ex.getMessage());
+            return ResponseHelper.error(ex);
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
+            log.error("Lỗi khi cập nhật trạng thái: ", ex);
             return ResponseHelper.error(ex);
         }
     }
 
     @Operation(summary = "Cập nhật trạng thái phát hành tờ khai thông tin")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Cập nhật thành công", content = {
-                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
+            @ApiResponse(responseCode = "200", description = "Thành công", content = {
+                    @Content(schema = @Schema(implementation = com.pht.common.model.ApiDataResponse.class), mediaType = "application/json")
             }),
-            @ApiResponse(responseCode = "404", description = "Không tìm thấy tờ khai", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
-            }),
-            @ApiResponse(responseCode = "400", description = "Dữ liệu request không hợp lệ", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
-            }),
-            @ApiResponse(responseCode = "500", description = "Lỗi hệ thống", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            @ApiResponse(responseCode = "500", description = "Lỗi", content = {
+                    @Content(schema = @Schema(implementation = com.pht.common.OrderBy.ApiErrorResponse.class), mediaType = "application/json")
             })
     })
     @PutMapping("/update-publication-status")
-    public ResponseEntity<?> updateTrangThaiPhatHanh(@RequestBody UpdateTrangThaiPhatHanhRequest request) {
+    public ResponseEntity<?> capNhatTrangThaiPhatHanh(@RequestBody UpdateTrangThaiPhatHanhRequest request) {
         try {
-            log.info("Nhận yêu cầu cập nhật trạng thái phát hành cho tờ khai ID: {}, trạng thái: {}", 
-                    request.getId(), request.getTrangThaiPhatHanh());
+            log.info("Nhận yêu cầu cập nhật trạng thái phát hành tờ khai thông tin");
             
-            ToKhaiThongTin result = toKhaiThongTinService.updateTrangThaiPhatHanh(request);
+            ToKhaiThongTin toKhai = toKhaiThongTinService.updateTrangThaiPhatHanh(request);
             
-            log.info("Cập nhật trạng thái phát hành thành công cho tờ khai ID: {}", request.getId());
+            log.info("Cập nhật trạng thái phát hành tờ khai thông tin thành công với ID: {}", toKhai.getId());
             
-            return ResponseHelper.ok(result);
+            return ResponseHelper.ok(toKhai);
+        } catch (BusinessException ex) {
+            log.error("Lỗi business khi cập nhật trạng thái phát hành: {}", ex.getMessage());
+            return ResponseHelper.error(ex);
         } catch (Exception ex) {
-            log.error("Lỗi khi cập nhật trạng thái phát hành cho tờ khai ID {}: ", request.getId(), ex);
+            log.error("Lỗi khi cập nhật trạng thái phát hành: ", ex);
             return ResponseHelper.error(ex);
         }
     }
-
-    @Operation(summary = "Tạo thông báo và thay đổi trạng thái sang 02")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Tạo thông báo thành công", content = {
-                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
-            }),
-            @ApiResponse(responseCode = "404", description = "Không tìm thấy tờ khai", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
-            }),
-            @ApiResponse(responseCode = "400", description = "Trạng thái tờ khai không hợp lệ hoặc dữ liệu request không hợp lệ", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
-            }),
-            @ApiResponse(responseCode = "500", description = "Lỗi hệ thống", content = {
-                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
-            })
-    })
-    @PostMapping("/notification")
-    public ResponseEntity<?> createNotification(@RequestBody NotificationRequest request) {
-        try {
-            log.info("Nhận yêu cầu tạo thông báo cho tờ khai ID: {}", request.getToKhaiId());
-            
-            NotificationResponse result = toKhaiThongTinService.createNotification(request);
-            
-            log.info("Tạo thông báo thành công cho tờ khai ID: {}, số thông báo: {}, msgId: {}", 
-                    request.getToKhaiId(), result.getSoThongBao(), result.getMsgId());
-            
-            return ResponseHelper.ok(result);
-            
-        } catch (Exception ex) {
-            log.error("Lỗi khi tạo thông báo cho tờ khai ID {}: ", request.getToKhaiId(), ex);
-            return ResponseHelper.error(ex);
-        }
-    }
-
 }

@@ -1,5 +1,6 @@
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\common\constants\CommonConstants.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\ShaiQuanUpdateRequest.java
+D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\CertificateImportServiceImpl.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\SdvtServiceImpl.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\ShaiQuanService.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\config\RestTemplateConfig.java
@@ -22,15 +23,15 @@ D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\SkhoCangServiceImpl.jav
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SnganHangCreateRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\SloaiHinhServiceImpl.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\SnganHangServiceImpl.java
-D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\response\KySoResponse.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\response\ChuKySoResponse.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\SloaiContServiceImpl.java
+D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\CertificateImportService.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\response\DeleteInvoiceResponse.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\response\PageResponse.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\HaiQuanService.java
+D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\DatabaseCertificateServiceImpl.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\ParseHaiQuanDataRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\repository\BaseRepository.java
-D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\KySoRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\entity\SloaiHinh.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SdvtSearchRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SdiaDiemLuuKhoSearchRequest.java
@@ -60,6 +61,7 @@ D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SloaiContUpdateRequest
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\utils\Config.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SloaiThanhToanCreateRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\type\LongTypeHandler.java
+D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\ImportCertificateFileRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\ToKhaiThongTinService.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\entity\SbieuCuoc.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\common\helper\ApplicationContextProvider.java
@@ -70,6 +72,7 @@ D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\SdiaDiemLuuKhoService.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\exception\CustomError.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\SloaiThanhToanService.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\common\PageInfo.java
+D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\CertificateFileImportServiceImpl.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\utils\ReflectionUtils.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\response\NotificationResponse.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\entity\SloaiThanhToan.java
@@ -116,6 +119,7 @@ D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\controller\SkhoCangController.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\SbieuCuocServiceImpl.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\controller\SmauPhiBienLaiController.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\entity\SloaiBieuCuoc.java
+D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\CertificateFileImportService.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\config\BackEndProperties.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\ChukySoCreateRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SdiaDiemLuuKhoUpdateRequest.java
@@ -159,11 +163,10 @@ D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\response\ChiTietHaiQuanRespons
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\config\OpenAPIConfig.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\ShaiQuanServiceImpl.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\SloaiBieuCuocService.java
-D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\ChuKySoServiceImpl.java
+D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\response\ImportCertificateResponse.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\CancelInvoiceRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\repository\SloaiBieuCuocRepository.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\utils\ReplaceChar.java
-D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\DigitalSignatureService.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SdoanhNghiepCreateRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\utils\ConnUtil.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SmauPhiBienLaiSearchRequest.java
@@ -191,6 +194,7 @@ D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SphuongThucVanTaiCreat
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\common\helper\ResponseHelper.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\impl\SloaiBieuCuocServiceImpl.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SmauPhiBienLaiCreateRequest.java
+D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\service\DatabaseCertificateService.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\config\CacheEventLogger.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\CatalogSearchRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\common\helper\MessageHelper.java
@@ -219,6 +223,7 @@ D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\utils\QueryUtils.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\dto\ApiResponse.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\repository\SloaiHinhRepository.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SloaiThanhToanUpdateRequest.java
+D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\ImportCertificateRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\SkhoCangUpdateRequest.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\utils\XMLUtils.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\repository\SkhoCangRepository.java
@@ -230,7 +235,6 @@ D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\utils\PagingUtils.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\utils\ValidationUtils.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\repository\ToKhaiThongTinChiTietRepository.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\model\request\ShaiQuanSearchRequest.java
-D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\controller\XmlGenerationController.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\repository\ToKhaiThongTinRepository.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\utils\Converter.java
 D:\IDA\IDA_PHT\PHT_BE\src\main\java\com\pht\common\model\Export.java

@@ -3,6 +3,7 @@ package com.pht.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -10,64 +11,49 @@ import org.springframework.stereotype.Repository;
 import com.pht.entity.ChukySo;
 
 @Repository
-public interface ChukySoRepository extends BaseRepository<ChukySo, Long> {
-
+public interface ChukySoRepository extends JpaRepository<ChukySo, Long> {
+    
     /**
      * Tìm chữ ký số theo serial number
      */
     Optional<ChukySo> findBySerialNumber(String serialNumber);
-
+    
+    /**
+     * Kiểm tra serial number đã tồn tại chưa
+     */
+    boolean existsBySerialNumber(String serialNumber);
+    
+    /**
+     * Lấy danh sách chữ ký số đang hoạt động
+     */
+    @Query("SELECT c FROM ChukySo c WHERE c.isActive = true ORDER BY c.id DESC")
+    List<ChukySo> findActiveCertificates();
+    
+    /**
+     * Lấy chữ ký số mặc định
+     */
+    @Query("SELECT c FROM ChukySo c WHERE c.isDefault = true AND c.isActive = true")
+    Optional<ChukySo> findDefaultCertificate();
+    
     /**
      * Tìm chữ ký số theo mã doanh nghiệp
      */
-    List<ChukySo> findByMaDoanhNghiep(String maDoanhNghiep);
-
+    @Query("SELECT c FROM ChukySo c WHERE c.maDoanhNghiep = :maDoanhNghiep AND c.isActive = true")
+    List<ChukySo> findByMaDoanhNghiep(@Param("maDoanhNghiep") String maDoanhNghiep);
+    
     /**
      * Tìm chữ ký số theo mã số thuế
      */
-    List<ChukySo> findByMaSoThue(String maSoThue);
-
+    @Query("SELECT c FROM ChukySo c WHERE c.maSoThue = :maSoThue AND c.isActive = true")
+    List<ChukySo> findByMaSoThue(@Param("maSoThue") String maSoThue);
+    
     /**
-     * Tìm chữ ký số đang hoạt động theo mã doanh nghiệp
+     * Tìm chữ ký số theo thumbprint
      */
-    @Query("SELECT c FROM ChukySo c WHERE c.maDoanhNghiep = :maDoanhNghiep AND c.isActive = true")
-    List<ChukySo> findActiveByMaDoanhNghiep(@Param("maDoanhNghiep") String maDoanhNghiep);
-
+    Optional<ChukySo> findByThumbprint(String thumbprint);
+    
     /**
-     * Tìm chữ ký số mặc định theo mã doanh nghiệp
+     * Kiểm tra thumbprint đã tồn tại chưa
      */
-    @Query("SELECT c FROM ChukySo c WHERE c.maDoanhNghiep = :maDoanhNghiep AND c.isDefault = true")
-    Optional<ChukySo> findDefaultByMaDoanhNghiep(@Param("maDoanhNghiep") String maDoanhNghiep);
-
-    /**
-     * Tìm chữ ký số theo trạng thái
-     */
-    List<ChukySo> findByTrangThai(String trangThai);
-
-    /**
-     * Tìm chữ ký số theo loại chữ ký
-     */
-    List<ChukySo> findByLoaiChuKy(String loaiChuKy);
-
-    /**
-     * Kiểm tra chữ ký số có tồn tại theo serial number
-     */
-    boolean existsBySerialNumber(String serialNumber);
-
-    /**
-     * Đếm số lượng chữ ký số theo mã doanh nghiệp
-     */
-    long countByMaDoanhNghiep(String maDoanhNghiep);
-
-    /**
-     * Tìm chữ ký số sắp hết hạn (trong vòng 30 ngày)
-     */
-    @Query("SELECT c FROM ChukySo c WHERE c.validTo <= :expiryDate AND c.isActive = true")
-    List<ChukySo> findExpiringSoon(@Param("expiryDate") java.time.LocalDateTime expiryDate);
-
-    /**
-     * Tìm chữ ký số đã hết hạn
-     */
-    @Query("SELECT c FROM ChukySo c WHERE c.validTo < :currentDate")
-    List<ChukySo> findExpired(@Param("currentDate") java.time.LocalDateTime currentDate);
+    boolean existsByThumbprint(String thumbprint);
 }

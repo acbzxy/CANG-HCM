@@ -94,6 +94,13 @@
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		
+		<!-- H2 Database (for testing and development) -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/stax/stax-api -->
 		<!--<dependency>
 			<groupId>stax</groupId>
@@ -325,10 +332,22 @@
 		    <artifactId>layout</artifactId> <!-- Đây là module hỗ trợ tạo layout tài liệu PDF -->
 		    <version>7.1.15</version>
 		</dependency>
-		  <dependency>
-        <groupId>org.liquibase</groupId>
+		<dependency>
+		    <groupId>org.liquibase</groupId>
 	        <artifactId>liquibase-core</artifactId>
     	</dependency>
+    	
+    	<!-- Windows Certificate Store Access -->
+    	<dependency>
+		    <groupId>org.bouncycastle</groupId>
+		    <artifactId>bcprov-jdk18on</artifactId>
+		    <version>1.78.1</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.bouncycastle</groupId>
+		    <artifactId>bcpkix-jdk18on</artifactId>
+		    <version>1.78.1</version>
+		</dependency>
 	</dependencies>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
