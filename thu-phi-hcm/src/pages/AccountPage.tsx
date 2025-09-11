@@ -1,257 +1,1111 @@
-import React from 'react'
-import { UserCircleIcon, BuildingOfficeIcon, PhoneIcon, EnvelopeIcon } from '@heroicons/react/24/outline'
+import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
-import Card from '../components/ui/Card'
+
+interface DigitalSignature {
+  id: number
+  serial: string
+  issuer: string
+  subject: string
+  cert: string
+  validFrom: string
+  validTo: string
+  isActive: boolean
+}
+
+interface BankAccount {
+  id: number
+  bankName: string
+  accountNumber: string
+  accountName: string
+  isDefault: boolean
+}
+
+interface Customer {
+  id: number
+  customerCode: string
+  customerName: string
+  phone: string
+  email: string
+  address: string
+  isActive: boolean
+}
 
 const AccountPage: React.FC = () => {
   const { user } = useAuth()
+  const [activeTab, setActiveTab] = useState('signatures') // signatures, banks, customers
+  
+  // Form data for digital signature
+  const [signatureForm, setSignatureForm] = useState({
+    serial: '',
+    issuer: '',
+    subject: '',
+    cert: '',
+    validFrom: '',
+    validTo: ''
+  })
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-'
-    return new Date(dateString).toLocaleString('vi-VN')
+  // Form data for bank account
+  const [bankForm, setBankForm] = useState({
+    bankName: '',
+    accountNumber: '',
+    accountName: '',
+    status: 'active'
+  })
+
+  // Form data for customer
+  const [customerForm, setCustomerForm] = useState({
+    customerCode: '',
+    customerName: '',
+    address: '',
+    systemType: ''
+  })
+
+  // Function to clear signature form
+  const clearSignatureForm = () => {
+    setSignatureForm({
+      serial: '',
+      issuer: '',
+      subject: '',
+      cert: '',
+      validFrom: '',
+      validTo: ''
+    })
   }
 
+  // Function to clear bank form
+  const clearBankForm = () => {
+    setBankForm({
+      bankName: '',
+      accountNumber: '',
+      accountName: '',
+      status: 'active'
+    })
+  }
+
+  // Function to clear customer form
+  const clearCustomerForm = () => {
+    setCustomerForm({
+      customerCode: '',
+      customerName: '',
+      address: '',
+      systemType: ''
+    })
+  }
+
+  // Function to format date input (dd/mm/yyyy)
+  const formatDateInput = (value: string) => {
+    // Remove all non-numeric characters
+    const numericValue = value.replace(/\D/g, '')
+    
+    // Apply formatting
+    if (numericValue.length <= 2) {
+      return numericValue
+    } else if (numericValue.length <= 4) {
+      return `${numericValue.slice(0, 2)}/${numericValue.slice(2)}`
+    } else if (numericValue.length <= 8) {
+      return `${numericValue.slice(0, 2)}/${numericValue.slice(2, 4)}/${numericValue.slice(4, 8)}`
+    } else {
+      return `${numericValue.slice(0, 2)}/${numericValue.slice(2, 4)}/${numericValue.slice(4, 8)}`
+    }
+  }
+
+  // Handle date input change
+  const handleDateChange = (field: 'validFrom' | 'validTo', value: string) => {
+    const formattedValue = formatDateInput(value)
+    setSignatureForm({...signatureForm, [field]: formattedValue})
+  }
+  
+  // Sample data for MST user
+  const [digitalSignatures] = useState<DigitalSignature[]>([
+    {
+      id: 1,
+      serial: '540113505151C65B4D4609FC9C2F647A',
+      issuer: 'Nhà cung cấp chứng thư số',
+      subject: 'OID.0.9.2342.19200300.100.1.1=MST:0109844160, CN=CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV, OU=CÔNG',
+      cert: 'Chứng thư số',
+      validFrom: '23/10/2023',
+      validTo: '04/01/2027',
+      isActive: true
+    }
+  ])
+
+  const [bankAccounts] = useState<BankAccount[]>([
+    {
+      id: 1,
+      bankName: 'Vietcombank - Chi nhánh TP.HCM',
+      accountNumber: '0071002611909',
+      accountName: 'CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV',
+      isDefault: true
+    },
+    {
+      id: 2,
+      bankName: 'Techcombank - Chi nhánh Tân Bình',
+      accountNumber: '19028309876543',
+      accountName: 'CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV',
+      isDefault: false
+    }
+  ])
+
+  const [customers] = useState<Customer[]>([
+    {
+      id: 1,
+      customerCode: 'KH001',
+      customerName: 'CÔNG TY XNK MINH KHAI',
+      phone: '028-39876543',
+      email: 'contact@minhkhai.com.vn',
+      address: 'Quận 1, TP.HCM',
+      isActive: true
+    },
+    {
+      id: 2,
+      customerCode: 'KH002', 
+      customerName: 'CÔNG TY CP VẬN TẢI BIỂN ĐÔNG',
+      phone: '028-38765432',
+      email: 'info@biendongtrans.com',
+      address: 'Quận 7, TP.HCM',
+      isActive: true
+    }
+  ])
+
+  // Get company data based on user type
+  const getCompanyData = () => {
+    if (user?.userType === 'mst_custom' || user?.taxCode === '368745291047') {
+      return {
+        companyCode: '0109844160',
+        companyName: 'CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV',
+        phone: '0916926829',
+        email: 'tuannt6829@gmail.com',
+        address: '44 đường Lê Quang Đạo, Phường Tự Liêm, TP Hà Nội, Việt Nam'
+      }
+    }
+    
+    return {
+      companyCode: user?.taxCode || '0109844160',
+      companyName: user?.companyName || 'CÔNG TY DEMO',
+      phone: user?.phone || '1900 1286',
+      email: user?.email || 'demo@example.com',
+      address: user?.address || 'TP. Hồ Chí Minh'
+    }
+  }
+
+  const companyData = getCompanyData()
+
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      {/* Page Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <UserCircleIcon className="w-8 h-8 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-800">Thông Tin Tài Khoản</h1>
+    <div style={{ 
+      padding: '20px',
+      backgroundColor: '#f5f5f5',
+      minHeight: '100vh'
+    }}>
+      {/* Header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        marginBottom: '20px',
+        padding: '10px',
+        backgroundColor: 'white',
+        borderRadius: '4px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+      }}>
+        <i className="fas fa-info-circle" style={{ 
+          color: '#007bff', 
+          fontSize: '24px', 
+          marginRight: '12px' 
+        }}></i>
+        <h1 style={{ 
+          margin: 0, 
+          color: '#333', 
+          fontSize: '20px',
+          fontWeight: '600'
+        }}>
+          Cập Nhật Thông Tin Tài Khoản Doanh Nghiệp
+        </h1>
+      </div>
+
+      {/* Company Information Section */}
+      <div style={{
+        backgroundColor: 'white',
+        padding: '20px',
+        borderRadius: '4px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        marginBottom: '20px'
+      }}>
+        <div style={{
+          borderBottom: '2px solid #ddd',
+          paddingBottom: '10px',
+          marginBottom: '20px'
+        }}>
+          <h3 style={{ margin: 0, color: '#333', fontSize: '16px' }}>THÔNG TIN TÀI KHOẢN</h3>
+              </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr 100px 1fr 100px 1fr', gap: '15px', alignItems: 'center' }}>
+          <label style={{ fontWeight: 'bold', color: '#333', whiteSpace: 'nowrap' }}>
+            Mã doanh nghiệp:<span style={{ color: '#dc3545', marginLeft: '4px' }}>*</span>
+          </label>
+          <input 
+            type="text" 
+            value={companyData.companyCode}
+            readOnly
+            style={{
+              padding: '8px 12px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              backgroundColor: '#f8f9fa'
+            }}
+          />
+          
+          <div style={{ 
+            display: 'flex', 
+            gap: '20px', 
+            fontSize: '14px', 
+            gridColumn: 'span 4',
+            alignItems: 'center',
+            paddingLeft: '40px'
+          }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+              <input 
+                type="radio" 
+                name="accountType" 
+                value="enterprise"
+                defaultChecked 
+                style={{ accentColor: '#007bff' }} 
+              />
+              DN KHAI PHÍ
+            </label>
+            
+            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+              <input 
+                type="radio" 
+                name="accountType" 
+                value="individual"
+                style={{ accentColor: '#007bff' }} 
+              />
+              CÁ NHÂN KHAI PHÍ
+            </label>
+            
+            <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
+              <input 
+                type="radio" 
+                name="accountType" 
+                value="agent"
+                style={{ accentColor: '#007bff' }} 
+              />
+              ĐẠI LÝ KHAI PHÍ
+            </label>
+          </div>
+
+          <label style={{ fontWeight: 'bold', color: '#333', whiteSpace: 'nowrap' }}>
+            Tên doanh nghiệp:<span style={{ color: '#dc3545', marginLeft: '4px' }}>*</span>
+          </label>
+          <input 
+            type="text" 
+            value={companyData.companyName}
+            style={{
+              padding: '8px 12px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              gridColumn: 'span 5'
+            }}
+          />
+
+          <label style={{ fontWeight: 'bold', color: '#333', whiteSpace: 'nowrap' }}>
+            Số điện thoại:<span style={{ color: '#dc3545', marginLeft: '4px' }}>*</span>
+          </label>
+          <input 
+            type="text" 
+            value={companyData.phone}
+            style={{
+              padding: '8px 12px',
+              border: '1px solid #ddd',
+              borderRadius: '4px'
+            }}
+          />
+          
+          <label style={{ fontWeight: 'bold', color: '#333', textAlign: 'right', whiteSpace: 'nowrap' }}>
+            Email:<span style={{ color: '#dc3545', marginLeft: '4px' }}>*</span>
+          </label>
+          <input 
+            type="email" 
+            value={companyData.email}
+            style={{
+              padding: '8px 12px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              gridColumn: 'span 3'
+            }}
+          />
+
+          <label style={{ fontWeight: 'bold', color: '#333', whiteSpace: 'nowrap' }}>
+            Địa chỉ:<span style={{ color: '#dc3545', marginLeft: '4px' }}>*</span>
+          </label>
+          <input 
+            type="text" 
+            value={companyData.address}
+            style={{
+              padding: '8px 12px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              gridColumn: 'span 5'
+            }}
+          />
         </div>
-        <p className="text-gray-600">
-          Quản lý thông tin tài khoản của bạn
-        </p>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
-        {/* Basic Information */}
-        <Card>
-          <Card.Header className="bg-blue-50">
-            <div className="flex items-center gap-3">
-              <UserCircleIcon className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-800">Thông Tin Cơ Bản</h2>
+      {/* Tabs Section */}
+      <div style={{
+        backgroundColor: 'white',
+        borderRadius: '4px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+        marginBottom: '20px'
+      }}>
+        {/* Tab Headers */}
+        <div style={{
+          display: 'flex',
+          borderBottom: '1px solid #ddd'
+        }}>
+          <button
+            onClick={() => setActiveTab('signatures')}
+            style={{
+              flex: 1,
+              padding: '15px 20px',
+              border: 'none',
+              backgroundColor: activeTab === 'signatures' ? '#007bff' : '#f8f9fa',
+              color: activeTab === 'signatures' ? 'white' : '#333',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              borderTopLeftRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <i className="fas fa-list"></i>
+            Danh sách chữ ký số đã đăng ký
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('banks')}
+            style={{
+              flex: 1,
+              padding: '15px 20px',
+              border: 'none',
+              backgroundColor: activeTab === 'banks' ? '#007bff' : '#f8f9fa',
+              color: activeTab === 'banks' ? 'white' : '#333',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <i className="fas fa-university"></i>
+            Danh sách tài khoản ngân hàng thu hưởng
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('customers')}
+            style={{
+              flex: 1,
+              padding: '15px 20px',
+              border: 'none',
+              backgroundColor: activeTab === 'customers' ? '#007bff' : '#f8f9fa',
+              color: activeTab === 'customers' ? 'white' : '#333',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              borderTopRightRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            <i className="fas fa-users"></i>
+            Danh sách khách hàng
+          </button>
             </div>
-          </Card.Header>
-          <Card.Body>
-            <div className="space-y-6">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                  {user?.companyName?.charAt(0) || user?.username?.charAt(0)?.toUpperCase() || 'U'}
-                </div>
+
+        {/* Tab Content */}
+        <div style={{ padding: '20px' }}>
+          {/* Digital Signatures Tab */}
+          {activeTab === 'signatures' && (
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-800">
-                    {user?.fullName || 'Người dùng'}
-                  </h3>
-                  <p className="text-gray-600">
-                    {user?.userType === 'dev' ? 'Dev Environment' : 'Doanh nghiệp nộp phí'}
-                  </p>
+              {/* Digital Signatures Table */}
+              <div style={{ marginBottom: '20px' }}>
+                <table style={{ 
+                  width: '100%', 
+                  borderCollapse: 'collapse',
+                  border: '1px solid #ddd',
+                  fontSize: '14px'
+                }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f8f9fa' }}>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '50px' }}>STT</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '70px' }}>#</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '200px' }}>Serial</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', minWidth: '400px' }}>Subject</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '110px' }}>Ngày hiệu lực</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '110px' }}>Ngày hết hạn</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '50px' }}>TT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {digitalSignatures.map((signature, index) => (
+                      <tr key={signature.id}>
+                        <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center', fontSize: '14px' }}>{index + 1}</td>
+                        <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                            <i className="fas fa-edit" style={{ color: '#007bff', cursor: 'pointer', fontSize: '14px' }}></i>
+                            <i className="fas fa-trash" style={{ color: '#dc3545', cursor: 'pointer', fontSize: '14px' }}></i>
                 </div>
+                        </td>
+                        <td style={{ border: '1px solid #ddd', padding: '8px', fontSize: '13px', fontFamily: 'monospace' }}>
+                          {signature.serial}
+                        </td>
+                        <td style={{ border: '1px solid #ddd', padding: '8px', fontSize: '13px', lineHeight: '1.4' }}>
+                          {signature.subject}
+                        </td>
+                        <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center', fontSize: '14px' }}>
+                          {signature.validFrom}
+                        </td>
+                        <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center', fontSize: '14px' }}>
+                          {signature.validTo}
+                        </td>
+                        <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={signature.isActive} 
+                            readOnly 
+                            style={{ accentColor: '#28a745', transform: 'scale(1.1)' }} 
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
 
-              <div className="grid gap-4">
-                <div className="flex justify-between py-3 border-b border-gray-100">
-                  <span className="font-medium text-gray-700">Tài khoản:</span>
-                  <span className="text-gray-900">{user?.taxCode || user?.username}</span>
+              {/* ĐĂNG KÝ THÊM CHỮ KÝ SỐ Section */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                marginBottom: '15px',
+                paddingLeft: '5px'
+              }}>
+                <i className="fas fa-plus-circle" style={{ color: '#007bff', marginRight: '8px', fontSize: '16px' }}></i>
+                <span style={{ fontWeight: 'bold', color: '#333', fontSize: '14px' }}>ĐĂNG KÝ THÊM CHỮ KÝ SỐ</span>
                 </div>
 
-                <div className="flex justify-between py-3 border-b border-gray-100">
-                  <span className="font-medium text-gray-700">Loại tài khoản:</span>
-                  <span className="text-gray-900">
-                    {user?.userType === 'dev' ? 'Dev Environment' : 'Doanh nghiệp'}
-                  </span>
+              {/* Control buttons */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '12px',
+                marginBottom: '15px',
+                padding: '8px 12px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '4px',
+                border: '1px solid #e0e0e0'
+              }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+                  <input type="checkbox" defaultChecked style={{ accentColor: '#007bff' }} />
+                  <span style={{ fontWeight: '500' }}>Active chữ ký số</span>
+                </label>
+                
+                <button style={{
+                  padding: '6px 10px',
+                  backgroundColor: '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '3px',
+                  fontSize: '12px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}>
+                  <i className="fas fa-plus"></i>
+                  Chọn chữ ký số mới
+                </button>
+                
+                <button 
+                  onClick={clearSignatureForm}
+                  style={{
+                    padding: '6px 10px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '3px',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                  <i className="fas fa-upload"></i>
+                  Nhập lại
+                </button>
                 </div>
 
-                <div className="flex justify-between py-3 border-b border-gray-100">
-                  <span className="font-medium text-gray-700">Trạng thái:</span>
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                    <span className="w-2 h-2 bg-green-400 rounded-full mr-2"></span>
-                    Đang hoạt động
-                  </span>
+              {/* Form fields section */}
+              <div style={{
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                padding: '15px',
+                backgroundColor: '#fafafa',
+                marginBottom: '15px'
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '12px 15px', alignItems: 'center' }}>
+                  {/* Row 1: Serial */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px' }}>
+                    Serial:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={signatureForm.serial}
+                    onChange={(e) => setSignatureForm({...signatureForm, serial: e.target.value})}
+                    style={{
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '3px',
+                      fontSize: '13px'
+                    }}
+                  />
+                  
+                  {/* Row 2: Issuer */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px' }}>
+                    Issuer:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={signatureForm.issuer}
+                    onChange={(e) => setSignatureForm({...signatureForm, issuer: e.target.value})}
+                    style={{
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '3px',
+                      fontSize: '13px'
+                    }}
+                  />
+
+                  {/* Row 3: Subject (full width) */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px' }}>
+                    Subject:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <textarea 
+                    rows={3}
+                    value={signatureForm.subject}
+                    onChange={(e) => setSignatureForm({...signatureForm, subject: e.target.value})}
+                    style={{
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '3px',
+                      fontSize: '13px',
+                      resize: 'vertical'
+                    }}
+                  />
+
+                  {/* Row 4: Cert (full width) */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px' }}>Cert:</label>
+                  <textarea 
+                    rows={3}
+                    value={signatureForm.cert}
+                    onChange={(e) => setSignatureForm({...signatureForm, cert: e.target.value})}
+                    style={{
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '3px',
+                      fontSize: '13px',
+                      resize: 'vertical'
+                    }}
+                  />
+
+                  {/* Row 5: Ngày hiệu lực */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px' }}>
+                    Ngày hiệu lực:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '20px'
+                  }}>
+                    <input 
+                      type="text" 
+                      placeholder="dd/mm/yyyy"
+                      value={signatureForm.validFrom}
+                      onChange={(e) => handleDateChange('validFrom', e.target.value)}
+                      maxLength={10}
+                      style={{
+                        padding: '6px 8px',
+                        border: '1px solid #ddd',
+                        borderRadius: '3px',
+                        fontSize: '13px',
+                        width: '120px'
+                      }}
+                    />
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                        Ngày hết hạn:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder="dd/mm/yyyy"
+                        value={signatureForm.validTo}
+                        onChange={(e) => handleDateChange('validTo', e.target.value)}
+                        maxLength={10}
+                        style={{
+                          padding: '6px 8px',
+                          border: '1px solid #ddd',
+                          borderRadius: '3px',
+                          fontSize: '13px',
+                          width: '120px'
+                        }}
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex justify-between py-3 border-b border-gray-100">
-                  <span className="font-medium text-gray-700">Ngày tạo:</span>
-                  <span className="text-gray-900">{formatDate(user?.createdAt)}</span>
-                </div>
-
-                <div className="flex justify-between py-3">
-                  <span className="font-medium text-gray-700">Đăng nhập lần cuối:</span>
-                  <span className="text-gray-900">{formatDate(user?.lastLoginAt)}</span>
+                {/* Action Buttons trong tab chữ ký số */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center',
+                  gap: '12px', 
+                  paddingTop: '20px'
+                }}>
+                  <button style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    minWidth: '90px',
+                    justifyContent: 'center'
+                  }}>
+                    <i className="fas fa-save" style={{ fontSize: '12px' }}></i>
+                    Lưu lại
+                  </button>
+                  <button style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    minWidth: '90px',
+                    justifyContent: 'center'
+                  }}>
+                    <i className="fas fa-times" style={{ fontSize: '12px' }}></i>
+                    Đóng
+                  </button>
                 </div>
               </div>
             </div>
-          </Card.Body>
-        </Card>
+          )}
 
-        {/* Company Information */}
-        <Card>
-          <Card.Header className="bg-green-50">
-            <div className="flex items-center gap-3">
-              <BuildingOfficeIcon className="w-6 h-6 text-green-600" />
-              <h2 className="text-xl font-semibold text-gray-800">Thông Tin Doanh Nghiệp</h2>
-            </div>
-          </Card.Header>
-          <Card.Body>
-            <div className="space-y-4">
-              <div className="flex justify-between py-3 border-b border-gray-100">
-                <span className="font-medium text-gray-700">Tên doanh nghiệp:</span>
-                <span className="text-gray-900 text-right">
-                  {user?.companyName || 'Công ty Demo TPHCM'}
+          {/* Bank Accounts Tab */}
+          {activeTab === 'banks' && (
+            <div>
+              {/* Bank Accounts Table */}
+              <div style={{ marginBottom: '20px' }}>
+                <table style={{ 
+                  width: '100%', 
+                  borderCollapse: 'collapse', 
+                  backgroundColor: 'white',
+                  fontSize: '14px'
+                }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f8f9fa' }}>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '50px' }}>STT</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '70px' }}>#</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', minWidth: '200px' }}>Ngân hàng</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '150px' }}>Số tài khoản</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', minWidth: '200px' }}>Chủ tài khoản</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '100px' }}>Ngày tạo</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '50px' }}>TT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colSpan="7" style={{ 
+                        border: '1px solid #ddd', 
+                        padding: '20px', 
+                        textAlign: 'center',
+                        color: '#007bff',
+                        fontStyle: 'italic'
+                      }}>
+                        Không có dữ liệu
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              {/* ĐĂNG KÝ THÊM TÀI KHOẢN NGÂN HÀNG Section */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                marginBottom: '15px',
+                padding: '10px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '4px'
+              }}>
+                <i className="fas fa-plus-circle" style={{ 
+                  color: '#28a745', 
+                  fontSize: '16px' 
+                }}></i>
+                <span style={{ 
+                  fontWeight: 'bold', 
+                  color: '#333',
+                  fontSize: '14px'
+                }}>
+                  ĐĂNG KÝ THÊM TÀI KHOẢN NGÂN HÀNG
                 </span>
               </div>
 
-              <div className="flex justify-between py-3 border-b border-gray-100">
-                <span className="font-medium text-gray-700">Mã số thuế:</span>
-                <span className="text-gray-900">{user?.taxCode || '0109844160'}</span>
+              {/* Form fields section */}
+              <div style={{ 
+                backgroundColor: 'white',
+                padding: '20px',
+                border: '1px solid #ddd',
+                borderRadius: '4px'
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '12px 15px', alignItems: 'center' }}>
+                  {/* Row 1: Ngân hàng */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px' }}>
+                    Ngân hàng:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <select 
+                    value={bankForm.bankName}
+                    onChange={(e) => setBankForm({...bankForm, bankName: e.target.value})}
+                    style={{
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '3px',
+                      fontSize: '13px',
+                      backgroundColor: 'white'
+                    }}>
+                    <option value="">-- Chọn --</option>
+                    <option value="vietcombank">Vietcombank</option>
+                    <option value="techcombank">Techcombank</option>
+                    <option value="bidv">BIDV</option>
+                    <option value="agribank">Agribank</option>
+                  </select>
+                  
+                  {/* Row 2: Số tài khoản */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px' }}>
+                    Số tài khoản:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={bankForm.accountNumber}
+                    onChange={(e) => setBankForm({...bankForm, accountNumber: e.target.value})}
+                    style={{
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '3px',
+                      fontSize: '13px'
+                    }}
+                  />
+
+                  {/* Row 3: Tên chủ tài khoản */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px' }}>
+                    Tên chủ tài khoản:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={bankForm.accountName}
+                    onChange={(e) => setBankForm({...bankForm, accountName: e.target.value})}
+                    style={{
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '3px',
+                      fontSize: '13px'
+                    }}
+                  />
+
+                  {/* Row 4: Trạng thái */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px' }}>
+                    Trạng thái:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <select 
+                    value={bankForm.status}
+                    onChange={(e) => setBankForm({...bankForm, status: e.target.value})}
+                    style={{
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '3px',
+                      fontSize: '13px',
+                      backgroundColor: 'white'
+                    }}>
+                    <option value="active">Sử dụng</option>
+                    <option value="inactive">Khóa - chưa sử dụng</option>
+                  </select>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center',
+                  gap: '10px', 
+                  marginTop: '20px' 
+                }}>
+                  <button 
+                    onClick={clearBankForm}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#6c757d',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                    <i className="fas fa-redo"></i>
+                    Nhập lại
+                  </button>
+                  <button style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <i className="fas fa-save"></i>
+                    Lưu tài khoản NH
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Customers Tab */}
+          {activeTab === 'customers' && (
+            <div>
+              {/* Customers Table */}
+              <div style={{ marginBottom: '20px' }}>
+                <table style={{ 
+                  width: '100%', 
+                  borderCollapse: 'collapse', 
+                  backgroundColor: 'white',
+                  fontSize: '14px'
+                }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f8f9fa' }}>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '50px' }}>STT</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '70px' }}>#</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '150px' }}>Mã khách hàng</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', minWidth: '200px' }}>Tên khách hàng</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', width: '100px' }}>Ngày tạo</th>
+                      <th style={{ border: '1px solid #ddd', padding: '10px 8px', textAlign: 'center', minWidth: '200px' }}>Xuất biên lai cho DN</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td colSpan="6" style={{ 
+                        border: '1px solid #ddd', 
+                        padding: '20px', 
+                        textAlign: 'center',
+                        color: '#007bff',
+                        fontStyle: 'italic'
+                      }}>
+                        Không có dữ liệu
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
 
-              <div className="flex justify-between py-3 border-b border-gray-100">
-                <span className="font-medium text-gray-700">Địa chỉ:</span>
-                <span className="text-gray-900 text-right">
-                  {user?.address || 'Thành phố Hồ Chí Minh'}
+              {/* ĐĂNG KÝ THÊM KHÁCH HÀNG Section */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                marginBottom: '15px',
+                padding: '10px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: '4px'
+              }}>
+                <i className="fas fa-plus-circle" style={{ 
+                  color: '#28a745', 
+                  fontSize: '16px' 
+                }}></i>
+                <span style={{ 
+                  fontWeight: 'bold', 
+                  color: '#333',
+                  fontSize: '14px'
+                }}>
+                  ĐĂNG KÝ THÊM KHÁCH HÀNG
                 </span>
               </div>
 
-              <div className="flex justify-between py-3 border-b border-gray-100">
-                <span className="font-medium text-gray-700">Số điện thoại:</span>
-                <span className="text-gray-900">{user?.phone || '1900 1286'}</span>
-              </div>
+              {/* Form fields section */}
+              <div style={{ 
+                backgroundColor: 'white',
+                padding: '20px',
+                border: '1px solid #ddd',
+                borderRadius: '4px'
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: '12px 15px', alignItems: 'center' }}>
+                  {/* Row 1: Mã khách hàng */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                    Mã khách hàng:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input 
+                      type="text" 
+                      placeholder="Mã doanh nghiệp"
+                      value={customerForm.customerCode}
+                      onChange={(e) => setCustomerForm({...customerForm, customerCode: e.target.value})}
+                      style={{
+                        padding: '6px 8px',
+                        border: '1px solid #ddd',
+                        borderRadius: '3px',
+                        fontSize: '13px',
+                        flex: 1
+                      }}
+                    />
+                    <button style={{
+                      padding: '6px 12px',
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '3px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px'
+                    }}>
+                      <i className="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                  
+                  {/* Row 2: Tên khách hàng */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                    Tên khách hàng:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={customerForm.customerName}
+                    onChange={(e) => setCustomerForm({...customerForm, customerName: e.target.value})}
+                    style={{
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '3px',
+                      fontSize: '13px'
+                    }}
+                  />
 
-              <div className="flex justify-between py-3">
-                <span className="font-medium text-gray-700">Email:</span>
-                <span className="text-gray-900">{user?.email || 'demo@example.com'}</span>
+                  {/* Row 3: Địa chỉ */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                    Địa chỉ:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    value={customerForm.address}
+                    onChange={(e) => setCustomerForm({...customerForm, address: e.target.value})}
+                    style={{
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '3px',
+                      fontSize: '13px'
+                    }}
+                  />
+
+                  {/* Row 4: Hệ thống xuất biên lai cho */}
+                  <label style={{ fontWeight: 'bold', color: '#333', fontSize: '13px', whiteSpace: 'nowrap' }}>
+                    Hệ thống xuất biên lai cho:<span style={{ color: '#dc3545', marginLeft: '2px' }}>*</span>
+                  </label>
+                  <select 
+                    value={customerForm.systemType}
+                    onChange={(e) => setCustomerForm({...customerForm, systemType: e.target.value})}
+                    style={{
+                      padding: '6px 8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '3px',
+                      fontSize: '13px',
+                      backgroundColor: 'white'
+                    }}>
+                    <option value="">Cho đại lý</option>
+                    <option value="enterprise">Cho doanh nghiệp</option>
+                    <option value="individual">Cho cá nhân</option>
+                  </select>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'center',
+                  gap: '10px', 
+                  marginTop: '20px' 
+                }}>
+                  <button 
+                    onClick={clearCustomerForm}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor: '#6c757d',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                    <i className="fas fa-redo"></i>
+                    Nhập lại
+                  </button>
+                  <button style={{
+                    padding: '8px 16px',
+                    backgroundColor: '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <i className="fas fa-save"></i>
+                    Lưu khách hàng
+                  </button>
+                </div>
               </div>
             </div>
-          </Card.Body>
-        </Card>
-      </div>
-
-      {/* Contact & Support */}
-      <Card className="mt-8">
-        <Card.Header className="bg-purple-50">
-          <div className="flex items-center gap-3">
-            <PhoneIcon className="w-6 h-6 text-purple-600" />
-            <h2 className="text-xl font-semibold text-gray-800">Liên Hệ & Hỗ Trợ</h2>
+          )}
           </div>
-        </Card.Header>
-        <Card.Body>
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Thông Tin Liên Hệ</h3>
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <PhoneIcon className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="font-medium text-gray-800">Hotline hỗ trợ</p>
-                    <p className="text-blue-600 font-semibold text-lg">1900 1286</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <EnvelopeIcon className="w-5 h-5 text-gray-500" />
-                  <div>
-                    <p className="font-medium text-gray-800">Email hỗ trợ</p>
-                    <p className="text-blue-600">thuphihatang@tphcm.gov.vn</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <BuildingOfficeIcon className="w-5 h-5 text-gray-500 mt-1" />
-                  <div>
-                    <p className="font-medium text-gray-800">Địa chỉ</p>
-                    <p className="text-gray-600">Số 167 - Lưu Hữu Phước - P.15 - Quận 8 - TP HCM</p>
-                  </div>
-                </div>
-              </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Thời Gian Hỗ Trợ</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-700">Thứ 2 - Thứ 6:</span>
-                  <span className="font-medium text-gray-800">7:30 - 17:30</span>
-                </div>
-                <div className="flex justify-between py-2 border-b border-gray-100">
-                  <span className="text-gray-700">Thứ 7:</span>
-                  <span className="font-medium text-gray-800">8:00 - 12:00</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-gray-700">Chủ nhật:</span>
-                  <span className="font-medium text-red-600">Nghỉ</span>
-                </div>
-              </div>
-
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <strong>Lưu ý:</strong> Trong trường hợp cần hỗ trợ khẩn cấp ngoài giờ hành chính, 
-                  vui lòng gửi email và chúng tôi sẽ phản hồi trong thời gian sớm nhất.
-                </p>
-              </div>
-            </div>
-          </div>
-        </Card.Body>
-      </Card>
-
-      {/* Security Notice */}
-      <Card className="mt-8">
-        <Card.Header className="bg-yellow-50">
-          <div className="flex items-center gap-3">
-            <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
-            <h2 className="text-xl font-semibold text-gray-800">Lưu Ý Bảo Mật</h2>
-          </div>
-        </Card.Header>
-        <Card.Body>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-3">Bảo Vệ Tài Khoản</h4>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li className="flex items-start">
-                  <span className="text-yellow-500 mr-2">•</span>
-                  Không chia sẻ thông tin đăng nhập với người khác
-                </li>
-                <li className="flex items-start">
-                  <span className="text-yellow-500 mr-2">•</span>
-                  Thường xuyên thay đổi mật khẩu
-                </li>
-                <li className="flex items-start">
-                  <span className="text-yellow-500 mr-2">•</span>
-                  Sử dụng mật khẩu mạnh (ít nhất 8 ký tự)
-                </li>
-                <li className="flex items-start">
-                  <span className="text-yellow-500 mr-2">•</span>
-                  Đăng xuất sau khi sử dụng xong
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-3">Phát Hiện Bất Thường</h4>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li className="flex items-start">
-                  <span className="text-red-500 mr-2">•</span>
-                  Liên hệ ngay hotline nếu phát hiện giao dịch lạ
-                </li>
-                <li className="flex items-start">
-                  <span className="text-red-500 mr-2">•</span>
-                  Thông báo khi tài khoản bị truy cập trái phép
-                </li>
-                <li className="flex items-start">
-                  <span className="text-red-500 mr-2">•</span>
-                  Kiểm tra thường xuyên lịch sử đăng nhập
-                </li>
-                <li className="flex items-start">
-                  <span className="text-red-500 mr-2">•</span>
-                  Cập nhật thông tin liên hệ để nhận thông báo
-                </li>
-              </ul>
-            </div>
-          </div>
-        </Card.Body>
-      </Card>
     </div>
   )
 }

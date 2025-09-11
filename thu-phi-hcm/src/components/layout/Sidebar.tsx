@@ -192,6 +192,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       return allNavItems.filter(item => allowedPaths.includes(item.path))
     }
     
+    if (user?.userType === 'mst_custom') {
+      // Show specific menus for MST user (000000000001/123456)
+      const allowedPaths = [
+        '/dashboard',           // Trang chủ
+        '/payment',             // Nộp phí cơ sở hạ tầng
+        '/debt-management',     // Q.lý xử lý nợ phí
+        '/payment-management',  // Quản lý thanh toán
+        '/account',             // Thông tin tài khoản
+        '/password',            // Đổi mật khẩu
+        '/guide'                // Hướng dẫn
+      ]
+      return allNavItems.filter(item => allowedPaths.includes(item.path))
+    }
+    
     // For other users, show all menus
     return allNavItems
   }, [user?.userType])
