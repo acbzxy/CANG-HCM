@@ -103,12 +103,24 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                     <label className="block text-sm font-bold ">Mã Hải quan</label>
                     <select className="w-full border px-2 py-1">
                       <option>-- Chọn --</option>
+                      <option value="01AC">01AC - Chi cục HQ Gia Lâm</option>
+                      <option value="01B1">01B1 - Chi cục HQ CK Sân bay quốc tế Nội Bài</option>
+                      <option value="01B2">01B2 - Chi cục HQ CK Sân bay quốc tế Nội Bài</option>
+                      <option value="01B3">01B3 - Chi cục HQ CK Sân bay quốc tế Nội Bài</option>
+                      <option value="01B4">01B4 - CC HQ CK Sân bay QT Nội Bài - Đội Thủ tục hàng hóa XNK - CSCS</option>
+                      <option value="01B5">01B5 - Chi cục HQ CK Sân bay quốc tế Nội Bài</option>
                     </select>
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold ">Mã loại hình</label>
                     <select className="w-full border px-2 py-1">
                       <option>-- Chọn --</option>
+                      <option value="A12">A12 - Nhập kinh doanh sản xuất</option>
+                      <option value="A21">A21 - Chuyển tiêu thụ nội địa từ nguồn tạm nhập</option>
+                      <option value="A31">A31 - Nhập hàng XK bị trả lại</option>
+                      <option value="A41">A41 - Nhập kinh doanh của doanh nghiệp đầu tư</option>
+                      <option value="A42">A42 - Chuyển tiêu thụ nội địa khác</option>
+                      <option value="A44">A44 - Nhập vào khu phi thuế quan từ nội địa</option>
                     </select>
                   </div>
                   <div className="col-span-2">
@@ -117,12 +129,24 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                     </label>
                     <select className="w-full border px-2 py-1">
                       <option>-- Chọn --</option>
+                      <option value="02ABA01">02ABA01 - CT DVHH TAN SON NHAT</option>
+                      <option value="02ABAAB">02ABAAB - SB QT TAN SON NHAT</option>
+                      <option value="02ABC01">02ABC01 - KHO THU GOM HANG LE</option>
+                      <option value="02ABD01">02ABD01 - GIAN HANG XUAT CANH</option>
+                      <option value="02ABD02">02ABD02 - KHO CHINH</option>
+                      <option value="02ABF01">02ABF01 - SUAT AN HANG KHONG</option>
                     </select>
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold ">Nước xuất khẩu</label>
                     <select className="w-full border px-2 py-1">
                       <option>-- Chọn --</option>
+                      <option value="AD">AD - Andorra</option>
+                      <option value="AE">AE - United Arab Emirates</option>
+                      <option value="AF">AF - Afganistan</option>
+                      <option value="AG">AG - Antigua and Barbuda</option>
+                      <option value="AI">AI - Anguilla</option>
+                      <option value="AL">AL - Albania</option>
                     </select>
                   </div>
                 </div>
@@ -158,6 +182,10 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                     <label className="block text-sm font-bold ">Nhóm loại phí</label>
                     <select className="w-full border px-2 py-1">
                       <option>-- Chọn --</option>
+                      <option value="TP001">TP001 - Hàng tạm nhập tái xuất; Hàng tái xuất tạm nhập; Hàng quá cảnh</option>
+                      <option value="TP002">TP002 - Hàng hóa nhập khẩu, xuất khẩu mở tờ khai ngoài TP.HCM</option>
+                      <option value="TP003">TP003 - Hàng hóa nhập khẩu, xuất khẩu mở tờ khai tại TP.HCM</option>
+                      <option value="TP004">TP004 - Hàng gửi kho ngoại quan; Hàng chuyển khẩu được đưa vào khu vực kho bãi thuộc các cảng biển thành phố (không đưa vào kho ngoại quan và khu vực trung chuyển)</option>
                     </select>
                   </div>
                   <div className="col-span-2">

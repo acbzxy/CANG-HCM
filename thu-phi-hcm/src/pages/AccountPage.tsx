@@ -72,6 +72,24 @@ const AccountPage: React.FC = () => {
     })
   }
 
+  // Function to view signature details and fill form
+  const handleViewSignature = (signature: DigitalSignature) => {
+    // Get current date in dd/mm/yyyy format
+    const today = new Date()
+    const currentDate = today.getDate().toString().padStart(2, '0') + '/' + 
+                       (today.getMonth() + 1).toString().padStart(2, '0') + '/' + 
+                       today.getFullYear()
+    
+    setSignatureForm({
+      serial: signature.serial,
+      issuer: signature.issuer,
+      subject: signature.subject,
+      cert: signature.cert,
+      validFrom: currentDate, // Tự động lấy ngày hôm nay
+      validTo: signature.validTo
+    })
+  }
+
   // Function to clear bank form
   const clearBankForm = () => {
     setBankForm({
@@ -120,9 +138,9 @@ const AccountPage: React.FC = () => {
     {
       id: 1,
       serial: '540113505151C65B4D4609FC9C2F647A',
-      issuer: 'Nhà cung cấp chứng thư số',
-      subject: 'OID.0.9.2342.19200300.100.1.1=MST:0109844160, CN=CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV, OU=CÔNG',
-      cert: 'Chứng thư số',
+      issuer: 'CN=HILO-CA SHA-256, O=T-VAN HILO, C=VN',
+      subject: 'OID.0.9.2342.19200300.100.1.1=MST:0109844160, CN=CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV, OU=CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV, O=CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV, L=44 đường Lê Quang Đạo - Phường Phú Đô - Quận Nam Từ Liêm - Hà Nội, S=Hà Nội, C=VN',
+      cert: 'MIIFVDCCBDygAwIBAgIQVAETUFFRxltNRgn8nC9kejANBgkqhkiG9w0BAQsFADA8MQsWCQYDVQQGEWJWTJETMBEGA1UECgwKVC1WQU4gSEIMTZEYMBYGA1UEAwwPSEIMTY1DQSBTSEEtMjU2MB4XDTIzMTAyMzE2MDczM10XDTI3MDEwNDA4MT',
       validFrom: '23/10/2023',
       validTo: '04/01/2027',
       isActive: true
@@ -461,7 +479,12 @@ const AccountPage: React.FC = () => {
                         <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center', fontSize: '14px' }}>{index + 1}</td>
                         <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                            <i className="fas fa-edit" style={{ color: '#007bff', cursor: 'pointer', fontSize: '14px' }}></i>
+                            <i 
+                              className="fas fa-edit" 
+                              style={{ color: '#007bff', cursor: 'pointer', fontSize: '14px' }}
+                              onClick={() => handleViewSignature(signature)}
+                              title="Xem chi tiết"
+                            ></i>
                             <i className="fas fa-trash" style={{ color: '#dc3545', cursor: 'pointer', fontSize: '14px' }}></i>
                 </div>
                         </td>

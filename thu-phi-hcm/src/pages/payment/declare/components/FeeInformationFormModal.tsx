@@ -18,6 +18,7 @@ interface FeeInformationFormModalProps {
 export default function FeeInformationFormModal({ onClose, onSave }: FeeInformationFormModalProps) {
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isManualDeclaration, setIsManualDeclaration] = useState(false);
   
   const handleCancelDeclaration = () => {
     setShowCancelConfirmModal(true);
@@ -34,6 +35,10 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
     // Handle digital signature logic
     console.log('Ký số tờ khai (khai báo nộp phí)');
     alert('Chức năng ký số tờ khai đang được xử lý...');
+  };
+
+  const handleFeeOptionChange = (option: 'customs' | 'manual') => {
+    setIsManualDeclaration(option === 'manual');
   };
 
   const handleSave = async () => {
@@ -172,41 +177,45 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
                 type="radio"
                 name="feeOption"
                 defaultChecked
-                className="appearance-none w-4 h-4 border border-gray-400 rounded-none
+                onChange={() => handleFeeOptionChange('customs')}
+                className="appearance-none w-4 h-4 border border-gray-400 rounded-full
                  checked:after:content-['✓'] checked:after:text-green-600 
                  checked:after:flex checked:after:items-center checked:after:justify-center 
                  checked:after:w-full checked:after:h-full bg-white"
               />
-              <span className="ml-2 uppercase">Lấy thông tin từ Hải quan</span>
+              <span className="ml-2 uppercase font-bold">Lấy thông tin từ Hải quan</span>
             </label>
-            <div className="flex items-center mx-2">
-              <ChevronDoubleRightIcon className="w-3  h-3" />
-              <input
-                type="text"
-                className="border h-[33px] w-[120px] me-1"
-                defaultValue={"0109844160"}
-              />
-              <input
-                type="text"
-                className="border h-[33px] w-[100px] me-1"
-                placeholder="Số tờ khai HQ"
-              />
-              <button className="btn btn-primary w-[130px] font-normal bg-[#deecf9] text-[#005a9e] rounded pt-[4px] hover:text-white">
-                <MagnifyingGlassIcon className="w-3  h-3" />
-                &nbsp;Lấy thông tin
-              </button>
-              <span className="font-bold ms-4">|</span>
-            </div>
+            {!isManualDeclaration && (
+              <div className="flex items-center mx-2">
+                <ChevronDoubleRightIcon className="w-3  h-3" />
+                <input
+                  type="text"
+                  className="border h-[33px] w-[120px] me-1"
+                  defaultValue={"0109844160"}
+                />
+                <input
+                  type="text"
+                  className="border h-[33px] w-[100px] me-1"
+                  placeholder="Số tờ khai HQ"
+                />
+                <button className="btn btn-primary w-[130px] font-normal bg-[#deecf9] text-[#005a9e] rounded pt-[4px] hover:text-white">
+                  <MagnifyingGlassIcon className="w-3  h-3" />
+                  &nbsp;Lấy thông tin
+                </button>
+                <span className="font-bold ms-4"> </span>
+              </div>
+            )}
             <label className="flex items-center cursor-pointer">
               <input
                 type="radio"
                 name="feeOption"
-                className="appearance-none w-4 h-4 border border-gray-400 rounded-none
+                onChange={() => handleFeeOptionChange('manual')}
+                className="appearance-none w-4 h-4 border border-gray-400 rounded-full
                  checked:after:content-['✓'] checked:after:text-green-600 
                  checked:after:flex checked:after:items-center checked:after:justify-center 
                  checked:after:w-full checked:after:h-full bg-white"
               />
-              <span className="ml-2 uppercase">
+              <span className="ml-2 uppercase font-bold">
                 Khai báo tờ khai phí thủ công
               </span>
             </label>
