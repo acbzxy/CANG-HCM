@@ -197,7 +197,7 @@ public class FptEInvoiceController {
             
             log.info("Tìm kiếm hóa đơn hoàn thành - Response: {}", response);
             
-            // Xử lý base64 response và lưu vào ToKhaiThongTin nếu có toKhaiId
+            // Xử lý base64 response và lưu vào StoKhai nếu có toKhaiId
             String processedBase64 = null;
             if (request.getToKhaiId() != null) {
                 try {
@@ -502,7 +502,7 @@ public class FptEInvoiceController {
                         }
                         
                         // Cập nhật trạng thái phát hành về "01" và idPhatHanh
-                        updateToKhaiThongTinAfterSuccess(toKhaiId, sid);
+                        updateStoKhaiAfterSuccess(toKhaiId, sid);
                         
                         log.info("Đã cập nhật trạng thái phát hành thành '01' và idPhatHanh cho tờ khai ID: {}", toKhaiId);
                     } else {
@@ -524,10 +524,10 @@ public class FptEInvoiceController {
     /**
      * Cập nhật tờ khai thông tin sau khi FPT response thành công
      */
-    private void updateToKhaiThongTinAfterSuccess(Long toKhaiId, String sid) {
+    private void updateStoKhaiAfterSuccess(Long toKhaiId, String sid) {
         try {
             // Lấy tờ khai hiện tại
-            com.pht.entity.ToKhaiThongTin toKhai = toKhaiThongTinService.getToKhaiThongTinById(toKhaiId);
+            com.pht.entity.StoKhai toKhai = toKhaiThongTinService.getToKhaiThongTinById(toKhaiId);
             
             // Cập nhật trạng thái phát hành và idPhatHanh
             toKhai.setTrangThaiPhatHanh("01");
@@ -546,7 +546,7 @@ public class FptEInvoiceController {
     }
 
     /**
-     * Xử lý base64 response từ FPT và lưu vào ToKhaiThongTin
+     * Xử lý base64 response từ FPT và lưu vào StoKhai
      * @return base64 data đã được xử lý (cắt sau 'base64,')
      */
     private String processBase64ResponseAndSave(String fptResponse, Long toKhaiId) {
@@ -566,8 +566,8 @@ public class FptEInvoiceController {
                 // Cắt dữ liệu sau 'base64,'
                 String processedBase64 = processBase64String(base64Data);
                 
-                // Lưu vào ToKhaiThongTin
-                saveBase64ToToKhaiThongTin(toKhaiId, processedBase64);
+                // Lưu vào StoKhai
+                saveBase64ToStoKhai(toKhaiId, processedBase64);
                 
                 log.info("Đã lưu base64 data cho tờ khai ID: {}", toKhaiId);
                 
@@ -702,12 +702,12 @@ public class FptEInvoiceController {
     }
 
     /**
-     * Lưu base64 data vào ToKhaiThongTin
+     * Lưu base64 data vào StoKhai
      */
-    private void saveBase64ToToKhaiThongTin(Long toKhaiId, String base64Data) {
+    private void saveBase64ToStoKhai(Long toKhaiId, String base64Data) {
         try {
             // Lấy tờ khai hiện tại
-            com.pht.entity.ToKhaiThongTin toKhai = toKhaiThongTinService.getToKhaiThongTinById(toKhaiId);
+            com.pht.entity.StoKhai toKhai = toKhaiThongTinService.getToKhaiThongTinById(toKhaiId);
             
             // Cập nhật imageBl field
             toKhai.setImageBl(base64Data);
@@ -729,7 +729,7 @@ public class FptEInvoiceController {
     private void updateTrangThaiPhatHanhTo02(Long toKhaiId) {
         try {
             // Lấy tờ khai hiện tại
-            com.pht.entity.ToKhaiThongTin toKhai = toKhaiThongTinService.getToKhaiThongTinById(toKhaiId);
+            com.pht.entity.StoKhai toKhai = toKhaiThongTinService.getToKhaiThongTinById(toKhaiId);
             
             // Cập nhật trạng thái phát hành sang "02"
             toKhai.setTrangThaiPhatHanh("02");

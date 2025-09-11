@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pht.service.DatabaseCertificateService;
-import com.pht.entity.ToKhaiThongTin;
-import com.pht.entity.ToKhaiThongTinChiTiet;
+import com.pht.entity.StoKhai;
+import com.pht.entity.StoKhaiCt;
 import com.pht.exception.BusinessException;
 import com.pht.repository.ToKhaiThongTinRepository;
 import com.pht.service.XmlGenerationService;
@@ -32,7 +32,7 @@ public class XmlGenerationServiceImpl implements XmlGenerationService {
         
         try {
             // Lấy thông tin tờ khai
-            ToKhaiThongTin toKhai = toKhaiThongTinRepository.findById(toKhaiId)
+            StoKhai toKhai = toKhaiThongTinRepository.findById(toKhaiId)
                     .orElseThrow(() -> new BusinessException("Không tìm thấy tờ khai với ID: " + toKhaiId));
             
             // Kiểm tra trạng thái hiện tại
@@ -94,7 +94,7 @@ public class XmlGenerationServiceImpl implements XmlGenerationService {
         
         try {
             // Lấy thông tin tờ khai
-            ToKhaiThongTin toKhai = toKhaiThongTinRepository.findById(toKhaiId)
+            StoKhai toKhai = toKhaiThongTinRepository.findById(toKhaiId)
                     .orElseThrow(() -> new BusinessException("Không tìm thấy tờ khai với ID: " + toKhaiId));
             
             // Kiểm tra trạng thái hiện tại
@@ -140,7 +140,7 @@ public class XmlGenerationServiceImpl implements XmlGenerationService {
     }
 
     @Override
-    public String generateXml(ToKhaiThongTin toKhai) throws BusinessException {
+    public String generateXml(StoKhai toKhai) throws BusinessException {
         try {
             log.info("Bắt đầu tạo XML cho tờ khai ID: {}, Số tờ khai: {}", toKhai.getId(), toKhai.getSoToKhai());
             log.info("Thông tin tờ khai - Mã DN khai phí: {}, Tên DN: {}, Tổng tiền phí: {}", 
@@ -222,7 +222,7 @@ public class XmlGenerationServiceImpl implements XmlGenerationService {
             // Thông tin chi tiết nộp tiền
             if (toKhai.getChiTietList() != null && !toKhai.getChiTietList().isEmpty()) {
                 int soTT = 1;
-                for (ToKhaiThongTinChiTiet chiTiet : toKhai.getChiTietList()) {
+                for (StoKhaiCt chiTiet : toKhai.getChiTietList()) {
                     xml.append("<ThongTinNopTien>");
                     xml.append("<SoTT>").append(soTT).append("</SoTT>");
                     xml.append("<Ma_BieuCuoc>").append(escapeXml(chiTiet.getLoaiCont() != null ? chiTiet.getLoaiCont() : "")).append("</Ma_BieuCuoc>");

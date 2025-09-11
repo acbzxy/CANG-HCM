@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class ThongTinHaiQuanResponse {
     
-    // Thông tin chính (ToKhaiThongTin)
+    // Thông tin chính (StoKhai)
     private Long id;
     private Integer nguonTK;
     
@@ -69,6 +69,6 @@ public class ThongTinHaiQuanResponse {
     // IMAGE DATA FIELD
     private String imageBl;
     
-    // Danh sách chi tiết (ToKhaiThongTinChiTiet)
+    // Danh sách chi tiết (StoKhaiChiTiet)
     private List<ChiTietHaiQuanResponse> chiTietList;
 }

@@ -107,20 +107,19 @@ public class CertificateImportServiceImpl implements CertificateImportService {
             log.info("Import certificate thành công");
             
             // Tạo response
-            return ImportCertificateResponse.builder()
-                    .id(savedChukySo.getId())
-                    .serialNumber(savedChukySo.getSerialNumber())
-                    .subject(savedChukySo.getSubject())
-                    .issuer(savedChukySo.getIssuer())
-                    .validFrom(savedChukySo.getValidFrom())
-                    .validTo(savedChukySo.getValidTo())
-                    .tenDoanhNghiep(savedChukySo.getTenDoanhNghiep())
-                    .maSoThue(savedChukySo.getMaSoThue())
-                    .loaiChuKy(savedChukySo.getLoaiChuKy())
-                    .trangThai(savedChukySo.getTrangThai())
-                    .isDefault(savedChukySo.getIsDefault())
-                    .message("Import chữ ký số thành công")
-                    .build();
+            ImportCertificateResponse response = new ImportCertificateResponse();
+            response.setId(savedChukySo.getId());
+            response.setSerialNumber(savedChukySo.getSerialNumber());
+            response.setIssuer(savedChukySo.getIssuer());
+            response.setValidFrom(formatDate(savedChukySo.getValidFrom()));
+            response.setValidTo(formatDate(savedChukySo.getValidTo()));
+            response.setTenDoanhNghiep(savedChukySo.getTenDoanhNghiep());
+            response.setMaSoThue(savedChukySo.getMaSoThue());
+            response.setLoaiChuKy(savedChukySo.getLoaiChuKy());
+            response.setTrangThai(savedChukySo.getTrangThai());
+            response.setMessage("Import chữ ký số thành công");
+            
+            return response;
                     
         } catch (BusinessException e) {
             log.error("Lỗi business khi import certificate: {}", e.getMessage());
@@ -286,5 +285,15 @@ public class CertificateImportServiceImpl implements CertificateImportService {
             log.error("Lỗi khi tính thumbprint: ", e);
             return null;
         }
+    }
+    
+    /**
+     * Format date thành dd/MM/yyyy
+     */
+    private String formatDate(java.time.LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return "";
+        }
+        return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
     }
 }

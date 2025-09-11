@@ -4,9 +4,11 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.pht.entity.ChukySo;
 
@@ -56,4 +58,20 @@ public interface ChukySoRepository extends JpaRepository<ChukySo, Long> {
      * Kiểm tra thumbprint đã tồn tại chưa
      */
     boolean existsByThumbprint(String thumbprint);
+    
+    /**
+     * Bỏ đánh dấu mặc định của tất cả chữ ký số
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE ChukySo c SET c.isDefault = false")
+    void clearDefaultCertificates();
+    
+    /**
+     * Bỏ đánh dấu mặc định của tất cả chữ ký số có cùng MST
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE ChukySo c SET c.isDefault = false WHERE c.maSoThue = :maSoThue")
+    void clearDefaultForSameMST(@Param("maSoThue") String maSoThue);
 }

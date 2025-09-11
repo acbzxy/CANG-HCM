@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.pht.common.helper.ResponseHelper;
-import com.pht.entity.ToKhaiThongTin;
+import com.pht.entity.StoKhai;
 import com.pht.exception.BusinessException;
 import com.pht.model.request.NotificationRequest;
 import com.pht.model.request.ToKhaiThongTinRequest;
@@ -57,7 +57,7 @@ public class ToKhaiThongTinController {
         try {
             log.info("Nhận yêu cầu lấy danh sách tờ khai với trạng thái: {}", trangThai);
             
-            List<ToKhaiThongTin> toKhaiList = toKhaiThongTinService.findByTrangThai(trangThai);
+            List<StoKhai> toKhaiList = toKhaiThongTinService.findByTrangThai(trangThai);
             
             log.info("Tìm thấy {} tờ khai với trạng thái {}", toKhaiList.size(), trangThai);
             
@@ -82,7 +82,7 @@ public class ToKhaiThongTinController {
         try {
             log.info("Nhận yêu cầu lấy danh sách tờ khai trạng thái 02");
             
-            List<ToKhaiThongTin> toKhaiList = toKhaiThongTinService.findByTrangThai("02");
+            List<StoKhai> toKhaiList = toKhaiThongTinService.findByTrangThai("02");
             
             log.info("Tìm thấy {} tờ khai với trạng thái 02", toKhaiList.size());
             
@@ -107,7 +107,7 @@ public class ToKhaiThongTinController {
         try {
             log.info("Nhận yêu cầu lấy danh sách tất cả tờ khai thông tin");
             
-            List<ToKhaiThongTin> toKhaiList = toKhaiThongTinService.getAllToKhaiThongTin();
+            List<StoKhai> toKhaiList = toKhaiThongTinService.getAllToKhaiThongTin();
             
             log.info("Tìm thấy {} tờ khai thông tin", toKhaiList.size());
             
@@ -128,13 +128,13 @@ public class ToKhaiThongTinController {
             })
     })
     @GetMapping("/{id}")
-    public ResponseEntity<?> layToKhaiThongTinTheoId(
+    public ResponseEntity<?> layStoKhaiTheoId(
             @Parameter(description = "ID tờ khai thông tin", example = "1")
             @PathVariable Long id) {
         try {
             log.info("Nhận yêu cầu lấy tờ khai thông tin theo ID: {}", id);
             
-            ToKhaiThongTin toKhai = toKhaiThongTinService.getToKhaiThongTinById(id);
+            StoKhai toKhai = toKhaiThongTinService.getToKhaiThongTinById(id);
             
             log.info("Tìm thấy tờ khai thông tin với ID: {}", id);
             
@@ -158,11 +158,11 @@ public class ToKhaiThongTinController {
             })
     })
     @PostMapping("/create")
-    public ResponseEntity<?> taoMoiToKhaiThongTin(@RequestBody ToKhaiThongTinRequest request) {
+    public ResponseEntity<?> taoMoiStoKhai(@RequestBody ToKhaiThongTinRequest request) {
         try {
             log.info("Nhận yêu cầu tạo mới tờ khai thông tin");
             
-            ToKhaiThongTin toKhai = toKhaiThongTinService.createToKhaiThongTin(request);
+            StoKhai toKhai = toKhaiThongTinService.createToKhaiThongTin(request);
             
             log.info("Tạo mới tờ khai thông tin thành công với ID: {}", toKhai.getId());
             
@@ -218,7 +218,7 @@ public class ToKhaiThongTinController {
         try {
             log.info("Nhận yêu cầu cập nhật trạng thái tờ khai thông tin");
             
-            ToKhaiThongTin toKhai = toKhaiThongTinService.updateTrangThai(request);
+            StoKhai toKhai = toKhaiThongTinService.updateTrangThai(request);
             
             log.info("Cập nhật trạng thái tờ khai thông tin thành công với ID: {}", toKhai.getId());
             
@@ -246,7 +246,7 @@ public class ToKhaiThongTinController {
         try {
             log.info("Nhận yêu cầu cập nhật trạng thái phát hành tờ khai thông tin");
             
-            ToKhaiThongTin toKhai = toKhaiThongTinService.updateTrangThaiPhatHanh(request);
+            StoKhai toKhai = toKhaiThongTinService.updateTrangThaiPhatHanh(request);
             
             log.info("Cập nhật trạng thái phát hành tờ khai thông tin thành công với ID: {}", toKhai.getId());
             

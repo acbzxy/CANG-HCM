@@ -1,6 +1,6 @@
 package com.pht.service;
 
-import com.pht.entity.ToKhaiThongTin;
+import com.pht.entity.StoKhai;
 import com.pht.exception.BusinessException;
 
 public interface XmlGenerationService {
@@ -21,7 +21,7 @@ public interface XmlGenerationService {
     String generateAndSaveXml(Long toKhaiId, Integer lanKy) throws BusinessException;
     
     /**
-     * Tạo XML từ đối tượng ToKhaiThongTin
+     * Tạo XML từ đối tượng StoKhai
      */
-    String generateXml(ToKhaiThongTin toKhai) throws BusinessException;
+    String generateXml(StoKhai toKhai) throws BusinessException;
 }

@@ -11,8 +11,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.pht.entity.ToKhaiThongTin;
-import com.pht.entity.ToKhaiThongTinChiTiet;
+import com.pht.entity.StoKhai;
+import com.pht.entity.StoKhaiCt;
 import com.pht.exception.BusinessException;
 import com.pht.model.request.NotificationRequest;
 import com.pht.model.request.ToKhaiThongTinChiTietRequest;
@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<ToKhaiThongTin, Long> implements ToKhaiThongTinService {
+public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<StoKhai, Long> implements ToKhaiThongTinService {
 
     private final ToKhaiThongTinRepository toKhaiThongTinRepository;
     private final ToKhaiThongTinChiTietRepository toKhaiThongTinChiTietRepository;
@@ -46,23 +46,23 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<ToKhaiThongTin, L
     }
 
     @Override
-    public List<ToKhaiThongTin> getAllToKhaiThongTin() {
+    public List<StoKhai> getAllToKhaiThongTin() {
         return toKhaiThongTinRepository.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public ToKhaiThongTin getToKhaiThongTinById(Long id) throws BusinessException {
+    public StoKhai getToKhaiThongTinById(Long id) throws BusinessException {
         return toKhaiThongTinRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Không tìm thấy tờ khai thông tin với ID: " + id));
     }
 
     @Override
     @Transactional
-    public ToKhaiThongTin createToKhaiThongTin(ToKhaiThongTinRequest request) throws BusinessException {
+    public StoKhai createToKhaiThongTin(ToKhaiThongTinRequest request) throws BusinessException {
         try {
             // Tạo entity chính
-            ToKhaiThongTin toKhaiThongTin = new ToKhaiThongTin();
+            StoKhai toKhaiThongTin = new StoKhai();
             BeanUtils.copyProperties(request, toKhaiThongTin);
             
             // Generate SoTiepNhanKhaiPhi theo format [YYYY][sequence tăng dần] - 12 số
@@ -81,12 +81,12 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<ToKhaiThongTin, L
                     soTiepNhanKhaiPhi, toKhaiThongTin.getNgayKhaiPhi());
             
             // Lưu entity chính trước
-            ToKhaiThongTin savedToKhai = toKhaiThongTinRepository.save(toKhaiThongTin);
+            StoKhai savedToKhai = toKhaiThongTinRepository.save(toKhaiThongTin);
             
             // Xử lý chi tiết nếu có
             if (request.getChiTietList() != null && !request.getChiTietList().isEmpty()) {
                 for (ToKhaiThongTinChiTietRequest chiTietRequest : request.getChiTietList()) {
-                    ToKhaiThongTinChiTiet chiTiet = new ToKhaiThongTinChiTiet();
+                    StoKhaiCt chiTiet = new StoKhaiCt();
                     BeanUtils.copyProperties(chiTietRequest, chiTiet);
                     chiTiet.setToKhaiThongTinID(savedToKhai.getId());
                     toKhaiThongTinChiTietRepository.save(chiTiet);
@@ -102,9 +102,9 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<ToKhaiThongTin, L
 
     @Override
     @Transactional
-    public ToKhaiThongTin updateTrangThai(UpdateTrangThaiRequest request) throws BusinessException {
+    public StoKhai updateTrangThai(UpdateTrangThaiRequest request) throws BusinessException {
         try {
-            ToKhaiThongTin toKhaiThongTin = getToKhaiThongTinById(request.getId());
+            StoKhai toKhaiThongTin = getToKhaiThongTinById(request.getId());
             toKhaiThongTin.setTrangThai(request.getTrangThai());
             return toKhaiThongTinRepository.save(toKhaiThongTin);
         } catch (Exception e) {
@@ -115,12 +115,12 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<ToKhaiThongTin, L
 
     @Override
     @Transactional
-    public ToKhaiThongTin updateTrangThaiPhatHanh(UpdateTrangThaiPhatHanhRequest request) throws BusinessException {
+    public StoKhai updateTrangThaiPhatHanh(UpdateTrangThaiPhatHanhRequest request) throws BusinessException {
         try {
             log.info("Bắt đầu cập nhật trạng thái phát hành cho tờ khai ID: {}, trạng thái mới: {}", 
                     request.getId(), request.getTrangThaiPhatHanh());
             
-            ToKhaiThongTin toKhaiThongTin = getToKhaiThongTinById(request.getId());
+            StoKhai toKhaiThongTin = getToKhaiThongTinById(request.getId());
             
             // Lưu trạng thái cũ để log
             String trangThaiCu = toKhaiThongTin.getTrangThaiPhatHanh();
@@ -128,7 +128,7 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<ToKhaiThongTin, L
             // Cập nhật trạng thái phát hành mới
             toKhaiThongTin.setTrangThaiPhatHanh(request.getTrangThaiPhatHanh());
             
-            ToKhaiThongTin savedToKhai = toKhaiThongTinRepository.save(toKhaiThongTin);
+            StoKhai savedToKhai = toKhaiThongTinRepository.save(toKhaiThongTin);
             
             log.info("Cập nhật trạng thái phát hành thành công cho tờ khai ID: {}, từ '{}' sang '{}'", 
                     request.getId(), trangThaiCu, request.getTrangThaiPhatHanh());
@@ -150,7 +150,7 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<ToKhaiThongTin, L
             log.info("Bắt đầu tạo thông báo cho tờ khai ID: {}", request.getToKhaiId());
             
             // Lấy thông tin tờ khai
-            ToKhaiThongTin toKhaiThongTin = getToKhaiThongTinById(request.getToKhaiId());
+            StoKhai toKhaiThongTin = getToKhaiThongTinById(request.getToKhaiId());
             
             // Kiểm tra trạng thái hiện tại
             if (!"01".equals(toKhaiThongTin.getTrangThai())) {
@@ -237,7 +237,7 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<ToKhaiThongTin, L
     }
     
     @Override
-    public List<ToKhaiThongTin> findByTrangThai(String trangThai) {
+    public List<StoKhai> findByTrangThai(String trangThai) {
         log.info("Tìm tờ khai thông tin theo trạng thái: {}", trangThai);
         return toKhaiThongTinRepository.findByTrangThai(trangThai);
     }

@@ -17,4 +17,6 @@ public class ToKhaiThongTinChiTietRequest {
     private BigDecimal tongTrongLuong;
     private String donViTinh;
     private String ghiChu;
+    private BigDecimal donGia;
+    private BigDecimal soTien;
 }

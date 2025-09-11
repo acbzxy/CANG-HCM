@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,10 @@ import com.pht.common.helper.ResponseHelper;
 import com.pht.common.model.ApiDataResponse;
 import com.pht.model.request.ImportCertificateRequest;
 import com.pht.model.request.ImportCertificateFileRequest;
+import com.pht.model.request.SaveWindowsCertificateRequest;
+import com.pht.model.request.SaveCertificateBySerialRequest;
+import com.pht.model.request.ClientCertificateListRequest;
+import com.pht.model.request.SaveCertificateFromFrontendRequest;
 import com.pht.model.request.XmlGenerationRequest;
 import com.pht.model.response.ChuKySoResponse;
 import com.pht.model.response.ImportCertificateResponse;
@@ -22,6 +27,11 @@ import com.pht.repository.ChukySoRepository;
 import com.pht.service.CertificateImportService;
 import com.pht.service.CertificateFileImportService;
 import com.pht.service.XmlGenerationService;
+import com.pht.service.WindowsCertificateService;
+import com.pht.service.WindowsCertificateSaveService;
+import com.pht.service.SimpleCertificateSaveService;
+import com.pht.service.ClientCertificateService;
+import com.pht.service.FrontendCertificateSaveService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -43,6 +53,11 @@ public class ChuKySoController {
     private final CertificateImportService certificateImportService;
     private final CertificateFileImportService certificateFileImportService;
     private final ChukySoRepository chukySoRepository;
+    private final WindowsCertificateService windowsCertificateService;
+    private final WindowsCertificateSaveService windowsCertificateSaveService;
+    private final SimpleCertificateSaveService simpleCertificateSaveService;
+    private final ClientCertificateService clientCertificateService;
+    private final FrontendCertificateSaveService frontendCertificateSaveService;
 
     @Operation(summary = "Lấy danh sách chữ ký số từ database")
     @ApiResponses({
@@ -117,6 +132,214 @@ public class ChuKySoController {
             return "";
         }
         return dateTime.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+    }
+
+    @Operation(summary = "Lấy danh sách chữ ký số từ Windows Security")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Thành công", content = {
+                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @GetMapping("/windows-security")
+    public ResponseEntity<?> layDanhSachChuKySoTuWindowsSecurity() {
+        try {
+            log.info("Nhận yêu cầu lấy danh sách chữ ký số từ Windows Security");
+            List<ChuKySoResponse> result = windowsCertificateService.getAllWindowsCertificates();
+            
+            log.info("Lấy thành công {} chữ ký số từ Windows Security", result.size());
+            
+            return ResponseHelper.ok(result);
+        } catch (Exception ex) {
+            log.error("Lỗi khi lấy danh sách chữ ký số từ Windows Security: ", ex);
+            return ResponseHelper.error(ex);
+        }
+    }
+
+    @Operation(summary = "Lấy danh sách chữ ký số hợp lệ từ Windows Security")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Thành công", content = {
+                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @GetMapping("/windows-security/valid")
+    public ResponseEntity<?> layDanhSachChuKySoHopLeTuWindowsSecurity() {
+        try {
+            log.info("Nhận yêu cầu lấy danh sách chữ ký số hợp lệ từ Windows Security");
+            List<ChuKySoResponse> result = windowsCertificateService.getValidWindowsCertificates();
+            
+            log.info("Lấy thành công {} chữ ký số hợp lệ từ Windows Security", result.size());
+            
+            return ResponseHelper.ok(result);
+        } catch (Exception ex) {
+            log.error("Lỗi khi lấy danh sách chữ ký số hợp lệ từ Windows Security: ", ex);
+            return ResponseHelper.error(ex);
+        }
+    }
+
+    @Operation(summary = "Lấy chữ ký số theo serial number từ Windows Security")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Thành công", content = {
+                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @GetMapping("/windows-security/serial/{serialNumber}")
+    public ResponseEntity<?> layChuKySoTuWindowsSecurity(@PathVariable String serialNumber) {
+        try {
+            log.info("Nhận yêu cầu lấy chữ ký số với serial number: {} từ Windows Security", serialNumber);
+            ChuKySoResponse result = windowsCertificateService.getWindowsCertificateBySerialNumber(serialNumber);
+            
+            if (result == null) {
+                log.warn("Không tìm thấy chữ ký số với serial number: {} từ Windows Security", serialNumber);
+                return ResponseHelper.notFound("Không tìm thấy chữ ký số với serial number: " + serialNumber);
+            }
+            
+            log.info("Lấy thành công chữ ký số với serial number: {} từ Windows Security", serialNumber);
+            
+            return ResponseHelper.ok(result);
+        } catch (Exception ex) {
+            log.error("Lỗi khi lấy chữ ký số với serial number: {} từ Windows Security: ", serialNumber, ex);
+            return ResponseHelper.error(ex);
+        }
+    }
+
+    @Operation(summary = "Lưu chữ ký số từ Windows Security vào database")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lưu thành công", content = {
+                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy chữ ký số trong Windows Security", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "409", description = "Chữ ký số đã tồn tại trong database", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi hệ thống", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @PostMapping("/windows-security/save")
+    public ResponseEntity<?> luuChuKySoTuWindowsSecurity(@RequestBody SaveWindowsCertificateRequest request) {
+        try {
+            log.info("Nhận yêu cầu lưu chữ ký số từ Windows Security với serial number: {}", request.getSerialNumber());
+            
+            ChuKySoResponse result = windowsCertificateSaveService.saveWindowsCertificateToDatabase(request);
+            
+            log.info("Lưu thành công chữ ký số với serial number: {} từ Windows Security", request.getSerialNumber());
+            
+            return ResponseHelper.ok(result);
+            
+        } catch (Exception ex) {
+            log.error("Lỗi khi lưu chữ ký số từ Windows Security với serial number {}: ", request.getSerialNumber(), ex);
+            return ResponseHelper.error(ex);
+        }
+    }
+
+    @Operation(summary = "Lưu chữ ký số từ Windows Security chỉ với SerialNumber")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lưu thành công", content = {
+                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "404", description = "Không tìm thấy chữ ký số trong Windows Security", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "409", description = "Chữ ký số đã tồn tại trong database", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi hệ thống", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @PostMapping("/save-by-serial")
+    public ResponseEntity<?> luuChuKySoBangSerialNumber(@RequestBody SaveCertificateBySerialRequest request) {
+        try {
+            log.info("Nhận yêu cầu lưu chữ ký số từ Windows Security với serial number: {}", request.getSerialNumber());
+            
+            ChuKySoResponse result = simpleCertificateSaveService.saveCertificateBySerialNumber(request);
+            
+            log.info("Lưu thành công chữ ký số với serial number: {} từ Windows Security", request.getSerialNumber());
+            
+            return ResponseHelper.ok(result);
+            
+        } catch (Exception ex) {
+            log.error("Lỗi khi lưu chữ ký số từ Windows Security với serial number {}: ", request.getSerialNumber(), ex);
+            return ResponseHelper.error(ex);
+        }
+    }
+
+    @Operation(summary = "Nhận danh sách chữ ký số từ frontend React")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lưu thành công", content = {
+                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi hệ thống", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @PostMapping("/client-certificates")
+    public ResponseEntity<?> nhanDanhSachChuKySoTuFrontend(@RequestBody ClientCertificateListRequest request) {
+        try {
+            log.info("Nhận danh sách {} chữ ký số từ frontend React", request.getCertificates().size());
+            
+            List<ChuKySoResponse> result = clientCertificateService.saveClientCertificates(request);
+            
+            log.info("Lưu thành công {} chữ ký số từ frontend React", result.size());
+            
+            return ResponseHelper.ok(result);
+            
+        } catch (Exception ex) {
+            log.error("Lỗi khi lưu danh sách chữ ký số từ frontend React: ", ex);
+            return ResponseHelper.error(ex);
+        }
+    }
+
+    @Operation(summary = "Lưu chữ ký số từ frontend vào database")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lưu thành công", content = {
+                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi hệ thống", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @PostMapping("/save-from-frontend")
+    public ResponseEntity<?> luuChuKySoTuFrontend(@RequestBody SaveCertificateFromFrontendRequest request) {
+        try {
+            log.info("Lưu chữ ký số từ frontend với serial number: {}", request.getSerialNumber());
+            
+            ChuKySoResponse result = frontendCertificateSaveService.saveCertificateFromFrontend(request);
+            
+            log.info("Lưu thành công chữ ký số từ frontend với serial number: {}", request.getSerialNumber());
+            
+            return ResponseHelper.ok(result);
+            
+        } catch (Exception ex) {
+            log.error("Lỗi khi lưu chữ ký số từ frontend: ", ex);
+            return ResponseHelper.error(ex);
+        }
     }
 
     @Operation(summary = "Tạo và ký XML tờ khai với chữ ký số")

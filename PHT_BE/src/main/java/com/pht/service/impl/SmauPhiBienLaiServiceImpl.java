@@ -34,6 +34,11 @@ public class SmauPhiBienLaiServiceImpl extends BaseServiceImpl<SmauPhiBienLai, L
     private SmauPhiBienLaiRepository smauPhiBienLaiRepository;
 
     @Override
+    public SmauPhiBienLaiRepository getRepository() {
+        return smauPhiBienLaiRepository;
+    }
+
+    @Override
     public List<SmauPhiBienLai> getAllMauPhiBienLai() {
         log.info("Lấy danh sách tất cả mẫu phí biên lai");
         return smauPhiBienLaiRepository.findAll();
