@@ -7,7 +7,7 @@ import { useNotification } from '../context/NotificationContext'
 const backgroundImage = '/tphcm-bkg.jpg'
 const cangvuLogo = '/cangvu-hcm-logo.png'
 
-const LoginPage: React.FC = () => {
+const AdminLoginPage: React.FC = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -51,29 +51,22 @@ const LoginPage: React.FC = () => {
     }
   }, [isAuthenticated, navigate])
 
-  // Auto-fill MST credentials on double-click
+  // Auto-fill admin credentials on double-click
   const handleUsernameDblClick = () => {
     setFormData(prev => ({
       ...prev,
-      username: '368745291047',
+      username: 'user',
       password: '123456',
       captcha: captchaCode
     }))
-    showSuccess('MST credentials auto-filled!')
+    showSuccess('Admin credentials auto-filled!')
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
-    
-    // For username (tax code), only allow numeric input
-    let processedValue = value
-    if (name === 'username') {
-      processedValue = value.replace(/\D/g, '') // Remove non-digits
-    }
-    
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : processedValue
+      [name]: type === 'checkbox' ? checked : value
     }))
     
     // Clear error when user starts typing
@@ -86,9 +79,7 @@ const LoginPage: React.FC = () => {
     const newErrors: Record<string, string> = {}
     
     if (!formData.username.trim()) {
-      newErrors.username = 'Vui lòng nhập mã số thuế'
-    } else if (!/^\d{12}$/.test(formData.username.trim())) {
-      newErrors.username = 'Mã số thuế phải là 12 chữ số'
+      newErrors.username = 'Vui lòng nhập tài khoản'
     }
     
     if (!formData.password.trim()) {
@@ -143,16 +134,9 @@ const LoginPage: React.FC = () => {
   // Forgot password functions
   const handleForgotPasswordInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    
-    // For companyCode (tax code), only allow numeric input
-    let processedValue = value
-    if (name === 'companyCode') {
-      processedValue = value.replace(/\D/g, '') // Remove non-digits
-    }
-    
     setForgotPasswordData(prev => ({
       ...prev,
-      [name]: processedValue
+      [name]: value
     }))
     
     // Clear error when user starts typing
@@ -165,9 +149,7 @@ const LoginPage: React.FC = () => {
     const newErrors: Record<string, string> = {}
     
     if (!forgotPasswordData.companyCode.trim()) {
-      newErrors.companyCode = 'Vui lòng nhập mã số thuế'
-    } else if (!/^\d{12}$/.test(forgotPasswordData.companyCode.trim())) {
-      newErrors.companyCode = 'Mã số thuế phải là 12 chữ số'
+      newErrors.companyCode = 'Vui lòng nhập mã doanh nghiệp'
     }
     
     if (!forgotPasswordData.email.trim()) {
@@ -308,7 +290,7 @@ const LoginPage: React.FC = () => {
             }
           }
 
-          /* Custom scrollbar for Login Page only */
+          /* Custom scrollbar for Admin Login Page only */
           ::-webkit-scrollbar {
             width: 5px !important;
           }
@@ -511,7 +493,7 @@ const LoginPage: React.FC = () => {
               maxWidth: '900px',
               margin: '0 auto'
             }}>
-              KHAI BÁO NỘP PHÍ SỬ DỤNG KẾT CẤU HẠ TẦNG - CÔNG TRÌNH DỊCH VỤ, TIỆN ÍCH CÔNG CỘNG
+              HỆ THỐNG QUẢN TRỊ - KHAI BÁO NỘP PHÍ SỬ DỤNG KẾT CẤU HẠ TẦNG
             </p>
           </div>
 
@@ -625,17 +607,17 @@ const LoginPage: React.FC = () => {
                   letterSpacing: '1px',
                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
                 }}>
-                  ĐĂNG NHẬP HỆ THỐNG
+                  ĐĂNG NHẬP QUẢN TRỊ
                 </h3>
               </div>
               
               <form onSubmit={handleSubmit}>
-                {/* Tax Code */}
+                {/* Username */}
                 <div style={{ marginBottom: '5px', fontSize: '14px', color: '#2c3e50' }}>
-                  Mã số thuế<span style={{ fontStyle: 'italic' }}>(12 số)</span>
+                  Tài khoản Admin<span style={{ fontStyle: 'italic' }}>(Tài khoản quản trị)</span>
                 </div>
                 <div style={{ position: 'relative', marginBottom: '10px' }}>
-                  <i className="fas fa-user" style={{
+                  <i className="fas fa-user-shield" style={{
                     position: 'absolute',
                     left: '12px',
                     top: '50%',
@@ -648,7 +630,7 @@ const LoginPage: React.FC = () => {
                     value={formData.username}
                     onChange={handleInputChange}
                     onDoubleClick={handleUsernameDblClick}
-                    placeholder="Mã số thuế (12 số)..."
+                    placeholder="Tài khoản admin..."
                     style={{
                       width: '100%',
                       height: '40px',
@@ -659,10 +641,8 @@ const LoginPage: React.FC = () => {
                       boxSizing: 'border-box',
                       outline: 'none'
                     }}
-                    title="Double-click để auto-fill dev credentials"
-                    maxLength={12}
-                    pattern="[0-9]{12}"
-                    inputMode="numeric"
+                    title="Double-click để auto-fill admin credentials"
+                    maxLength={14}
                   />
                 </div>
                 {errors.username && (
@@ -885,7 +865,7 @@ const LoginPage: React.FC = () => {
                   ) : (
                     <>
                       <i className="fas fa-sign-in-alt" style={{ marginRight: '8px' }}></i>
-                      Đăng nhập
+                      Đăng nhập Admin
                     </>
                   )}
                 </button>
@@ -903,14 +883,14 @@ const LoginPage: React.FC = () => {
                 </div>
               </form>
               
-              {/* Link to Admin Login */}
+              {/* Link to Business Login */}
               <div style={{ 
                 marginTop: '20px', 
                 textAlign: 'center'
               }}>
                 <a 
                   href="#" 
-                  onClick={(e) => { e.preventDefault(); navigate('/admin-login'); }}
+                  onClick={(e) => { e.preventDefault(); navigate('/login'); }}
                   style={{ 
                     color: '#3498db', 
                     textDecoration: 'none',
@@ -933,8 +913,8 @@ const LoginPage: React.FC = () => {
                     e.currentTarget.style.color = '#3498db'
                   }}
                 >
-                  <i className="fas fa-user-shield"></i>
-                  Chuyển tới đăng nhập quản trị
+                  <i className="fas fa-building"></i>
+                  Chuyển tới đăng nhập doanh nghiệp
                 </a>
               </div>
                 </div>
@@ -982,7 +962,7 @@ const LoginPage: React.FC = () => {
                 gap: '20px'
               }}>
 
-                {/* Notifications Card */}
+                {/* Admin Features Card */}
                 <div style={{
                   background: 'rgba(255, 255, 255, 0.1)',
                   backdropFilter: 'blur(20px)',
@@ -1009,7 +989,7 @@ const LoginPage: React.FC = () => {
                       marginRight: '15px',
                       boxShadow: '0 6px 15px rgba(243, 111, 33, 0.4)'
                     }}>
-                      <i className="fas fa-bell" style={{ color: 'white', fontSize: '22px' }}></i>
+                      <i className="fas fa-cogs" style={{ color: 'white', fontSize: '22px' }}></i>
                     </div>
                     <h3 style={{
                       fontSize: '20px',
@@ -1019,7 +999,7 @@ const LoginPage: React.FC = () => {
                       textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
                       letterSpacing: '0.5px'
                     }}>
-                      THÔNG BÁO
+                      QUẢN TRỊ HỆ THỐNG
                     </h3>
                   </div>
                   
@@ -1038,7 +1018,7 @@ const LoginPage: React.FC = () => {
                       textAlign: 'center'
                     }}>
                       <p style={{ margin: '0', fontWeight: '600', textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)' }}>
-                        Hệ thống thu phí vận hành từ 01/04/2022
+                        Hệ thống quản trị thu phí vận hành từ 01/04/2022
                       </p>
                     </div>
                     
@@ -1050,7 +1030,7 @@ const LoginPage: React.FC = () => {
                       border: '1px solid rgba(255, 255, 255, 0.15)'
                     }}>
                       <p style={{ margin: '0', fontSize: '13px', lineHeight: '1.4' }}>
-                        • Thông báo khóa tài khoản thu phí
+                        • Quản lý tài khoản người dùng
                       </p>
                     </div>
                     
@@ -1062,7 +1042,7 @@ const LoginPage: React.FC = () => {
                       border: '1px solid rgba(255, 255, 255, 0.15)'
                     }}>
                       <p style={{ margin: '0', fontSize: '13px', lineHeight: '1.4' }}>
-                        • Thay đổi email: <span style={{ color: '#87ceeb' }}>thuphihatang@tphcm.gov.vn</span>
+                        • Báo cáo thống kê thu phí
                       </p>
                     </div>
                     
@@ -1073,13 +1053,13 @@ const LoginPage: React.FC = () => {
                       border: '1px solid rgba(255, 255, 255, 0.15)'
                     }}>
                       <p style={{ margin: '0', fontSize: '13px', lineHeight: '1.4' }}>
-                        • Bảo trì hệ thống: <span style={{ color: '#f36f21', fontWeight: '600' }}>20-22/12/2024</span>
+                        • Quản lý cấu hình hệ thống
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* User Guide Card */}
+                {/* System Status Card */}
                 <div style={{
                   background: 'rgba(255, 255, 255, 0.1)',
                   backdropFilter: 'blur(20px)',
@@ -1106,7 +1086,7 @@ const LoginPage: React.FC = () => {
                       marginRight: '15px',
                       boxShadow: '0 6px 15px rgba(13, 177, 75, 0.4)'
                     }}>
-                      <i className="fas fa-info-circle" style={{ color: 'white', fontSize: '22px' }}></i>
+                      <i className="fas fa-server" style={{ color: 'white', fontSize: '22px' }}></i>
                     </div>
                     <h3 style={{
                       fontSize: '20px',
@@ -1116,7 +1096,7 @@ const LoginPage: React.FC = () => {
                       textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
                       letterSpacing: '0.5px'
                     }}>
-                      HƯỚNG DẪN
+                      TRẠNG THÁI HỆ THỐNG
                     </h3>
                   </div>
                   
@@ -1140,12 +1120,12 @@ const LoginPage: React.FC = () => {
                         color: 'white',
                         textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
                       }}>
-                        Cài đặt môi trường
+                        Server Status
                       </h4>
                       <div style={{ fontSize: '13px', lineHeight: '1.4', opacity: '0.9' }}>
-                        • File cài đặt ký số<br/>
-                        • Tiện ích Chrome Extension<br/>
-                        • Microsoft .NET Framework ≥ 4.6
+                        • Database: <span style={{ color: '#0db14b', fontWeight: '600' }}>Online</span><br/>
+                        • API Services: <span style={{ color: '#0db14b', fontWeight: '600' }}>Running</span><br/>
+                        • Load Balancer: <span style={{ color: '#0db14b', fontWeight: '600' }}>Active</span>
                       </div>
                     </div>
                     
@@ -1162,12 +1142,12 @@ const LoginPage: React.FC = () => {
                         color: 'white',
                         textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
                       }}>
-                        Tài liệu hướng dẫn
+                        Hỗ trợ Admin
                       </h4>
                       <div style={{ fontSize: '13px', lineHeight: '1.4', opacity: '0.9' }}>
-                        • Tài liệu hướng dẫn sử dụng<br/>
-                        • Video hướng dẫn khai phí ECUS<br/>
-                        • Hỗ trợ: <span style={{ color: '#0db14b', fontWeight: '600' }}>1900 1286</span>
+                        • Tài liệu quản trị hệ thống<br/>
+                        • Log monitoring & analytics<br/>
+                        • Hotline: <span style={{ color: '#8B0000', fontWeight: '600' }}>1900 9999</span>
                       </div>
                     </div>
                   </div>
@@ -1206,7 +1186,7 @@ const LoginPage: React.FC = () => {
             backgroundClip: 'text'
           }}>
             Copyright © 2025
-          </strong> - DEMO HỆ THỐNG THU PHÍ
+          </strong> - ADMIN PORTAL - HỆ THỐNG THU PHÍ
         </div>
       </div>
       </div>
@@ -1252,7 +1232,7 @@ const LoginPage: React.FC = () => {
                 fontWeight: '600',
                 color: '#1f2937'
               }}>
-                Khôi Phục Tài Khoản
+                Khôi Phục Tài Khoản Admin
               </h3>
               <button
                 onClick={closeForgotPasswordModal}
@@ -1285,7 +1265,7 @@ const LoginPage: React.FC = () => {
                   backgroundColor: '#f9fafb',
                   color: '#374151'
                 }}>
-                  <option>KHÔI PHỤC TÀI KHOẢN THÔNG QUA MÃ SỐ THUẾ VÀ EMAIL</option>
+                  <option>KHÔI PHỤC TÀI KHOẢN ADMIN THÔNG QUA EMAIL ĐÃ ĐĂNG KÝ</option>
                 </select>
               </div>
 
@@ -1296,7 +1276,7 @@ const LoginPage: React.FC = () => {
                 color: '#6b7280',
                 lineHeight: '1.5'
               }}>
-                Vui lòng điền Mã số thuế và Email đã đăng ký. Hệ thống sẽ gửi xác nhận qua email của bạn.
+                Vui lòng điền Mã quản trị và Email đã đăng ký. Hệ thống sẽ gửi xác nhận qua email của bạn.
               </div>
 
               <form onSubmit={handleForgotPasswordSubmit}>
@@ -1309,7 +1289,7 @@ const LoginPage: React.FC = () => {
                     color: '#374151',
                     fontWeight: '500'
                   }}>
-                    Mã số thuế<span style={{ fontStyle: 'italic' }}>(12 chữ số)</span>
+                    Mã quản trị<span style={{ fontStyle: 'italic' }}>(Tài khoản admin)</span>
                     <span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>
                   </label>
                   <input
@@ -1317,9 +1297,6 @@ const LoginPage: React.FC = () => {
                     name="companyCode"
                     value={forgotPasswordData.companyCode}
                     onChange={handleForgotPasswordInputChange}
-                    maxLength={12}
-                    pattern="[0-9]{12}"
-                    inputMode="numeric"
                     style={{
                       width: '100%',
                       height: '40px',
@@ -1330,7 +1307,7 @@ const LoginPage: React.FC = () => {
                       boxSizing: 'border-box',
                       outline: 'none'
                     }}
-                    placeholder="Nhập mã số thuế (12 số)"
+                    placeholder="Nhập mã quản trị"
                   />
                   {forgotPasswordErrors.companyCode && (
                     <div style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px' }}>
@@ -1487,7 +1464,7 @@ const LoginPage: React.FC = () => {
                 fontWeight: '600',
                 color: '#1f2937'
               }}>
-                Đăng Ký Tài Khoản
+                Đăng Ký Tài Khoản Admin
               </h3>
               <select 
                 value={accountType}
@@ -1539,7 +1516,7 @@ const LoginPage: React.FC = () => {
                         color: '#374151',
                         fontWeight: '500'
                       }}>
-                        Tên đăng nhập <span style={{ fontStyle: 'italic' }}>(Mã doanh nghiệp/ Mã số thuế):</span>
+                        Tên đăng nhập <span style={{ fontStyle: 'italic' }}>(Mã quản trị/ Mã số thuế):</span>
                         <span style={{ color: '#ef4444', marginLeft: '2px' }}>*</span>
                       </label>
                       <input
@@ -1880,13 +1857,13 @@ const LoginPage: React.FC = () => {
                   border: '1px solid #e0f2fe'
                 }}>
                   <div style={{ fontSize: '14px', color: '#374151', marginBottom: '8px', fontWeight: '600' }}>
-                    Lưu ý:
+                    Lưu ý cho Admin:
                   </div>
                   <div style={{ fontSize: '13px', color: '#6b7280', lineHeight: '1.4' }}>
-                    - Tổ chức, cá nhân cần cung cấp đầy đủ, chính xác các thông tin theo yêu cầu của Hệ thống khai báo nộp phí. Sau 7 ngày kể từ khi đăng ký tài khoản, các tài khoản không cập nhật đầy đủ thông tin sẽ bị tạm khóa.
+                    - Tài khoản Admin có quyền quản trị toàn bộ hệ thống. Vui lòng cung cấp đầy đủ, chính xác các thông tin theo yêu cầu.
                   </div>
                   <div style={{ fontSize: '13px', color: '#6b7280', lineHeight: '1.4', marginTop: '4px' }}>
-                    - Mọi thông tin chi tiết xin liên hệ số Tổng đài Hỗ trợ: <strong>1900 1286</strong>
+                    - Mọi thông tin chi tiết xin liên hệ số Tổng đài Hỗ trợ Admin: <strong>1900 9999</strong>
                   </div>
                 </div>
 
@@ -1917,7 +1894,7 @@ const LoginPage: React.FC = () => {
                     }}
                   >
                     <i className="fas fa-user-plus"></i>
-                    Đăng ký
+                    Đăng ký Admin
                   </button>
                   <button
                     type="button"
@@ -1950,4 +1927,4 @@ const LoginPage: React.FC = () => {
   )
 }
 
-export default LoginPage
+export default AdminLoginPage

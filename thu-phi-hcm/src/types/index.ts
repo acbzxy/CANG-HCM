@@ -8,7 +8,7 @@ export interface User {
   taxCode: string
   phone: string
   address: string
-  userType: 'enterprise' | 'agent' | 'individual' | 'dev' | 'custom' | 'admin_custom'
+  userType: 'enterprise' | 'agent' | 'individual' | 'dev' | 'custom' | 'admin_custom' | 'mst_custom'
   status: 'active' | 'inactive' | 'locked'
   createdAt: string
   lastLoginAt?: string

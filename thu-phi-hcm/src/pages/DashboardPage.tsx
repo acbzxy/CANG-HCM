@@ -238,7 +238,7 @@ const DashboardPage: React.FC = () => {
           55% {
             background: conic-gradient(
               #9b59b6 0deg 190deg,
-              #f8f9fa 190deg 360deg
+              #f8f9fa 190deg 360deg 
             );
           }
           60% {

@@ -197,6 +197,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return
       }
 
+      // Check for MST user credentials (mst/123456)
+      if (credentials.username === '368745291047' && credentials.password === '123456') {
+        const mstUser: User = {
+          id: 'mst-001',
+          username: '368745291047',
+          email: 'mst@example.com',
+          fullName: 'Người dùng MST',
+          companyName: 'Công ty MST',
+          taxCode: '368745291047',
+          phone: '1900 1286',
+          address: 'TP. Hồ Chí Minh',
+          userType: 'mst_custom',
+          status: 'active',
+          createdAt: new Date().toISOString(),
+          lastLoginAt: new Date().toISOString(),
+        }
+
+        // Save to session storage
+        sessionStorage.setItem('user', JSON.stringify(mstUser))
+        sessionStorage.setItem('isLoggedIn', 'true')
+        sessionStorage.setItem('loginTime', new Date().toISOString())
+        sessionStorage.setItem('userType', 'mst_custom')
+
+        dispatch({ type: 'LOGIN_SUCCESS', payload: mstUser })
+        return
+      }
+
       // For other credentials, simulate authentication
       if (credentials.username && credentials.password) {
         const user: User = {
