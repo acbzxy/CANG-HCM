@@ -421,13 +421,16 @@ const FeeDeclarationManagePage: React.FC = () => {
   };
 
   const handleViewDetail = async (item: FeeDeclarationDisplay) => {
+    console.log('👁️ Starting handleViewDetail for item:', item);
     setSelectedItem(item);
     setShowDetailModal(true);
     setLoadingDetail(true);
     
     try {
+      console.log('👁️ Fetching detail for ID:', item.id);
       // Fetch detailed information from API
       const detailData = await FeeDeclarationService.getFeeDeclarationById(parseInt(item.id));
+      console.log('👁️ Detail data received:', detailData);
       setSelectedItemDetail(detailData);
       console.log('Detail data loaded:', detailData);
       console.log('ChiTietList:', detailData.chiTietList);
@@ -436,8 +439,9 @@ const FeeDeclarationManagePage: React.FC = () => {
         console.log('All chiTiet fields:', Object.keys(detailData.chiTietList[0]));
       }
     } catch (error) {
-      console.error('Error loading detail:', error);
-      showError('Không thể tải chi tiết tờ khai');
+      console.error('❌ Error loading detail:', error);
+      console.error('❌ Error details:', (error as Error).message, (error as Error).stack);
+      showError('Không thể tải chi tiết tờ khai: ' + (error as Error).message);
     } finally {
       setLoadingDetail(false);
     }
@@ -451,13 +455,16 @@ const FeeDeclarationManagePage: React.FC = () => {
   };
 
   const handleGetNotification = async (item: FeeDeclarationDisplay) => {
+    console.log('🔔 Starting handleGetNotification for item:', item);
     setSelectedNotificationItem(item);
     setShowNotificationModal(true);
     setLoadingNotification(true);
     
     try {
+      console.log('🔔 Fetching notification detail for ID:', item.id);
       // Fetch detailed information from API for notification
       const detailData = await FeeDeclarationService.getFeeDeclarationById(parseInt(item.id));
+      console.log('🔔 Notification detail data received:', detailData);
       setNotificationDetail(detailData);
       console.log('Notification detail data loaded:', detailData);
       console.log('Notification ChiTietList:', detailData.chiTietList);
@@ -466,8 +473,9 @@ const FeeDeclarationManagePage: React.FC = () => {
         console.log('All notification chiTiet fields:', Object.keys(detailData.chiTietList[0]));
       }
     } catch (error) {
-      console.error('Error loading notification detail:', error);
-      showError('Không thể tải thông báo tờ khai');
+      console.error('❌ Error loading notification detail:', error);
+      console.error('❌ Error details:', (error as Error).message, (error as Error).stack);
+      showError('Không thể tải thông báo tờ khai: ' + (error as Error).message);
     } finally {
       setLoadingNotification(false);
     }

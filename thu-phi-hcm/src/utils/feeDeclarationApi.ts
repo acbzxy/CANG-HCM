@@ -63,8 +63,8 @@ const API_BASE_URL = '/api'
 
 // Fee Declaration API endpoints
 const ENDPOINTS = {
-  FEE_DECLARATIONS: `${API_BASE_URL}/tokhai-thongtin/all`,
-  SEARCH: `${API_BASE_URL}/tokhai-thongtin/search`,
+  FEE_DECLARATIONS: `${API_BASE_URL}/tokhai-thongtin/ds-nphi`,
+  SEARCH: `${API_BASE_URL}/tokhai-thongtin/ds-nphi`,
   STATISTICS: `${API_BASE_URL}/tokhai-thongtin/statistics`,
   NEEDING_NOTIFICATION: `${API_BASE_URL}/tokhai-thongtin/needing-notification`,
 }
@@ -90,7 +90,7 @@ export const PAYMENT_METHOD_MAP = {
 }
 
 // Helper function to map TokhaiThongtinResponse to FeeDeclaration
-export const mapTokhaiToFeeDeclaration = (tokhai: TokhaiThongtinResponse): FeeDeclaration => {
+export const mapTokhaiToFeeDeclaration = (tokhai: TokhaiThongtinResponse): FeeDeclaration | null => {
   // Skip records with placeholder data
   if (tokhai.soToKhai === 'string' || tokhai.tenDoanhNghiepKhaiPhi === 'string' || tokhai.maDoanhNghiepKhaiPhi === 'string') {
     console.log('🚫 Skipping record with placeholder data:', tokhai.id, tokhai.soToKhai, tokhai.tenDoanhNghiepKhaiPhi);
@@ -305,7 +305,7 @@ export class FeeDeclarationApiService {
   ): Promise<PageResponse<FeeDeclaration>> {
     try {
       // Use the new API endpoint directly
-      const url = `${API_BASE_URL}/tokhai-thongtin/all`
+      const url = `${API_BASE_URL}/tokhai-thongtin/ds-nphi`
       console.log('Fetching data from:', url)
       
       const response = await fetch(url, {
@@ -369,7 +369,7 @@ export class FeeDeclarationApiService {
     try {
       // For now, use the same endpoint as getAllFeeDeclarations
       // In the future, you can implement search parameters if the API supports them
-      const url = `${API_BASE_URL}/tokhai-thongtin/all`
+      const url = `${API_BASE_URL}/tokhai-thongtin/ds-nphi`
       console.log('Searching with params:', searchParams)
       console.log('Fetching data from:', url)
       
@@ -466,9 +466,36 @@ export class FeeDeclarationApiService {
   /**
    * Get fee declaration by ID
    */
-  static async getFeeDeclarationById(id: number): Promise<ApiResponse<FeeDeclaration>> {
-    const url = `${ENDPOINTS.FEE_DECLARATIONS}/${id}`
-    return this.makeRequest(url)
+  static async getFeeDeclarationById(id: number): Promise<TokhaiThongtinResponse> {
+    try {
+      const url = `${API_BASE_URL}/tokhai-thongtin/${id}`
+      console.log('Fetching fee declaration by ID:', id, 'from:', url)
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const responseData: ApiResponseWrapper<TokhaiThongtinResponse> = await response.json()
+      console.log('Fee declaration by ID response:', responseData)
+      
+      if (responseData.data) {
+        return responseData.data
+      } else {
+        throw new Error('No data in response')
+      }
+      
+    } catch (error) {
+      console.error('Error fetching fee declaration by ID:', error)
+      throw error
+    }
   }
 
   /**
