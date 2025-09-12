@@ -15,6 +15,7 @@ import com.pht.model.request.LayThongTinHaiQuanRequest;
 import com.pht.model.request.ParseHaiQuanDataRequest;
 import com.pht.model.response.ChiTietHaiQuanResponse;
 import com.pht.model.response.ThongTinHaiQuanResponse;
+import com.pht.repository.SbieuCuocRepository;
 import com.pht.service.HaiQuanService;
 import com.pht.util.FileReaderUtil;
 
@@ -27,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 public class HaiQuanServiceImpl implements HaiQuanService {
 
     private final FileReaderUtil fileReaderUtil;
+    private final SbieuCuocRepository sbieuCuocRepository;
 
     @Override
     public ThongTinHaiQuanResponse layThongTinHaiQuan(LayThongTinHaiQuanRequest request) {
@@ -117,7 +119,7 @@ public class HaiQuanServiceImpl implements HaiQuanService {
         response.setSoTiepNhanKhaiPhi("");
         response.setNgayKhaiPhi(LocalDate.now());
         response.setNhomLoaiPhi(extractXmlValue(xmlContent, "Ma_LoaiPhi"));
-        response.setLoaiThanhToan("Chuyển khoản ngân hàng");
+        response.setLoaiThanhToan("00");//CHUYEN KHOAN NGAN HANG
         response.setGhiChuKhaiPhi(extractXmlValue(xmlContent, "Ten_LoaiPhi"));
         
         // Parse thông tin thu phí
@@ -133,7 +135,7 @@ public class HaiQuanServiceImpl implements HaiQuanService {
             response.setTongTienPhi(BigDecimal.ZERO);
         }
         
-        response.setTrangThaiNganHang("NGÂN HÀNG CHƯA GẠCH NỢ");
+        response.setTrangThaiNganHang("00");//TRANG THAI CHUA GACH NO
         response.setSoThongBaoNopPhi(""); // Chưa có trong XML
         response.setSoBienLai(""); // Chưa có trong XML
         response.setNgayBienLai(null); // Chưa có trong XML
@@ -145,7 +147,7 @@ public class HaiQuanServiceImpl implements HaiQuanService {
         // DANH MỤC LOẠI HÀNG MIỄN PHÍ
         response.setLoaiHangMienPhi(""); // Chưa có trong XML
         response.setLoaiHang(extractXmlValue(xmlContent, "Ma_LH"));
-        response.setTrangThai("Chờ xử lý");
+        response.setTrangThai("00");
         
         // Parse danh sách chi tiết từ ThongTinNopTien
         List<ChiTietHaiQuanResponse> chiTietList = parseChiTietList(xmlContent);
@@ -212,8 +214,12 @@ public class HaiQuanServiceImpl implements HaiQuanService {
             chiTiet.setToKhaiThongTinID(1L);
             chiTiet.setSoVanDon(extractXmlValue(chiTietXml, "So_VD"));
             chiTiet.setSoHieu(extractXmlValue(chiTietXml, "So_Hieu_Container"));
-            chiTiet.setLoaiCont(extractLoaiCont(extractXmlValue(chiTietXml, "Ten_BieuCuoc")));
-            chiTiet.setTinhChatCont(extractTinhChatCont(extractXmlValue(chiTietXml, "Ten_BieuCuoc")));
+            
+            // Query MA_LOAI_CONT và MA_TC_CONT từ bảng SBIEU_CUOC
+            String maBieuCuoc = extractXmlValue(chiTietXml, "Ma_BieuCuoc");
+            if (maBieuCuoc != null && !maBieuCuoc.isEmpty()) {
+                queryMaLoaiContAndMaTcCont(chiTiet, maBieuCuoc);
+            }
             
             String soLuongStr = extractXmlValue(chiTietXml, "So_Luong");
             if (soLuongStr != null && !soLuongStr.isEmpty()) {
@@ -230,23 +236,46 @@ public class HaiQuanServiceImpl implements HaiQuanService {
         return chiTietList;
     }
     
-    /**
-     * Extract loại container từ tên biểu cước
-     */
-    private String extractLoaiCont(String tenBieuCuoc) {
-        if (tenBieuCuoc == null) return "";
-        if (tenBieuCuoc.contains("20feet")) return "20ft";
-        if (tenBieuCuoc.contains("40feet")) return "40ft";
-        return "";
-    }
     
     /**
-     * Extract tính chất container từ tên biểu cước
+     * Query MA_LOAI_CONT và MA_TC_CONT từ bảng SBIEU_CUOC theo mã biểu cước
      */
-    private String extractTinhChatCont(String tenBieuCuoc) {
-        if (tenBieuCuoc == null) return "";
-        if (tenBieuCuoc.contains("hàngkhô")) return "Hàng khô";
-        if (tenBieuCuoc.contains("hànglạnh")) return "Hàng lạnh";
-        return "";
+    private void queryMaLoaiContAndMaTcCont(ChiTietHaiQuanResponse chiTiet, String maBieuCuoc) {
+        try {
+            log.info("Query MA_LOAI_CONT và MA_TC_CONT cho mã biểu cước: '{}'", maBieuCuoc);
+            
+            // Query từ SBIEU_CUOC theo mã biểu cước chính xác
+            List<com.pht.entity.SbieuCuoc> bieuCuocList = sbieuCuocRepository.findByMaBieuCuoc(maBieuCuoc);
+            
+            log.info("Kết quả query: {} biểu cước tìm được cho mã: '{}'", bieuCuocList.size(), maBieuCuoc);
+            
+            if (!bieuCuocList.isEmpty()) {
+                com.pht.entity.SbieuCuoc bieuCuoc = bieuCuocList.get(0);
+                chiTiet.setMaLoaiCont(bieuCuoc.getMaLoaiCont());
+                chiTiet.setMaTcCont(bieuCuoc.getMaTcCont());
+                
+                log.info("Tìm thấy MA_LOAI_CONT: '{}', MA_TC_CONT: '{}' cho mã biểu cước: '{}'", 
+                        bieuCuoc.getMaLoaiCont(), bieuCuoc.getMaTcCont(), maBieuCuoc);
+            } else {
+                log.warn("Không tìm thấy biểu cước với mã: '{}'", maBieuCuoc);
+                
+                // Debug: Kiểm tra tất cả biểu cước có trong database
+                log.info("Debug: Kiểm tra tất cả biểu cước trong database...");
+                List<com.pht.entity.SbieuCuoc> allBieuCuoc = sbieuCuocRepository.findAllActive();
+                log.info("Debug: Tìm thấy {} biểu cước với trạng thái = '1'", allBieuCuoc.size());
+                for (com.pht.entity.SbieuCuoc bc : allBieuCuoc) {
+                    log.info("Debug: maBieuCuoc='{}', maLoaiCont='{}', maTcCont='{}', trangThai='{}'", 
+                            bc.getMaBieuCuoc(), bc.getMaLoaiCont(), bc.getMaTcCont(), bc.getTrangThai());
+                }
+                
+                chiTiet.setMaLoaiCont("");
+                chiTiet.setMaTcCont("");
+            }
+            
+        } catch (Exception e) {
+            log.error("Lỗi khi query MA_LOAI_CONT và MA_TC_CONT cho mã biểu cước: '{}'", maBieuCuoc, e);
+            chiTiet.setMaLoaiCont("");
+            chiTiet.setMaTcCont("");
+        }
     }
 }

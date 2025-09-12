@@ -60,4 +60,10 @@ public interface SbieuCuocRepository extends BaseRepository<SbieuCuoc, Long> {
      */
     @Query("SELECT s FROM SbieuCuoc s WHERE s.trangThai = '1' AND s.loaiBc = 'LBC001'")
     List<com.pht.entity.SbieuCuoc> findAllActive();
+    
+    /**
+     * Tìm biểu cước theo mã biểu cước chính xác
+     */
+    @Query("SELECT s FROM SbieuCuoc s WHERE s.maBieuCuoc = :maBieuCuoc AND s.trangThai = '1'")
+    List<com.pht.entity.SbieuCuoc> findByMaBieuCuoc(@Param("maBieuCuoc") String maBieuCuoc);
 }
