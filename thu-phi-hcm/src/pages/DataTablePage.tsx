@@ -154,7 +154,7 @@ const DataTablePage: React.FC = () => {
         />
         <button
           onClick={handleSearch}
-          className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-1 rounded hover:opacity-80"
+          className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition-colors"
         >
           Tìm kiếm
         </button>
