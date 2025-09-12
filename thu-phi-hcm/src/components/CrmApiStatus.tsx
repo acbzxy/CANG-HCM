@@ -104,7 +104,7 @@ const CrmApiStatus: React.FC<CrmApiStatusProps> = ({
               <div className="space-y-1">
                 <div>
                   <span className="text-gray-600">Endpoint:</span>{' '}
-                  <span className="font-mono">10.14.122.24:8081</span>
+                  <span className="font-mono">localhost:8081</span>
                 </div>
                 <div>
                   <span className="text-gray-600">Kiểm tra lần cuối:</span>{' '}

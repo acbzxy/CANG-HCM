@@ -50,6 +50,12 @@ public class StoKhaiCt {
     @Column(name = "TINHCHAT_CONT", length = 255)
     private String tinhChatCont;
 
+    @Column(name = "MA_LOAI_CONT", length = 100)
+    private String maLoaiCont;
+
+    @Column(name = "MA_TC_CONT", length = 100)
+    private String maTcCont;
+
     @Column(name = "TONG_TL", precision = 18, scale = 2)
     private BigDecimal tongTrongLuong;
 

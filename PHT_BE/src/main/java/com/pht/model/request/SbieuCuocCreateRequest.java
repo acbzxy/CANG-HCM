@@ -22,5 +22,8 @@ public class SbieuCuocCreateRequest {
     private String dvt;
     private String hang;
     private BigDecimal donGia;
+    private String loaiBc;
+    private String maLoaiCont;
+    private String maTcCont;
     private String trangThai;
 }

@@ -86,6 +86,9 @@ public class SbieuCuocServiceImpl extends BaseServiceImpl<SbieuCuoc, Long> imple
         entity.setDvt(request.getDvt());
         entity.setHang(request.getHang());
         entity.setDonGia(request.getDonGia());
+        entity.setLoaiBc(request.getLoaiBc());
+        entity.setMaLoaiCont(request.getMaLoaiCont());
+        entity.setMaTcCont(request.getMaTcCont());
         entity.setTrangThai(request.getTrangThai());
         
         // Set audit fields
@@ -111,6 +114,7 @@ public class SbieuCuocServiceImpl extends BaseServiceImpl<SbieuCuoc, Long> imple
         existingEntity.setDvt(request.getDvt());
         existingEntity.setHang(request.getHang());
         existingEntity.setDonGia(request.getDonGia());
+        existingEntity.setLoaiBc(request.getLoaiBc());
         existingEntity.setTrangThai(request.getTrangThai());
         
         // Set audit fields for update
@@ -131,8 +135,8 @@ public class SbieuCuocServiceImpl extends BaseServiceImpl<SbieuCuoc, Long> imple
     @Override
     public CatalogSearchResponse<SbieuCuoc> searchBieuCuoc(SbieuCuocSearchRequest request) {
         long startTime = System.currentTimeMillis();
-        log.info("Tìm kiếm biểu cước với maBieuCuoc: {}, tenBieuCuoc: {}, nhomLoaiHinh: {}, loaiCont: {}, trangThai: {}",
-                request.getMaBieuCuoc(), request.getTenBieuCuoc(), request.getNhomLoaiHinh(), request.getLoaiCont(), request.getTrangThai());
+        log.info("Tìm kiếm biểu cước với maBieuCuoc: {}, tenBieuCuoc: {}, nhomLoaiHinh: {}, loaiCont: {}, loaiBc: {}, trangThai: {}",
+                request.getMaBieuCuoc(), request.getTenBieuCuoc(), request.getNhomLoaiHinh(), request.getLoaiCont(), request.getLoaiBc(), request.getTrangThai());
 
         int pageNumber = 0;
         int pageSize = 10;
@@ -147,10 +151,12 @@ public class SbieuCuocServiceImpl extends BaseServiceImpl<SbieuCuoc, Long> imple
                 QueryUtils.createLikeValue(request.getNhomLoaiHinh()) : null;
         String loaiCont = StringUtils.hasText(request.getLoaiCont()) ?
                 QueryUtils.createLikeValue(request.getLoaiCont()) : null;
+        String loaiBc = StringUtils.hasText(request.getLoaiBc()) ?
+                QueryUtils.createLikeValue(request.getLoaiBc()) : null;
         String trangThai = StringUtils.hasText(request.getTrangThai()) ?
                 request.getTrangThai() : null;
 
-        Page<SbieuCuoc> page = sbieuCuocRepository.findBySearchCriteria(maBieuCuoc, tenBieuCuoc, nhomLoaiHinh, loaiCont, trangThai, pageable);
+        Page<SbieuCuoc> page = sbieuCuocRepository.findBySearchCriteria(maBieuCuoc, tenBieuCuoc, nhomLoaiHinh, loaiCont, loaiBc, trangThai, pageable);
 
         long endTime = System.currentTimeMillis();
 
@@ -169,8 +175,8 @@ public class SbieuCuocServiceImpl extends BaseServiceImpl<SbieuCuoc, Long> imple
 
     @Override
     public List<SbieuCuoc> exportBieuCuoc(SbieuCuocSearchRequest request) {
-        log.info("Xuất dữ liệu biểu cước với maBieuCuoc: {}, tenBieuCuoc: {}, nhomLoaiHinh: {}, loaiCont: {}, trangThai: {}",
-                request.getMaBieuCuoc(), request.getTenBieuCuoc(), request.getNhomLoaiHinh(), request.getLoaiCont(), request.getTrangThai());
+        log.info("Xuất dữ liệu biểu cước với maBieuCuoc: {}, tenBieuCuoc: {}, nhomLoaiHinh: {}, loaiCont: {}, loaiBc: {}, trangThai: {}",
+                request.getMaBieuCuoc(), request.getTenBieuCuoc(), request.getNhomLoaiHinh(), request.getLoaiCont(), request.getLoaiBc(), request.getTrangThai());
 
         String maBieuCuoc = StringUtils.hasText(request.getMaBieuCuoc()) ?
                 QueryUtils.createLikeValue(request.getMaBieuCuoc()) : null;
@@ -180,9 +186,11 @@ public class SbieuCuocServiceImpl extends BaseServiceImpl<SbieuCuoc, Long> imple
                 QueryUtils.createLikeValue(request.getNhomLoaiHinh()) : null;
         String loaiCont = StringUtils.hasText(request.getLoaiCont()) ?
                 QueryUtils.createLikeValue(request.getLoaiCont()) : null;
+        String loaiBc = StringUtils.hasText(request.getLoaiBc()) ?
+                QueryUtils.createLikeValue(request.getLoaiBc()) : null;
         String trangThai = StringUtils.hasText(request.getTrangThai()) ?
                 request.getTrangThai() : null;
 
-        return sbieuCuocRepository.findBySearchCriteria(maBieuCuoc, tenBieuCuoc, nhomLoaiHinh, loaiCont, trangThai);
+        return sbieuCuocRepository.findBySearchCriteria(maBieuCuoc, tenBieuCuoc, nhomLoaiHinh, loaiCont, loaiBc, trangThai);
     }
 }

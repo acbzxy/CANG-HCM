@@ -1,9 +1,11 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
+import { CrmApiService, type CrmTariffType, type CrmTariff } from '../utils/crmApi'
 
 const SystemPage: React.FC = () => {
   const location = useLocation()
   const [showAddUserModal, setShowAddUserModal] = useState(false)
+  
   const [activeTab, setActiveTab] = useState('users') // 'users' hoặc 'permissions'
   const [showAddGroupModal, setShowAddGroupModal] = useState(false)
   const [showAddCustomsModal, setShowAddCustomsModal] = useState(false)
@@ -76,7 +78,63 @@ const SystemPage: React.FC = () => {
     }
   ])
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(5)
+  const [itemsPerPage] = useState(10)
+  
+  // Load tariff types from API when component mounts or when navigating to tariff-types page
+  useEffect(() => {
+    const loadTariffTypes = async () => {
+      if (location.pathname === '/system/tariff-types') {
+        setTariffTypesLoading(true)
+        try {
+          const response = await CrmApiService.getAllTariffTypes({
+            page: currentPage - 1, // API uses 0-based page
+            size: itemsPerPage,
+            sortBy: 'ma',
+            sortDir: 'asc'
+          })
+          if (response.success && response.data && response.data.content) {
+            setTariffTypesList(response.data.content)
+            console.log('📋 Tariff types loaded:', response.data.content)
+          }
+        } catch (error) {
+          console.error('Failed to load tariff types:', error)
+        } finally {
+          setTariffTypesLoading(false)
+        }
+      }
+    }
+    
+    loadTariffTypes()
+  }, [location.pathname, currentPage, itemsPerPage])
+
+  // Load tariffs data when component mounts or path changes
+  useEffect(() => {
+    const loadTariffs = async () => {
+      if (location.pathname === '/system/tariffs') {
+        setTariffsLoading(true)
+        try {
+          console.log('💰 Loading tariffs...')
+          const response = await CrmApiService.getAllTariffs({
+            page: currentPage - 1,
+            size: itemsPerPage,
+            sortBy: 'maBieuCuoc',
+            sortDir: 'asc'
+          })
+          
+          console.log('💰 Tariffs loaded:', response)
+          if (response.success && response.data) {
+            setTariffsList(response.data.content || [])
+          }
+        } catch (error) {
+          console.error('❌ Failed to load tariffs:', error)
+        } finally {
+          setTariffsLoading(false)
+        }
+      }
+    }
+
+    loadTariffs()
+  }, [location.pathname, currentPage, itemsPerPage])
   
   // Search states cho danh mục hải quan
   const [customsSearchCode, setCustomsSearchCode] = useState('')
@@ -189,6 +247,10 @@ const SystemPage: React.FC = () => {
   const [receiptTemplateSearchCode, setReceiptTemplateSearchCode] = useState('')
   const [receiptTemplateSearchKyHieu, setReceiptTemplateSearchKyHieu] = useState('')
   
+  // Search states for tariff types
+  const [tariffTypeSearchName, setTariffTypeSearchName] = useState('')
+  const [tariffTypeSearchCode, setTariffTypeSearchCode] = useState('')
+  
   // Search states for tariffs
   const [tariffSearchBieuCuoc, setTariffSearchBieuCuoc] = useState('')
   const [tariffSearchBieuCuocThue, setTariffSearchBieuCuocThue] = useState('')
@@ -259,30 +321,12 @@ const SystemPage: React.FC = () => {
   ])
 
   // Loại biểu cước
-  const [tariffTypesList, setTariffTypesList] = useState([
-    { id: 1, code: 'TT001', name: 'Biểu cước A', description: 'Biểu cước container đầy', isActive: true },
-    { id: 2, code: 'TT002', name: 'Biểu cước B', description: 'Biểu cước container rỗng', isActive: true },
-    { id: 3, code: 'TT003', name: 'Biểu cước C', description: 'Biểu cước hàng lẻ', isActive: false }
-  ])
+  const [tariffTypesList, setTariffTypesList] = useState<CrmTariffType[]>([])
+  const [tariffTypesLoading, setTariffTypesLoading] = useState(false)
 
-  // Biểu cước
-  const [tariffsList, setTariffsList] = useState([
-    { id: 1, maBieuCuoc: 'BC001', tenBieuCuoc: 'Container 20ft FCL', nhomLoaiHinh: 'Container đầy', loaiCont: '20DC', tinhChatCont: 'FCL', dvt: 'Chuyến', hang: 'Tổng hợp', sort: 1, donGia: '2500000', bieuCuoc: 'Biểu cước A', bieuCuocThue: 'BC Thuế VAT', isActive: true },
-    { id: 2, maBieuCuoc: 'BC002', tenBieuCuoc: 'Container 40ft FCL', nhomLoaiHinh: 'Container đầy', loaiCont: '40DC', tinhChatCont: 'FCL', dvt: 'Chuyến', hang: 'Tổng hợp', sort: 2, donGia: '3500000', bieuCuoc: 'Biểu cước A', bieuCuocThue: 'BC Thuế VAT', isActive: true },
-    { id: 3, maBieuCuoc: 'BC003', tenBieuCuoc: 'Container 20ft LCL', nhomLoaiHinh: 'Container lẻ', loaiCont: '20DC', tinhChatCont: 'LCL', dvt: 'Tấn', hang: 'Hàng tổng hợp', sort: 3, donGia: '180000', bieuCuoc: 'Biểu cước B', bieuCuocThue: 'BC Thuế GTGT', isActive: true },
-    { id: 4, maBieuCuoc: 'BC004', tenBieuCuoc: 'Container 40ft HC', nhomLoaiHinh: 'Container cao', loaiCont: '40HC', tinhChatCont: 'FCL', dvt: 'Chuyến', hang: 'Hàng đặc biệt', sort: 4, donGia: '3800000', bieuCuoc: 'Biểu cước A', bieuCuocThue: 'BC Thuế VAT', isActive: true },
-    { id: 5, maBieuCuoc: 'BC005', tenBieuCuoc: 'Rơ moóc 20ft', nhomLoaiHinh: 'Rơ moóc', loaiCont: '20TR', tinhChatCont: 'Trailer', dvt: 'Chuyến', hang: 'Vận tải đường bộ', sort: 5, donGia: '1800000', bieuCuoc: 'Biểu cước C', bieuCuocThue: 'BC Thuế GTGT', isActive: true },
-    { id: 6, maBieuCuoc: 'BC006', tenBieuCuoc: 'Xe tải 8 tấn', nhomLoaiHinh: 'Xe tải', loaiCont: 'TRUCK8', tinhChatCont: 'Tải thường', dvt: 'Tấn', hang: 'Hàng tiêu dùng', sort: 6, donGia: '220000', bieuCuoc: 'Biểu cước B', bieuCuocThue: 'BC Thuế VAT', isActive: false },
-    { id: 7, maBieuCuoc: 'BC007', tenBieuCuoc: 'Container 45ft', nhomLoaiHinh: 'Container lớn', loaiCont: '45DC', tinhChatCont: 'FCL', dvt: 'Chuyến', hang: 'Hàng xuất khẩu', sort: 7, donGia: '4200000', bieuCuoc: 'Biểu cước A', bieuCuocThue: 'BC Thuế VAT', isActive: true },
-    { id: 8, maBieuCuoc: 'BC008', tenBieuCuoc: 'Xe đầu kéo + Rơ moóc', nhomLoaiHinh: 'Combo vận tải', loaiCont: 'COMBO', tinhChatCont: 'Đặc biệt', dvt: 'Chuyến', hang: 'Logistics', sort: 8, donGia: '2800000', bieuCuoc: 'Biểu cước C', bieuCuocThue: 'BC Thuế GTGT', isActive: true },
-    { id: 9, maBieuCuoc: 'BC009', tenBieuCuoc: 'Container lạnh 20ft', nhomLoaiHinh: 'Container lạnh', loaiCont: '20RF', tinhChatCont: 'Reefer', dvt: 'Chuyến', hang: 'Hàng lạnh', sort: 9, donGia: '3200000', bieuCuoc: 'Biểu cước D', bieuCuocThue: 'BC Thuế VAT', isActive: true },
-    { id: 10, maBieuCuoc: 'BC010', tenBieuCuoc: 'Xe tải nhỏ 3 tấn', nhomLoaiHinh: 'Xe tải nhỏ', loaiCont: 'TRUCK3', tinhChatCont: 'Tải nhẹ', dvt: 'Tấn', hang: 'Hàng nội địa', sort: 10, donGia: '180000', bieuCuoc: 'Biểu cước B', bieuCuocThue: 'BC Thuế GTGT', isActive: true },
-    { id: 11, maBieuCuoc: 'BC011', tenBieuCuoc: 'Container tank 20ft', nhomLoaiHinh: 'Container tank', loaiCont: '20TK', tinhChatCont: 'Tank', dvt: 'Chuyến', hang: 'Hóa chất', sort: 11, donGia: '3800000', bieuCuoc: 'Biểu cước D', bieuCuocThue: 'BC Thuế VAT', isActive: true },
-    { id: 12, maBieuCuoc: 'BC012', tenBieuCuoc: 'Rơ moóc phẳng', nhomLoaiHinh: 'Rơ moóc đặc biệt', loaiCont: 'FLAT', tinhChatCont: 'Flatbed', dvt: 'Chuyến', hang: 'Máy móc', sort: 12, donGia: '2200000', bieuCuoc: 'Biểu cước C', bieuCuocThue: 'BC Thuế GTGT', isActive: true },
-    { id: 13, maBieuCuoc: 'BC013', tenBieuCuoc: 'Xe ben 15 tấn', nhomLoaiHinh: 'Xe chuyên dụng', loaiCont: 'DUMP', tinhChatCont: 'Ben', dvt: 'Chuyến', hang: 'Vật liệu xây dựng', sort: 13, donGia: '2600000', bieuCuoc: 'Biểu cước E', bieuCuocThue: 'BC Thuế VAT', isActive: false },
-    { id: 14, maBieuCuoc: 'BC014', tenBieuCuoc: 'Container 40ft Open Top', nhomLoaiHinh: 'Container mở', loaiCont: '40OT', tinhChatCont: 'Open Top', dvt: 'Chuyến', hang: 'Hàng siêu trường', sort: 14, donGia: '3600000', bieuCuoc: 'Biểu cước A', bieuCuocThue: 'BC Thuế VAT', isActive: true },
-    { id: 15, maBieuCuoc: 'BC015', tenBieuCuoc: 'Xe container tự tháo', nhomLoaiHinh: 'Xe đặc biệt', loaiCont: 'SELF', tinhChatCont: 'Tự tháo', dvt: 'Chuyến', hang: 'Hàng rời', sort: 15, donGia: '3100000', bieuCuoc: 'Biểu cước E', bieuCuocThue: 'BC Thuế GTGT', isActive: true }
-  ])
+  // Biểu cước - sử dụng API data
+  const [tariffsList, setTariffsList] = useState<CrmTariff[]>([])
+  const [tariffsLoading, setTariffsLoading] = useState(false)
 
   // Loại hình
   const [formTypesList, setFormTypesList] = useState([
@@ -397,8 +441,8 @@ const SystemPage: React.FC = () => {
   const [receiptTemplateFormData, setReceiptTemplateFormData] = useState({
     mauBL: '', kyHieuBL: '', tuSo: '', denSo: '', ngayHieuLuc: '', diemThuPhi: '', ghiChu: '', trangThai: 'Chưa sử dụng', phatHanh: 'Chưa phát hành'
   })
-  const [tariffTypeFormData, setTariffTypeFormData] = useState({
-    code: '', name: '', level: '', address: '', phone: '', fax: '', note: '', status: 'Hoạt động'
+  const [tariffTypeFormData, setTariffTypeFormData] = useState<Partial<CrmTariffType>>({
+    ma: '', ten: '', dienGiai: '', trangThai: '1'
   })
   const [tariffFormData, setTariffFormData] = useState({
     maBieuCuoc: '', tenBieuCuoc: '', dvtBieuCuoc: '', nhomLoaiHinh: '', loaiHang: '', donGia: '', stt: '', dienGiai: '', trangThai: 'Hoạt động'
@@ -1455,6 +1499,13 @@ const SystemPage: React.FC = () => {
     }
   }
   
+  // Filter function for tariff types search
+  const filteredTariffTypesList = tariffTypesList.filter(item => {
+    const nameMatch = tariffTypeSearchName === '' || (item.ten || item.name || '').toLowerCase().includes(tariffTypeSearchName.toLowerCase())
+    const codeMatch = tariffTypeSearchCode === '' || (item.ma || item.code || '').toLowerCase().includes(tariffTypeSearchCode.toLowerCase())
+    return nameMatch && codeMatch
+  })
+
   // Filter function for tariffs search
   const filteredTariffsList = tariffsList.filter(item => {
     const bieuCuocMatch = tariffSearchBieuCuoc === '' || item.bieuCuoc === tariffSearchBieuCuoc
@@ -1463,6 +1514,44 @@ const SystemPage: React.FC = () => {
     const tenBieuCuocMatch = tariffSearchTenBieuCuoc === '' || item.tenBieuCuoc.toLowerCase().includes(tariffSearchTenBieuCuoc.toLowerCase())
     return bieuCuocMatch && bieuCuocThueMatch && maBieuCuocMatch && tenBieuCuocMatch
   })
+
+  // Search handlers for tariff types
+  const handleTariffTypeSearchName = (value: string) => {
+    setTariffTypeSearchName(value)
+    setCurrentPage(1)
+  }
+  
+  const handleTariffTypeSearchCode = (value: string) => {
+    setTariffTypeSearchCode(value)
+    setCurrentPage(1)
+  }
+
+  // API search function for tariff types
+  const handleTariffTypeApiSearch = async () => {
+    if (location.pathname !== '/system/tariff-types') return
+    
+    setTariffTypesLoading(true)
+    try {
+      const response = await CrmApiService.getAllTariffTypes({
+        page: 0, // Reset to first page
+        size: itemsPerPage,
+        sortBy: 'ma',
+        sortDir: 'asc',
+        searchName: tariffTypeSearchName || undefined,
+        searchCode: tariffTypeSearchCode || undefined
+      })
+      
+      if (response.success && response.data && response.data.content) {
+        setTariffTypesList(response.data.content)
+        setCurrentPage(1) // Reset to first page
+        console.log('📋 Tariff types search result:', response.data.content)
+      }
+    } catch (error) {
+      console.error('Failed to search tariff types:', error)
+    } finally {
+      setTariffTypesLoading(false)
+    }
+  }
 
   // Search handlers for tariffs
   const handleTariffSearchBieuCuoc = (value: string) => {
@@ -1546,7 +1635,47 @@ const SystemPage: React.FC = () => {
   }
 
   const enterpriseHandlers = createHandlers(setEnterprisesList, setShowAddEnterpriseModal, setEnterpriseFormData, enterpriseFormData, 'Danh mục doanh nghiệp')
-  const tariffTypeHandlers = createHandlers(setTariffTypesList, setShowAddTariffTypeModal, setTariffTypeFormData, tariffTypeFormData, 'Danh mục loại biểu cước')
+  const tariffTypeHandlers = {
+    ...createHandlers(setTariffTypesList, setShowAddTariffTypeModal, setTariffTypeFormData, tariffTypeFormData, 'Danh mục loại biểu cước'),
+    handleSubmit: async (e: React.FormEvent) => {
+      e.preventDefault()
+      if (!tariffTypeFormData.ma || !tariffTypeFormData.ten) {
+        alert('Vui lòng nhập đầy đủ thông tin bắt buộc')
+        return
+      }
+      
+      try {
+        const response = await CrmApiService.createTariffType({
+          ma: tariffTypeFormData.ma,
+          ten: tariffTypeFormData.ten,
+          dienGiai: tariffTypeFormData.dienGiai || '',
+          trangThai: tariffTypeFormData.trangThai || '1'
+        })
+        
+        if (response.success) {
+          // Reload tariff types list
+          const listResponse = await CrmApiService.getAllTariffTypes({
+            page: currentPage - 1,
+            size: itemsPerPage,
+            sortBy: 'ma',
+            sortDir: 'asc'
+          })
+          if (listResponse.success && listResponse.data && listResponse.data.content) {
+            setTariffTypesList(listResponse.data.content)
+          }
+          
+          setShowAddTariffTypeModal(false)
+          setTariffTypeFormData({
+            ma: '', ten: '', dienGiai: '', trangThai: '1'
+          })
+          alert('Thêm loại biểu cước thành công!')
+        }
+      } catch (error) {
+        console.error('Failed to create tariff type:', error)
+        alert('Có lỗi khi thêm loại biểu cước')
+      }
+    }
+  }
   
   // Filter function for form types search
   const filteredFormTypesList = formTypesList.filter(item => {
@@ -1914,16 +2043,31 @@ const SystemPage: React.FC = () => {
     handleDelete: any,
     handleViewDetail: any,
     title: string,
-    searchPlaceholder: string
+    searchPlaceholder: string,
+    searchValue?: string,
+    onSearchChange?: (value: string) => void,
+    codeSearchValue?: string,
+    onCodeSearchChange?: (value: string) => void,
+    onApiSearch?: () => void
   }) => {
     const { list, showModal, setShowModal, formData, 
             handleFormChange, handleSubmit, handleClose, handleDelete, 
-            handleViewDetail, title, searchPlaceholder } = config
+            handleViewDetail, title, searchPlaceholder, searchValue, onSearchChange,
+            codeSearchValue, onCodeSearchChange, onApiSearch } = config
 
     const totalPages = Math.ceil(list.length / itemsPerPage)
     const indexOfLastItem = currentPage * itemsPerPage
     const indexOfFirstItem = indexOfLastItem - itemsPerPage
     const currentItems = list.slice(indexOfFirstItem, indexOfLastItem)
+    
+    console.log('📋 generateCatalogPage debug:', {
+      listLength: list.length,
+      currentPage,
+      itemsPerPage,
+      totalPages,
+      currentItemsLength: currentItems.length,
+      currentItems: currentItems
+    })
 
     return (
       <div className="space-y-4">
@@ -1945,14 +2089,21 @@ const SystemPage: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Mã"
+                  value={codeSearchValue || ''}
+                  onChange={(e) => onCodeSearchChange?.(e.target.value)}
                   className="border border-gray-300 rounded px-3 py-2 text-sm w-40"
                 />
                 <input
                   type="text"
                   placeholder={searchPlaceholder}
+                  value={searchValue || ''}
+                  onChange={(e) => onSearchChange?.(e.target.value)}
                   className="border border-gray-300 rounded px-3 py-2 text-sm w-48"
                 />
-                <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center">
+                <button 
+                  onClick={onApiSearch}
+                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex items-center"
+                >
                   <i className="fas fa-search mr-2"></i>
                   Tìm kiếm
                 </button>
@@ -1982,14 +2133,14 @@ const SystemPage: React.FC = () => {
                     <td className="px-3 py-3 text-xs">
                       <div className="flex gap-2">
                         <button 
-                          onClick={() => handleViewDetail(item.name)}
+                          onClick={() => handleViewDetail(item.ten || item.name || '')}
                           className="text-blue-500 hover:text-blue-700" 
                           title="Xem chi tiết"
                         >
                           <i className="fas fa-eye"></i>
                         </button>
                         <button 
-                          onClick={() => handleDelete(item.id, item.name)}
+                          onClick={() => handleDelete(item.id, item.ten || item.name || '')}
                           className="text-red-500 hover:text-red-700" 
                           title="Xóa"
                         >
@@ -1997,11 +2148,11 @@ const SystemPage: React.FC = () => {
                         </button>
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-xs text-gray-900">{item.code}</td>
-                    <td className="px-3 py-3 text-xs text-gray-900">{item.name}</td>
-                    <td className="px-3 py-3 text-xs text-gray-900">{item.description}</td>
+                    <td className="px-3 py-3 text-xs text-gray-900">{item.ma || item.code || ''}</td>
+                    <td className="px-3 py-3 text-xs text-gray-900">{item.ten || item.name || ''}</td>
+                    <td className="px-3 py-3 text-xs text-gray-900">{item.dienGiai || item.description || ''}</td>
                     <td className="px-3 py-3 text-xs">
-                      <i className={`fas ${item.isActive ? 'fa-check text-green-500' : 'fa-times text-red-500'}`}></i>
+                      <i className={`fas ${(item.trangThai === '1' || item.isActive) ? 'fa-check text-green-500' : 'fa-times text-red-500'}`}></i>
                     </td>
                   </tr>
                 ))}
@@ -2062,8 +2213,8 @@ const SystemPage: React.FC = () => {
                   <label className="text-sm font-medium text-gray-700 w-1/4">Mã:</label>
                   <input
                     type="text"
-                    value={formData.code}
-                    onChange={(e) => handleFormChange('code', e.target.value)}
+                    value={formData.ma || formData.code || ''}
+                    onChange={(e) => handleFormChange('ma', e.target.value)}
                     className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
                     placeholder="Nhập mã"
                   />
@@ -2072,20 +2223,19 @@ const SystemPage: React.FC = () => {
                   <label className="text-sm font-medium text-gray-700 w-1/4">Tên:</label>
                   <input
                     type="text"
-                    value={formData.name}
-                    onChange={(e) => handleFormChange('name', e.target.value)}
+                    value={formData.ten || formData.name || ''}
+                    onChange={(e) => handleFormChange('ten', e.target.value)}
                     className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
                     placeholder="Nhập tên"
                   />
                 </div>
-                <div className="flex items-center gap-4">
-                  <label className="text-sm font-medium text-gray-700 w-1/4">Cấp:</label>
-                  <input
-                    type="text"
-                    value={formData.level}
-                    onChange={(e) => handleFormChange('level', e.target.value)}
-                    className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
-                    placeholder="Nhập cấp"
+                <div className="flex items-start gap-4">
+                  <label className="text-sm font-medium text-gray-700 w-1/4 pt-2">Diễn giải:</label>
+                  <textarea
+                    value={formData.dienGiai || formData.description || ''}
+                    onChange={(e) => handleFormChange('dienGiai', e.target.value)}
+                    className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500 h-24 resize-none"
+                    placeholder="Nhập diễn giải"
                   />
                 </div>
                 <div className="flex items-center gap-4">
@@ -2130,12 +2280,12 @@ const SystemPage: React.FC = () => {
                 <div className="flex items-center gap-4">
                   <label className="text-sm font-medium text-gray-700 w-1/4">Trạng thái:</label>
                   <select
-                    value={formData.status}
-                    onChange={(e) => handleFormChange('status', e.target.value)}
+                    value={formData.trangThai || formData.status || '1'}
+                    onChange={(e) => handleFormChange('trangThai', e.target.value)}
                     className="flex-1 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500"
                   >
-                    <option value="Hoạt động">Hoạt động</option>
-                    <option value="Không hoạt động">Không hoạt động</option>
+                    <option value="1">Hoạt động</option>
+                    <option value="0">Không hoạt động</option>
                   </select>
                 </div>
                 <div className="flex justify-end space-x-3 pt-6 border-t">
@@ -5406,20 +5556,31 @@ const SystemPage: React.FC = () => {
                   </div>
                 )
               case '/system/tariff-types':
+                console.log('📋 Rendering tariff-types page with data:', tariffTypesList)
                 return generateCatalogPage({
-                  list: tariffTypesList, showModal: showAddTariffTypeModal, setShowModal: setShowAddTariffTypeModal,
-                  formData: tariffTypeFormData, ...tariffTypeHandlers,
-                  title: 'Danh mục loại biểu cước', searchPlaceholder: 'Tên loại biểu cước'
+                  list: tariffTypesList, // Use original list from API, not filtered
+                  showModal: showAddTariffTypeModal, 
+                  setShowModal: setShowAddTariffTypeModal,
+                  formData: tariffTypeFormData, 
+                  ...tariffTypeHandlers,
+                  title: 'Danh mục loại biểu cước', 
+                  searchPlaceholder: 'Tên loại biểu cước',
+                  searchValue: tariffTypeSearchName,
+                  onSearchChange: handleTariffTypeSearchName,
+                  codeSearchValue: tariffTypeSearchCode,
+                  onCodeSearchChange: handleTariffTypeSearchCode,
+                  onApiSearch: handleTariffTypeApiSearch
                 })
               case '/system/tariffs':
-                const tariffsTotalPages = Math.ceil(filteredTariffsList.length / itemsPerPage)
+                console.log('💰 Rendering tariffs page with data:', tariffsList)
+                const tariffsTotalPages = Math.ceil(tariffsList.length / itemsPerPage)
                 const tariffsIndexOfLastItem = currentPage * itemsPerPage
                 const tariffsIndexOfFirstItem = tariffsIndexOfLastItem - itemsPerPage
-                const currentTariffs = filteredTariffsList.slice(tariffsIndexOfFirstItem, tariffsIndexOfLastItem)
+                const currentTariffs = tariffsList.slice(tariffsIndexOfFirstItem, tariffsIndexOfLastItem)
 
-                // Danh sách biểu cước cho dropdown
-                const bieuCuocOptions = [...new Set(tariffsList.map(item => item.bieuCuoc))].sort()
-                const bieuCuocThueOptions = [...new Set(tariffsList.map(item => item.bieuCuocThue))].sort()
+                // Danh sách biểu cước cho dropdown (sử dụng legacy fields nếu có)
+                const bieuCuocOptions = [...new Set(tariffsList.map(item => item.bieuCuoc || '').filter(Boolean))].sort()
+                const bieuCuocThueOptions = [...new Set(tariffsList.map(item => item.bieuCuocThue || '').filter(Boolean))].sort()
 
                 return (
                   <div className="space-y-4">
@@ -5436,7 +5597,7 @@ const SystemPage: React.FC = () => {
                           </button>
                           <div className="flex items-center gap-3">
                             <div className="text-sm text-gray-700">
-                              Có {filteredTariffsList.length}/{tariffsList.length} bản ghi - Trang: {currentPage}/{tariffsTotalPages}
+                              Có {tariffsList.length} bản ghi - Trang: {currentPage}/{tariffsTotalPages}
                             </div>
                             <select
                               value={tariffSearchBieuCuoc}
@@ -5511,14 +5672,14 @@ const SystemPage: React.FC = () => {
                                 <td className="px-3 py-3 text-xs">
                                   <div className="flex gap-2">
                                     <button 
-                                      onClick={() => tariffHandlers.handleViewDetail(item.tenBieuCuoc)}
+                                      onClick={() => tariffHandlers.handleViewDetail(item.tenBieuCuoc || item.maBieuCuoc || '')}
                                       className="text-blue-500 hover:text-blue-700" 
                                       title="Xem chi tiết"
                                     >
                                       <i className="fas fa-eye"></i>
                                     </button>
                                     <button 
-                                      onClick={() => tariffHandlers.handleDelete(item.id, item.tenBieuCuoc)}
+                                      onClick={() => tariffHandlers.handleDelete(item.id || 0, item.tenBieuCuoc || item.maBieuCuoc || '')}
                                       className="text-red-500 hover:text-red-700" 
                                       title="Xóa"
                                     >
@@ -5534,12 +5695,12 @@ const SystemPage: React.FC = () => {
                                 <td className="px-3 py-3 text-xs text-gray-900">{item.dvt}</td>
                                 <td className="px-3 py-3 text-xs text-gray-900">{item.hang}</td>
                                 <td className="px-3 py-3 text-xs text-gray-900">{item.sort}</td>
-                                <td className="px-3 py-3 text-xs text-gray-900">{parseInt(item.donGia).toLocaleString('vi-VN')} VNĐ</td>
+                                <td className="px-3 py-3 text-xs text-gray-900">{item.donGia ? item.donGia.toLocaleString('vi-VN') + ' VNĐ' : ''}</td>
                                 <td className="px-3 py-3 text-xs">
                                   <span className={`px-2 py-1 text-xs rounded-full ${
-                                    item.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    (item.trangThai === '1' || item.isActive) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                                   }`}>
-                                    {item.isActive ? 'Hoạt động' : 'Không hoạt động'}
+                                    {(item.trangThai === '1' || item.isActive) ? 'Hoạt động' : 'Không hoạt động'}
                                   </span>
                                 </td>
                               </tr>
@@ -5551,7 +5712,7 @@ const SystemPage: React.FC = () => {
                         <div className="bg-gray-50 px-4 py-3 border-t">
                           <div className="flex items-center justify-between">
                             <div className="text-sm text-gray-700">
-                              Hiển thị {tariffsIndexOfFirstItem + 1}-{Math.min(tariffsIndexOfLastItem, filteredTariffsList.length)} của {filteredTariffsList.length} bản ghi
+                              Hiển thị {tariffsIndexOfFirstItem + 1}-{Math.min(tariffsIndexOfLastItem, tariffsList.length)} của {tariffsList.length} bản ghi
                             </div>
                             <div className="flex space-x-1">
                               <button 

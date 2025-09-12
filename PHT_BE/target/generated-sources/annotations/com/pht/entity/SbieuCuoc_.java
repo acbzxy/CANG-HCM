@@ -23,6 +23,11 @@ public abstract class SbieuCuoc_ {
 	public static volatile SingularAttribute<SbieuCuoc, String> dvt;
 	
 	/**
+	 * @see com.pht.entity.SbieuCuoc#maNhomLoaiHinh
+	 **/
+	public static volatile SingularAttribute<SbieuCuoc, String> maNhomLoaiHinh;
+	
+	/**
 	 * @see com.pht.entity.SbieuCuoc#maBieuCuoc
 	 **/
 	public static volatile SingularAttribute<SbieuCuoc, String> maBieuCuoc;
@@ -53,9 +58,19 @@ public abstract class SbieuCuoc_ {
 	public static volatile SingularAttribute<SbieuCuoc, String> tenBieuCuoc;
 	
 	/**
+	 * @see com.pht.entity.SbieuCuoc#maTcCont
+	 **/
+	public static volatile SingularAttribute<SbieuCuoc, String> maTcCont;
+	
+	/**
 	 * @see com.pht.entity.SbieuCuoc#trangThai
 	 **/
 	public static volatile SingularAttribute<SbieuCuoc, String> trangThai;
+	
+	/**
+	 * @see com.pht.entity.SbieuCuoc#loaiBc
+	 **/
+	public static volatile SingularAttribute<SbieuCuoc, String> loaiBc;
 	
 	/**
 	 * @see com.pht.entity.SbieuCuoc#id
@@ -76,19 +91,28 @@ public abstract class SbieuCuoc_ {
 	 * @see com.pht.entity.SbieuCuoc#tinhChatCont
 	 **/
 	public static volatile SingularAttribute<SbieuCuoc, String> tinhChatCont;
+	
+	/**
+	 * @see com.pht.entity.SbieuCuoc#maLoaiCont
+	 **/
+	public static volatile SingularAttribute<SbieuCuoc, String> maLoaiCont;
 
 	public static final String HANG = "hang";
 	public static final String DVT = "dvt";
+	public static final String MA_NHOM_LOAI_HINH = "maNhomLoaiHinh";
 	public static final String MA_BIEU_CUOC = "maBieuCuoc";
 	public static final String NHOM_LOAI_HINH = "nhomLoaiHinh";
 	public static final String NGAY_CAP_NHAT = "ngayCapNhat";
 	public static final String NGAY_TAO = "ngayTao";
 	public static final String DON_GIA = "donGia";
 	public static final String TEN_BIEU_CUOC = "tenBieuCuoc";
+	public static final String MA_TC_CONT = "maTcCont";
 	public static final String TRANG_THAI = "trangThai";
+	public static final String LOAI_BC = "loaiBc";
 	public static final String ID = "id";
 	public static final String LOAI_CONT = "loaiCont";
 	public static final String TINH_CHAT_CONT = "tinhChatCont";
+	public static final String MA_LOAI_CONT = "maLoaiCont";
 
 }
 

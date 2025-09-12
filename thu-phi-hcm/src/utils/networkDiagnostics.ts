@@ -19,7 +19,7 @@ export interface NetworkDiagnosticResult {
 }
 
 export class NetworkDiagnostics {
-  private static readonly CRM_BASE_URL = 'http://10.14.122.24:8081/CRM_BE'
+  private static readonly CRM_BASE_URL = 'http://localhost:8081/CRM_BE'
 
   /**
    * Run comprehensive network diagnostics
@@ -105,7 +105,7 @@ export class NetworkDiagnostics {
         name: 'DNS Resolution',
         status: 'pass',
         message: 'Hostname resolved successfully',
-        details: { hostname: '10.14.122.24' }
+        details: { hostname: 'localhost' }
       })
     } catch (error: any) {
       const status = error.name === 'AbortError' ? 'warning' : 'fail'
@@ -278,7 +278,7 @@ export class NetworkDiagnostics {
     }
 
     if (failedTests.some(t => t.name === 'Basic Connectivity')) {
-      result.recommendations.push('Kiểm tra server CRM có đang chạy tại 10.14.122.24:8081')
+      result.recommendations.push('Kiểm tra server CRM có đang chạy tại localhost:8081')
       result.recommendations.push('Kiểm tra firewall và network security groups')
     }
 

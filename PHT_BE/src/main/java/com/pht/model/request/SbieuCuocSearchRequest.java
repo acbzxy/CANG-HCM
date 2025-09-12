@@ -16,5 +16,8 @@ public class SbieuCuocSearchRequest {
     private String tenBieuCuoc;
     private String nhomLoaiHinh;
     private String loaiCont;
+    private String loaiBc;
+    private String maLoaiCont;
+    private String maTcCont;
     private String trangThai;
 }

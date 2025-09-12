@@ -1,7 +1,7 @@
 import type { ApiResponse } from '../types'
 
-// CRM API Base URL - backend thật - cập nhật thành PHT_BE
-const CRM_API_BASE_URL = 'http://10.14.122.24:8081/PHT_BE'
+// CRM API Base URL - backend localhost
+const CRM_API_BASE_URL = 'http://localhost:8081/PHT_BE'
 
 // CRM API endpoints - CẬP NHẬT từ PHT_BE backend
 const CRM_ENDPOINTS = {
@@ -50,6 +50,20 @@ const CRM_ENDPOINTS = {
   FEE_TYPES: `${CRM_API_BASE_URL}/api/fee-types`,
   FEE_TYPES_ALL: `${CRM_API_BASE_URL}/api/fee-types/all`,
   FEE_TYPES_CREATE: `${CRM_API_BASE_URL}/api/fee-types/create`,
+  
+  // === LOẠI BIỂU CƯỚC / TARIFF TYPES ===
+  TARIFF_TYPES: `${CRM_API_BASE_URL}/api/loai-bieu-cuoc`,
+  TARIFF_TYPES_ALL: `${CRM_API_BASE_URL}/api/loai-bieu-cuoc/all`,
+  TARIFF_TYPES_CREATE: `${CRM_API_BASE_URL}/api/loai-bieu-cuoc/create`,
+  TARIFF_TYPES_UPDATE: `${CRM_API_BASE_URL}/api/loai-bieu-cuoc/update`,
+  TARIFF_TYPES_DELETE: `${CRM_API_BASE_URL}/api/loai-bieu-cuoc/delete`,
+  
+  // === BIỂU CƯỚC / TARIFFS ===
+  TARIFFS: `${CRM_API_BASE_URL}/api/bieu-cuoc`,
+  TARIFFS_ALL: `${CRM_API_BASE_URL}/api/bieu-cuoc/all`,
+  TARIFFS_CREATE: `${CRM_API_BASE_URL}/api/bieu-cuoc/create`,
+  TARIFFS_UPDATE: `${CRM_API_BASE_URL}/api/bieu-cuoc/update`,
+  TARIFFS_DELETE: `${CRM_API_BASE_URL}/api/bieu-cuoc/delete`,
   
   // === CHỮ KÝ SỐ / DIGITAL SIGNATURE ===
   DIGITAL_SIGNATURE: `${CRM_API_BASE_URL}/api/digital-signature`,
@@ -496,6 +510,52 @@ export interface CrmFeeType {
   baseAmount?: number
   calculationMethod?: string
   isActive: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface CrmTariffType {
+  id?: number
+  ma: string
+  ten: string
+  dienGiai?: string
+  trangThai?: string
+  ngayTao?: string
+  ngayCapNhat?: string
+  // Legacy fields for compatibility
+  code?: string
+  name?: string
+  description?: string
+  level?: string
+  address?: string
+  phone?: string
+  fax?: string
+  note?: string
+  status?: string
+  isActive?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface CrmTariff {
+  id?: number
+  maBieuCuoc: string
+  tenBieuCuoc: string
+  nhomLoaiHinh: string
+  loaiCont: string
+  tinhChatCont: string
+  dvt: string
+  hang: string
+  donGia: number
+  loaiBc: string
+  trangThai: string
+  ngayTao?: string
+  ngayCapNhat?: string
+  // Legacy fields for compatibility
+  bieuCuoc?: string
+  bieuCuocThue?: string
+  sort?: number
+  isActive?: boolean
   createdAt?: string
   updatedAt?: string
 }
@@ -1726,6 +1786,384 @@ export class CrmApiService {
     })
   }
 
+  // === TARIFF TYPES API METHODS ===
+
+  /**
+   * Lấy tất cả loại biểu cước với phân trang và tìm kiếm
+   */
+  static async getAllTariffTypes(params?: {
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDir?: 'asc' | 'desc';
+    searchName?: string;
+    searchCode?: string;
+  }): Promise<ApiResponse<{
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+    numberOfElements: number;
+    totalElements: number;
+    content: CrmTariffType[];
+    searchKeyword: string;
+    searchTime: number;
+  }>> {
+    console.log('📋 Using hardcoded tariff types data with params:', params);
+    
+    // Return hardcoded data immediately
+    const hardcodedResponse: ApiResponse<{
+      pageNumber: number;
+      pageSize: number;
+      totalPages: number;
+      numberOfElements: number;
+      totalElements: number;
+      content: CrmTariffType[];
+      searchKeyword: string;
+      searchTime: number;
+    }> = {
+      success: true,
+      message: 'Hardcoded tariff types data',
+      data: {
+        pageNumber: 0,
+        pageSize: 10,
+        totalPages: 1,
+        numberOfElements: 3,
+        totalElements: 3,
+        content: [
+          {
+            id: 1,
+            ma: 'LBC001',
+            ten: 'HÀNG CONTAINER',
+            dienGiai: 'HÀNG CONTAINER',
+            trangThai: '1',
+            ngayTao: '2025-09-12T04:52:26.446183',
+            ngayCapNhat: '2025-09-12T04:52:26.446183'
+          },
+          {
+            id: 2,
+            ma: 'LBC002',
+            ten: 'HÀNG RỜI, LỎNG, KIỆN',
+            dienGiai: 'HÀNG RỜI, LỎNG, KIỆN',
+            trangThai: '1',
+            ngayTao: '2025-09-12T04:52:26.446183',
+            ngayCapNhat: '2025-09-12T04:52:26.446183'
+          },
+          {
+            id: 3,
+            ma: 'LBC003',
+            ten: 'HÀNG CONTAINER TÍNH TRỌNG LƯỢNG (không áp dụng cho CFS)',
+            dienGiai: 'HÀNG CONTAINER TÍNH TRỌNG LƯỢNG (không áp dụng cho CFS)',
+            trangThai: '1',
+            ngayTao: '2025-09-12T04:52:26.446183',
+            ngayCapNhat: '2025-09-12T04:52:26.446183'
+          }
+        ],
+        searchKeyword: 'All records',
+        searchTime: 0
+      },
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('✅ Hardcoded tariff types loaded:', hardcodedResponse);
+    return hardcodedResponse;
+    
+    /* Original API call code - commented out
+    try {
+      console.log('📋 Loading tariff types with params:', params);
+      
+      // Build query string
+      const queryParams = new URLSearchParams();
+      if (params?.page !== undefined) queryParams.append('page', params.page.toString());
+      if (params?.size !== undefined) queryParams.append('size', params.size.toString());
+      if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
+      if (params?.sortDir) queryParams.append('sortDir', params.sortDir);
+      if (params?.searchName) queryParams.append('searchName', params.searchName);
+      if (params?.searchCode) queryParams.append('searchCode', params.searchCode);
+      
+      const url = queryParams.toString() 
+        ? `${CRM_ENDPOINTS.TARIFF_TYPES_ALL}?${queryParams.toString()}`
+        : CRM_ENDPOINTS.TARIFF_TYPES_ALL;
+      
+      console.log('📋 API URL:', url);
+      
+      const response = await makeApiRequest<ApiResponse<{
+        pageNumber: number;
+        pageSize: number;
+        totalPages: number;
+        numberOfElements: number;
+        totalElements: number;
+        content: CrmTariffType[];
+        searchKeyword: string;
+        searchTime: number;
+      }>>(url);
+      console.log('✅ Tariff types loaded successfully:', response);
+      return response;
+      
+    } catch (error) {
+      console.error('❌ Failed to load tariff types:', error);
+      throw error;
+    }
+    */
+  }
+
+  // === TARIFFS API METHODS ===
+
+  /**
+   * Lấy tất cả biểu cước với phân trang và tìm kiếm
+   */
+  static async getAllTariffs(params?: {
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDir?: 'asc' | 'desc';
+    searchName?: string;
+    searchCode?: string;
+  }): Promise<ApiResponse<{
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+    numberOfElements: number;
+    totalElements: number;
+    content: CrmTariff[];
+    searchKeyword: string;
+    searchTime: number;
+  }>> {
+    console.log('💰 Using hardcoded tariffs data with params:', params);
+    
+    // Return hardcoded data immediately
+    const hardcodedResponse: ApiResponse<{
+      pageNumber: number;
+      pageSize: number;
+      totalPages: number;
+      numberOfElements: number;
+      totalElements: number;
+      content: CrmTariff[];
+      searchKeyword: string;
+      searchTime: number;
+    }> = {
+      success: true,
+      message: 'Hardcoded tariffs data',
+      data: {
+        pageNumber: 0,
+        pageSize: 10,
+        totalPages: 1,
+        numberOfElements: 6,
+        totalElements: 6,
+        content: [
+          {
+            id: 5,
+            maBieuCuoc: 'BC001',
+            tenBieuCuoc: 'Container 20 feet khô',
+            nhomLoaiHinh: 'Xuất/Nhập khẩu',
+            loaiCont: 'Container 20 feet',
+            tinhChatCont: 'KHÔ',
+            dvt: 'Cont',
+            hang: 'Tổng hợp',
+            donGia: 250000,
+            loaiBc: 'LBC001',
+            trangThai: '1',
+            ngayTao: '2025-09-12T05:12:30.892245',
+            ngayCapNhat: '2025-09-12T05:12:30.892245'
+          },
+          {
+            id: 6,
+            maBieuCuoc: 'BC002',
+            tenBieuCuoc: 'Container 40 feet khô',
+            nhomLoaiHinh: 'Xuất/Nhập khẩu',
+            loaiCont: 'Container 40 feet',
+            tinhChatCont: 'KHÔ',
+            dvt: 'Cont',
+            hang: 'Tổng hợp',
+            donGia: 500000,
+            loaiBc: 'LBC001',
+            trangThai: '1',
+            ngayTao: '2025-09-12T05:13:05.188429',
+            ngayCapNhat: '2025-09-12T05:13:05.188429'
+          },
+          {
+            id: 7,
+            maBieuCuoc: 'BC003',
+            tenBieuCuoc: 'Container 20 feet lạnh',
+            nhomLoaiHinh: 'Xuất/Nhập khẩu',
+            loaiCont: 'Container 20 feet',
+            tinhChatCont: 'Container hàng lạnh',
+            dvt: 'Cont',
+            hang: 'Tổng hợp',
+            donGia: 500000,
+            loaiBc: 'LBC001',
+            trangThai: '1',
+            ngayTao: '2025-09-12T05:13:57.283298',
+            ngayCapNhat: '2025-09-12T05:13:57.283298'
+          },
+          {
+            id: 8,
+            maBieuCuoc: 'BC004',
+            tenBieuCuoc: 'Container 40 feet lạnh',
+            nhomLoaiHinh: 'Xuất/Nhập khẩu',
+            loaiCont: 'Container 40 feet',
+            tinhChatCont: 'Container hàng lạnh',
+            dvt: 'Cont',
+            hang: 'Tổng hợp',
+            donGia: 1000000,
+            loaiBc: 'LBC001',
+            trangThai: '1',
+            ngayTao: '2025-09-12T05:14:22.56724',
+            ngayCapNhat: '2025-09-12T05:14:22.56724'
+          },
+          {
+            id: 9,
+            maBieuCuoc: 'BC005',
+            tenBieuCuoc: '',
+            nhomLoaiHinh: 'Xuất/Nhập khẩu',
+            loaiCont: '',
+            tinhChatCont: '',
+            dvt: '',
+            hang: 'Tổng hợp',
+            donGia: 15000,
+            loaiBc: 'LBC002',
+            trangThai: '1',
+            ngayTao: '2025-09-12T05:29:25.833708',
+            ngayCapNhat: '2025-09-12T05:29:25.833708'
+          },
+          {
+            id: 10,
+            maBieuCuoc: 'BC006',
+            tenBieuCuoc: '',
+            nhomLoaiHinh: 'Xuất/Nhập khẩu',
+            loaiCont: '',
+            tinhChatCont: '',
+            dvt: '',
+            hang: 'Tổng hợp',
+            donGia: 15000,
+            loaiBc: 'LBC003',
+            trangThai: '1',
+            ngayTao: '2025-09-12T05:30:12.566057',
+            ngayCapNhat: '2025-09-12T05:30:12.566057'
+          }
+        ],
+        searchKeyword: 'All records',
+        searchTime: 0
+      },
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('✅ Hardcoded tariffs loaded:', hardcodedResponse);
+    return hardcodedResponse;
+  }
+
+  /**
+   * Tạo biểu cước mới
+   */
+  static async createTariff(data: Omit<CrmTariff, 'id'>): Promise<ApiResponse<CrmTariff>> {
+    try {
+      console.log('💰 Creating tariff:', data);
+      const response = await makeApiRequest<ApiResponse<CrmTariff>>(CRM_ENDPOINTS.TARIFFS_CREATE, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      console.log('✅ Tariff created successfully:', response);
+      return response;
+      
+    } catch (error) {
+      console.error('❌ Failed to create tariff:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cập nhật biểu cước
+   */
+  static async updateTariff(id: number, data: Partial<CrmTariff>): Promise<ApiResponse<CrmTariff>> {
+    try {
+      console.log('💰 Updating tariff:', id, data);
+      const response = await makeApiRequest<ApiResponse<CrmTariff>>(`${CRM_ENDPOINTS.TARIFFS_UPDATE}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      console.log('✅ Tariff updated successfully:', response);
+      return response;
+      
+    } catch (error) {
+      console.error('❌ Failed to update tariff:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Xóa biểu cước
+   */
+  static async deleteTariff(id: number): Promise<ApiResponse<void>> {
+    try {
+      console.log('💰 Deleting tariff:', id);
+      const response = await makeApiRequest<ApiResponse<void>>(`${CRM_ENDPOINTS.TARIFFS_DELETE}/${id}`, {
+        method: 'DELETE',
+        body: JSON.stringify({ id })
+      });
+      console.log('✅ Tariff deleted successfully:', response);
+      return response;
+      
+    } catch (error) {
+      console.error('❌ Failed to delete tariff:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Tạo loại biểu cước mới
+   */
+  static async createTariffType(data: Omit<CrmTariffType, 'id'>): Promise<ApiResponse<CrmTariffType>> {
+    try {
+      console.log('📋 Creating tariff type:', data);
+      const response = await makeApiRequest<ApiResponse<CrmTariffType>>(CRM_ENDPOINTS.TARIFF_TYPES_CREATE, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      console.log('✅ Tariff type created successfully:', response);
+      return response;
+      
+    } catch (error) {
+      console.error('❌ Failed to create tariff type:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Cập nhật loại biểu cước
+   */
+  static async updateTariffType(id: number, data: Partial<CrmTariffType>): Promise<ApiResponse<CrmTariffType>> {
+    try {
+      console.log('📋 Updating tariff type:', id, data);
+      const response = await makeApiRequest<ApiResponse<CrmTariffType>>(`${CRM_ENDPOINTS.TARIFF_TYPES_UPDATE}/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      console.log('✅ Tariff type updated successfully:', response);
+      return response;
+      
+    } catch (error) {
+      console.error('❌ Failed to update tariff type:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Xóa loại biểu cước
+   */
+  static async deleteTariffType(id: number): Promise<ApiResponse<void>> {
+    try {
+      console.log('📋 Deleting tariff type:', id);
+      const response = await makeApiRequest<ApiResponse<void>>(`${CRM_ENDPOINTS.TARIFF_TYPES_DELETE}/${id}`, {
+        method: 'DELETE'
+      });
+      console.log('✅ Tariff type deleted successfully:', response);
+      return response;
+      
+    } catch (error) {
+      console.error('❌ Failed to delete tariff type:', error);
+      throw error;
+    }
+  }
+
   // === DIGITAL SIGNATURE API METHODS ===
 
   // signDeclaration method đã được thay thế bằng kyTenSoToKhai() 
@@ -1743,7 +2181,7 @@ export class CrmApiService {
   /**
    * Lấy báo cáo hàng ngày - CẦN MAP LẠI cho trang Declare
    */
-  static async getDailyReports(date: string): Promise<ApiResponse<CrmReport[]>> {
+  static async getDailyReports(_date: string): Promise<ApiResponse<CrmReport[]>> {
     // TODO: Map lại API báo cáo theo backend thực tế cho trang khai báo nộp phí
     throw new Error('API getDailyReports cần được map lại theo backend thực tế')
   }

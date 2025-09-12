@@ -78,17 +78,12 @@ public class ChuKySoController {
             List<ChuKySoResponse> result = entities.stream()
                 .map(entity -> {
                     ChuKySoResponse response = new ChuKySoResponse();
-                    // Sử dụng serial number làm ID để đảm bảo tính nhất quán
-                    response.setId(entity.getSerialNumber());
-                    // Tên doanh nghiệp (như "Công ty TNHH Phát Triển Công Nghệ Thái Sơn")
-                    response.setName(entity.getTenDoanhNghiep());
-                    // Nhà phát hành (như "CA2")
-                    response.setIssuer(extractIssuerName(entity.getIssuer()));
-                    // Thời gian hiệu lực (format dd/MM/yyyy)
+                    response.setSerialNumber(entity.getSerialNumber());
+                    response.setIssuer(entity.getIssuer());
+                    response.setSubject(entity.getSubject());
+                    response.setCert(entity.getCertificateData());
                     response.setValidFrom(formatDate(entity.getValidFrom()));
                     response.setValidTo(formatDate(entity.getValidTo()));
-                    // Serial number
-                    response.setSerialNumber(entity.getSerialNumber());
                     return response;
                 })
                 .toList();

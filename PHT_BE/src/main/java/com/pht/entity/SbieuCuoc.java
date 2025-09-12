@@ -31,6 +31,9 @@ public class SbieuCuoc {
     @Column(name = "TEN_BIEU_CUOC", length = 255)
     private String tenBieuCuoc;
 
+    @Column(name = "MA_NHOM_LOAI_HINH", length = 100)
+    private String maNhomLoaiHinh;
+
     @Column(name = "NHOM_LOAI_HINH", length = 100)
     private String nhomLoaiHinh;
 
@@ -48,6 +51,15 @@ public class SbieuCuoc {
 
     @Column(name = "DON_GIA", precision = 18, scale = 2)
     private BigDecimal donGia;
+
+    @Column(name = "LOAI_BC", length = 100)
+    private String loaiBc;
+
+    @Column(name = "MA_LOAI_CONT", length = 100)
+    private String maLoaiCont;
+
+    @Column(name = "MA_TC_CONT", length = 100)
+    private String maTcCont;
 
     @Column(name = "TRANG_THAI", length = 50)
     private String trangThai;

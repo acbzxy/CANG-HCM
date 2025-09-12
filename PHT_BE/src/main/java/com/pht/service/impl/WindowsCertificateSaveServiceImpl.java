@@ -238,12 +238,12 @@ public class WindowsCertificateSaveServiceImpl implements WindowsCertificateSave
     private ChuKySoResponse convertToResponse(ChukySo entity) {
         ChuKySoResponse response = new ChuKySoResponse();
         
-        response.setId(entity.getSerialNumber());
-        response.setName(entity.getTenDoanhNghiep());
-        response.setIssuer(extractIssuerName(entity.getIssuer()));
+        response.setSerialNumber(entity.getSerialNumber());
+        response.setIssuer(entity.getIssuer());
+        response.setSubject(entity.getSubject());
+        response.setCert(entity.getCertificateData());
         response.setValidFrom(formatDate(entity.getValidFrom()));
         response.setValidTo(formatDate(entity.getValidTo()));
-        response.setSerialNumber(entity.getSerialNumber());
         
         return response;
     }

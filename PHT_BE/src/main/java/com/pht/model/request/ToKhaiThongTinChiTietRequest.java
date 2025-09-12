@@ -14,6 +14,8 @@ public class ToKhaiThongTinChiTietRequest {
     private String soSeal;
     private String loaiCont;
     private String tinhChatCont;
+    private String maLoaiCont;
+    private String maTcCont;
     private BigDecimal tongTrongLuong;
     private String donViTinh;
     private String ghiChu;

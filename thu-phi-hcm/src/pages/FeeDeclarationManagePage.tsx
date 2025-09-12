@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FeeDeclarationService, type FeeDeclarationSearchParams } from '../utils/feeDeclarationApi';
+import { FeeDeclarationService, type FeeDeclarationSearchParams, type TokhaiThongtinResponse } from '../utils/feeDeclarationApi';
 import { useNotification } from '../context/NotificationContext';
-import { debugLog, debugError, isDebugMode } from '../debug';
+import { debugLog, isDebugMode } from '../debug';
 import type { FeeDeclaration } from '../types';
+// Simple PDF download using browser's print functionality
 
 // Local interface for display purposes (legacy)
 interface FeeDeclarationDisplay {
@@ -22,17 +23,92 @@ interface FeeDeclarationDisplay {
   tongTien: number;
 }
 
-// Helper function to get status text
-const getStatusText = (status: string): string => {
-  switch (status) {
-    case 'DRAFT': return 'Mới';
-    case 'SUBMITTED': return 'Đã nộp';
-    case 'APPROVED': return 'Đã duyệt';
-    case 'REJECTED': return 'Bị từ chối';
-    case 'CANCELLED': return 'Đã hủy';
-    default: return status;
-  }
-}
+
+// Helper function to extract content from chiTiet object
+  const getChiTietContent = (chiTiet: any): string => {
+    // Try common field names for content/description
+    const possibleFields = [
+      'ghiChuKhaiPhi', 'noiDung', 'tenNoiDung', 'moTa', 'content', 'description',
+      'tenPhieu', 'tenBieuPhi', 'tenLoaiPhi', 'tenDichVu', 'dichVu',
+      'loaiPhi', 'tenLoai', 'tenSanPham', 'sanPham', 'hangHoa',
+      'ghiChu', 'note', 'notes', 'comment', 'comments',
+      'donViTinh', 'dvt', 'unit', 'tongTrongLuong' // Add unit fields
+    ];
+    
+    for (const field of possibleFields) {
+      if (chiTiet[field] && typeof chiTiet[field] === 'string' && chiTiet[field].trim()) {
+        return chiTiet[field];
+      }
+    }
+    
+    // If no string field found, try to find any non-empty string value
+    for (const key in chiTiet) {
+      if (typeof chiTiet[key] === 'string' && chiTiet[key].trim()) {
+        return chiTiet[key];
+      }
+    }
+    
+    // Last resort: return formatted JSON
+    return JSON.stringify(chiTiet, null, 2);
+  };
+
+  // Function to convert number to Vietnamese text
+  const numberToVietnameseText = (num: number): string => {
+    const ones = ['', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+    const tens = ['', '', 'hai mươi', 'ba mươi', 'bốn mươi', 'năm mươi', 'sáu mươi', 'bảy mươi', 'tám mươi', 'chín mươi'];
+    const hundreds = ['', 'một trăm', 'hai trăm', 'ba trăm', 'bốn trăm', 'năm trăm', 'sáu trăm', 'bảy trăm', 'tám trăm', 'chín trăm'];
+    
+    if (num === 0) return 'không';
+    if (num < 0) return 'âm ' + numberToVietnameseText(-num);
+    
+    let result = '';
+    
+    // Handle millions
+    if (num >= 1000000) {
+      const millions = Math.floor(num / 1000000);
+      result += numberToVietnameseText(millions) + ' triệu ';
+      num %= 1000000;
+    }
+    
+    // Handle thousands
+    if (num >= 1000) {
+      const thousands = Math.floor(num / 1000);
+      if (thousands > 0) {
+        result += numberToVietnameseText(thousands) + ' nghìn ';
+      }
+      num %= 1000;
+    }
+    
+    // Handle hundreds
+    if (num >= 100) {
+      const hundred = Math.floor(num / 100);
+      result += hundreds[hundred] + ' ';
+      num %= 100;
+    }
+    
+    // Handle tens and ones
+    if (num >= 20) {
+      const ten = Math.floor(num / 10);
+      result += tens[ten] + ' ';
+      num %= 10;
+    } else if (num >= 10) {
+      if (num === 10) result += 'mười ';
+      else if (num < 15) result += 'mười ' + ones[num % 10] + ' ';
+      else result += 'mười ' + ones[num % 10] + ' ';
+      num = 0;
+    }
+    
+    if (num > 0) {
+      result += ones[num] + ' ';
+    }
+    
+    // Capitalize first letter of each word
+    const words = (result.trim() + ' đồng').split(' ');
+    const capitalizedWords = words.map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    );
+    return capitalizedWords.join(' ');
+  };
 
 // Helper function to determine display status based on trangThaiPhatHanh
 const getDisplayStatus = (item: FeeDeclaration): string => {
@@ -81,10 +157,14 @@ const FeeDeclarationManagePage: React.FC = () => {
   // State for detail modal
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<FeeDeclarationDisplay | null>(null);
+  const [selectedItemDetail, setSelectedItemDetail] = useState<TokhaiThongtinResponse | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   // State for notification modal
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [selectedNotificationItem, setSelectedNotificationItem] = useState<FeeDeclarationDisplay | null>(null);
+  const [notificationDetail, setNotificationDetail] = useState<TokhaiThongtinResponse | null>(null);
+  const [loadingNotification, setLoadingNotification] = useState(false);
 
   // State for download success modal
   const [showDownloadSuccessModal, setShowDownloadSuccessModal] = useState(false);
@@ -92,7 +172,7 @@ const FeeDeclarationManagePage: React.FC = () => {
   // State for loading and pagination
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
@@ -241,8 +321,8 @@ const FeeDeclarationManagePage: React.FC = () => {
         }
       } catch (apiError) {
         console.error('💥 API call failed:', apiError);
-        console.error('💥 Error message:', apiError.message);
-        console.error('💥 Error stack:', apiError.stack);
+        console.error('💥 Error message:', (apiError as Error).message);
+        console.error('💥 Error stack:', (apiError as Error).stack);
         showError('Không thể kết nối đến server. Sử dụng dữ liệu demo.');
       }
 
@@ -287,8 +367,8 @@ const FeeDeclarationManagePage: React.FC = () => {
       }
     } catch (error) {
       console.error('💥 Error loading fee declarations:', error);
-      console.error('💥 Error message:', error.message);
-      console.error('💥 Error stack:', error.stack);
+      console.error('💥 Error message:', (error as Error).message);
+      console.error('💥 Error stack:', (error as Error).stack);
       showError('Có lỗi xảy ra khi tải dữ liệu: ' + (error as Error).message);
       
       // Set empty data if all fails
@@ -340,33 +420,404 @@ const FeeDeclarationManagePage: React.FC = () => {
     loadFeeDeclarations();
   };
 
-  const handleViewDetail = (item: FeeDeclarationDisplay) => {
+  const handleViewDetail = async (item: FeeDeclarationDisplay) => {
     setSelectedItem(item);
     setShowDetailModal(true);
+    setLoadingDetail(true);
+    
+    try {
+      // Fetch detailed information from API
+      const detailData = await FeeDeclarationService.getFeeDeclarationById(parseInt(item.id));
+      setSelectedItemDetail(detailData);
+      console.log('Detail data loaded:', detailData);
+      console.log('ChiTietList:', detailData.chiTietList);
+      if (detailData.chiTietList && detailData.chiTietList.length > 0) {
+        console.log('First chiTiet item:', detailData.chiTietList[0]);
+        console.log('All chiTiet fields:', Object.keys(detailData.chiTietList[0]));
+      }
+    } catch (error) {
+      console.error('Error loading detail:', error);
+      showError('Không thể tải chi tiết tờ khai');
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   const handleCloseDetailModal = () => {
     setShowDetailModal(false);
     setSelectedItem(null);
+    setSelectedItemDetail(null);
+    setLoadingDetail(false);
   };
 
-  const handleGetNotification = (item: FeeDeclarationDisplay) => {
+  const handleGetNotification = async (item: FeeDeclarationDisplay) => {
     setSelectedNotificationItem(item);
     setShowNotificationModal(true);
+    setLoadingNotification(true);
+    
+    try {
+      // Fetch detailed information from API for notification
+      const detailData = await FeeDeclarationService.getFeeDeclarationById(parseInt(item.id));
+      setNotificationDetail(detailData);
+      console.log('Notification detail data loaded:', detailData);
+      console.log('Notification ChiTietList:', detailData.chiTietList);
+      if (detailData.chiTietList && detailData.chiTietList.length > 0) {
+        console.log('First notification chiTiet item:', detailData.chiTietList[0]);
+        console.log('All notification chiTiet fields:', Object.keys(detailData.chiTietList[0]));
+      }
+    } catch (error) {
+      console.error('Error loading notification detail:', error);
+      showError('Không thể tải thông báo tờ khai');
+    } finally {
+      setLoadingNotification(false);
+    }
   };
 
   const handleCloseNotificationModal = () => {
     setShowNotificationModal(false);
     setSelectedNotificationItem(null);
+    setNotificationDetail(null);
+    setLoadingNotification(false);
   };
 
   const handleDownloadNotification = () => {
-    // Close the notification modal first
-    setShowNotificationModal(false);
-    setSelectedNotificationItem(null);
+    if (!notificationDetail) return;
     
-    // Show download success modal
-    setShowDownloadSuccessModal(true);
+    try {
+      console.log('Starting PDF generation...');
+      
+      // Create HTML content
+      const htmlContent = createPDFHTML();
+      console.log('HTML content created, length:', htmlContent.length);
+      
+      // Create a new window for printing
+      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      if (!printWindow) {
+        alert('Không thể mở cửa sổ in. Vui lòng kiểm tra popup blocker.');
+        return;
+      }
+      
+      // Write content to the new window
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      
+      // Wait for content to load
+      printWindow.onload = () => {
+        console.log('Print window loaded, starting print...');
+        
+        // Add a small delay to ensure everything is rendered
+        setTimeout(() => {
+          printWindow.print();
+          
+          // Close the window after a delay
+          setTimeout(() => {
+            printWindow.close();
+          }, 1000);
+        }, 500);
+      };
+      
+      // Close the notification modal
+      setShowNotificationModal(false);
+      setSelectedNotificationItem(null);
+      setNotificationDetail(null);
+      setLoadingNotification(false);
+      
+      // Show download success modal
+      setShowDownloadSuccessModal(true);
+      
+      console.log('PDF generation completed successfully');
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert(`Có lỗi khi tạo PDF: ${error}. Vui lòng thử lại.`);
+    }
+  };
+
+
+  const createPDFHTML = () => {
+    if (!notificationDetail) return '';
+    
+    return `<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo tờ khai nộp phí</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #000;
+            margin: 0;
+            padding: 0;
+            background: white;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .blue-line {
+            height: 3px;
+            background-color: #0066cc;
+            margin: 15px auto;
+            width: 200px;
+        }
+        
+        .info-bar {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+        
+        .info-row {
+            display: flex;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            min-width: 140px;
+            color: #333;
+        }
+        
+        .info-value {
+            flex: 1;
+        }
+        
+        .company-section {
+            margin-bottom: 25px;
+        }
+        
+        .company-info {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .company-column {
+            flex: 1;
+            background-color: #fafafa;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+        }
+        
+        .company-title {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 12px;
+            color: #0066cc;
+            border-bottom: 1px solid #0066cc;
+            padding-bottom: 5px;
+        }
+        
+        .company-detail {
+            margin-bottom: 8px;
+            display: flex;
+        }
+        
+        .company-detail:last-child {
+            margin-bottom: 0;
+        }
+        
+        .company-detail strong {
+            min-width: 80px;
+            color: #333;
+        }
+        
+        .table-section {
+            margin-bottom: 25px;
+        }
+        
+        .table-title {
+            font-weight: bold;
+            font-size: 13px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+        
+        .pdf-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #333;
+            margin-bottom: 15px;
+        }
+        
+        .pdf-table th,
+        .pdf-table td {
+            border: 1px solid #333;
+            padding: 8px 6px;
+            text-align: left;
+            vertical-align: top;
+        }
+        
+        .pdf-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            text-align: center;
+            color: #333;
+        }
+        
+        .pdf-table .text-center {
+            text-align: center;
+        }
+        
+        .pdf-table .text-right {
+            text-align: right;
+        }
+        
+        .pdf-table .total-row {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        
+        .pdf-table .total-row td {
+            border-top: 2px solid #333;
+        }
+        
+        .amount-in-words {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">Thông báo tờ khai nộp phí</div>
+        <div class="blue-line"></div>
+    </div>
+    
+    <div class="info-bar">
+        <div class="info-row">
+            <span class="info-label">STK HQ:</span>
+            <span class="info-value">${notificationDetail.soToKhai || 'N/A'}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">STB nộp phí:</span>
+            <span class="info-value">${notificationDetail.soThongBaoNopPhi || 'N/A'}</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Nhóm loại hình:</span>
+            <span class="info-value">${notificationDetail.nhomLoaiPhi || 'N/A'} - Loại hình: ${notificationDetail.maLoaiHinh || 'N/A'}</span>
+        </div>
+    </div>
+    
+    <div class="company-section">
+        <div class="company-info">
+            <div class="company-column">
+                <div class="company-title">Đơn vị nhập tờ khai nộp phí</div>
+                <div class="company-detail">
+                    <strong>Mã đơn vị:</strong>
+                    <span>${notificationDetail.maDoanhNghiepKhaiPhi || 'N/A'}</span>
+                </div>
+                <div class="company-detail">
+                    <strong>Tên đơn vị:</strong>
+                    <span>${notificationDetail.tenDoanhNghiepKhaiPhi || 'N/A'}</span>
+                </div>
+                <div class="company-detail">
+                    <strong>Địa chỉ:</strong>
+                    <span>${notificationDetail.diaChiKhaiPhi || 'N/A'}</span>
+                </div>
+            </div>
+            <div class="company-column">
+                <div class="company-title">Đơn vị xuất nhập khẩu (DNK)</div>
+                <div class="company-detail">
+                    <strong>Mã đơn vị:</strong>
+                    <span>${notificationDetail.maDoanhNghiepXNK || 'N/A'}</span>
+                </div>
+                <div class="company-detail">
+                    <strong>Tên đơn vị:</strong>
+                    <span>${notificationDetail.tenDoanhNghiepXNK || 'N/A'}</span>
+                </div>
+                <div class="company-detail">
+                    <strong>Địa chỉ:</strong>
+                    <span>${notificationDetail.diaChiXNK || 'N/A'}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="table-section">
+        <div class="table-title">Chi tiết nộp phí (CHUYEN_KHOAN):</div>
+        <table class="pdf-table">
+            <thead>
+                <tr>
+                    <th style="width: 8%;">STT</th>
+                    <th style="width: 35%;">Nội dung thu phí</th>
+                    <th style="width: 12%;">Mã DVT</th>
+                    <th style="width: 15%;">Số lượng/trọng lượng</th>
+                    <th style="width: 15%;">Đơn giá</th>
+                    <th style="width: 15%;">Thành tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${notificationDetail.chiTietList && notificationDetail.chiTietList.length > 0 ? 
+                    notificationDetail.chiTietList.map((chiTiet: any, index: number) => `
+                        <tr>
+                            <td class="text-center">${index + 1}</td>
+                            <td>${getChiTietContent(chiTiet)}</td>
+                            <td class="text-center">${chiTiet.donViTinh || 'null'}</td>
+                            <td class="text-center">${chiTiet.tongTrongLuong || chiTiet.soLuong || 'N/A'}</td>
+                            <td class="text-right">${chiTiet.donGia ? new Intl.NumberFormat('vi-VN').format(chiTiet.donGia) : 'N/A'}</td>
+                            <td class="text-right">${chiTiet.soTien ? new Intl.NumberFormat('vi-VN').format(chiTiet.soTien) : chiTiet.thanhTien ? new Intl.NumberFormat('vi-VN').format(chiTiet.thanhTien) : 'N/A'}</td>
+                        </tr>
+                    `).join('') : 
+                    '<tr><td colspan="6" class="text-center">Không có chi tiết phí</td></tr>'
+                }
+                ${notificationDetail.chiTietList && notificationDetail.chiTietList.length > 0 ? `
+                    <tr class="total-row">
+                        <td colspan="5"><strong>TỔNG SỐ:</strong></td>
+                        <td class="text-right"><strong>${new Intl.NumberFormat('vi-VN').format(notificationDetail.tongTienPhi || 0)}</strong></td>
+                    </tr>
+                ` : ''}
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="amount-in-words">
+        <strong>Số tiền bằng chữ:</strong> ${numberToVietnameseText(notificationDetail.tongTienPhi || 0)}
+    </div>
+</body>
+</html>`;
   };
 
   const handleCloseDownloadSuccessModal = () => {
@@ -380,61 +831,6 @@ const FeeDeclarationManagePage: React.FC = () => {
     navigate('/receipt-management/create', { state: { selectedItem: item } });
   };
 
-  // Error boundary fallback
-  const ErrorFallback = ({ error }: { error: Error }) => (
-    <div style={{ 
-      padding: '40px', 
-      textAlign: 'center', 
-      backgroundColor: '#f8f9fa', 
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center'
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '30px',
-        borderRadius: '10px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        maxWidth: '500px'
-      }}>
-        <h2 style={{ color: '#dc3545', marginBottom: '20px' }}>
-          <i className="fas fa-exclamation-triangle" style={{ marginRight: '10px' }}></i>
-          Có lỗi xảy ra
-        </h2>
-        <p style={{ marginBottom: '20px', color: '#666' }}>
-          Trang quản lý tờ khai phí gặp lỗi. Vui lòng thử lại sau.
-        </p>
-        <details style={{ marginBottom: '20px', textAlign: 'left' }}>
-          <summary style={{ cursor: 'pointer', color: '#007bff' }}>Chi tiết lỗi</summary>
-          <pre style={{ 
-            marginTop: '10px', 
-            padding: '10px', 
-            backgroundColor: '#f8f9fa', 
-            borderRadius: '4px',
-            fontSize: '12px',
-            overflow: 'auto'
-          }}>
-            {error.message}
-          </pre>
-        </details>
-        <button
-          onClick={() => window.location.reload()}
-          style={{
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            padding: '10px 20px',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
-        >
-          Tải lại trang
-        </button>
-      </div>
-    </div>
-  );
 
   // Render with error boundary
   if (window.location.search.includes('debug=error')) {
@@ -955,104 +1351,266 @@ const FeeDeclarationManagePage: React.FC = () => {
               </button>
             </div>
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '15px',
-              fontSize: '14px'
-            }}>
-              <div>
-                <strong>Ký số:</strong> {selectedItem.kyso}
+            {loadingDetail ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <i className="fas fa-spinner fa-spin" style={{ fontSize: '24px', color: '#007bff', marginBottom: '10px' }}></i>
+                <div style={{ color: '#007bff' }}>Đang tải chi tiết...</div>
               </div>
+            ) : selectedItemDetail ? (
               <div>
-                <strong>TK nộp phí:</strong> 
-                <span style={{ color: '#0066cc', marginLeft: '5px' }}>{selectedItem.tkNopPhi}</span>
-              </div>
-              <div>
-                <strong>Ngày TK NP:</strong> {selectedItem.ngayTKNP}
-              </div>
-              <div>
-                <strong>Loại tờ khai:</strong> {selectedItem.loaiToKhai}
-              </div>
-              <div>
-                <strong>TK hải quan:</strong> {selectedItem.tkHaiQuan}
-              </div>
-              <div style={{ gridColumn: 'span 2' }}>
-                <strong>Doanh nghiệp:</strong> {selectedItem.doanhNghiep}
-              </div>
-              <div>
-                <strong>Trạng thái:</strong> 
-                <span style={{
-                  marginLeft: '5px',
-                  padding: '2px 6px',
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  backgroundColor: selectedItem.trangThai === 'Lý thông báo' ? '#d4edda' : '#f8d7da',
-                  color: selectedItem.trangThai === 'Lý thông báo' ? '#155724' : '#721c24'
+                {/* Header Info */}
+                <div style={{
+                  display: 'flex',
+                  gap: '20px',
+                  marginBottom: '20px',
+                  fontSize: '13px',
+                  color: '#333',
+                  padding: '10px',
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: '4px'
                 }}>
-                  {selectedItem.trangThai === 'Lý thông báo' ? '✓ Lý thông báo' : selectedItem.trangThai}
-                </span>
+                  <span><strong>STK HQ:</strong> {selectedItemDetail.soThongBaoNopPhi || 'N/A'}</span>
+                  <span><strong>STB nộp phí:</strong> {selectedItemDetail.soToKhai || 'N/A'}</span>
+                  <span><strong>Nhóm loại hình:</strong> {selectedItemDetail.nhomLoaiPhi || 'N/A'} - <strong>Loại hình:</strong> {selectedItemDetail.maLoaiHinh || 'N/A'}</span>
+                </div>
+
+                {/* Company Info Section */}
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '1fr 1fr', 
+                  gap: '30px', 
+                  marginBottom: '20px',
+                  fontSize: '13px'
+                }}>
+                  {/* Left: Đơn vị nhập tờ khai nộp phí */}
+                  <div>
+                    <h4 style={{ 
+                      margin: '0 0 15px 0', 
+                      fontSize: '14px', 
+                      fontWeight: 'bold',
+                      color: '#333'
+                    }}>
+                      Đơn vị nhập tờ khai nộp phí:
+                    </h4>
+                    <div style={{ marginBottom: '8px' }}>
+                      <strong>Mã đơn vị:</strong> {selectedItemDetail.maDoanhNghiepKhaiPhi || 'N/A'}
+                    </div>
+                    <div style={{ marginBottom: '8px' }}>
+                      <strong>Tên đơn vị:</strong> {selectedItemDetail.tenDoanhNghiepKhaiPhi || 'N/A'}
+                    </div>
+                    <div>
+                      <strong>Địa chỉ:</strong> {selectedItemDetail.diaChiKhaiPhi || 'N/A'}
+                    </div>
+                  </div>
+
+                  {/* Right: Đơn vị xuất nhập khẩu (DNK) */}
+                  <div>
+                    <h4 style={{ 
+                      margin: '0 0 15px 0', 
+                      fontSize: '14px', 
+                      fontWeight: 'bold',
+                      color: '#333'
+                    }}>
+                      Đơn vị xuất nhập khẩu (DNK):
+                    </h4>
+                    <div style={{ marginBottom: '8px' }}>
+                      <strong>Mã đơn vị:</strong> {selectedItemDetail.maDoanhNghiepXNK || 'N/A'}
+                    </div>
+                    <div style={{ marginBottom: '8px' }}>
+                      <strong>Tên đơn vị:</strong> {selectedItemDetail.tenDoanhNghiepXNK || 'N/A'}
+                    </div>
+                    <div>
+                      <strong>Địa chỉ:</strong> {selectedItemDetail.diaChiXNK || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fee Details Table */}
+                <div style={{ marginBottom: '20px' }}>
+                  <h4 style={{ 
+                    margin: '0 0 15px 0', 
+                    fontSize: '14px', 
+                    fontWeight: 'bold',
+                    color: '#333'
+                  }}>
+                    Chi tiết nộp phí ({selectedItemDetail.loaiThanhToan || 'Chuyển khoản'}):
+                  </h4>
+                  
+                  <table style={{ 
+                    width: '100%', 
+                    borderCollapse: 'collapse', 
+                    fontSize: '12px',
+                    border: '1px solid #ddd'
+                  }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f8f9fa' }}>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px', 
+                          textAlign: 'center',
+                          width: '60px'
+                        }}>STT</th>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px',
+                          textAlign: 'left'
+                        }}>Nội dung thu phí</th>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px',
+                          textAlign: 'center',
+                          width: '80px'
+                        }}>Mã DVT</th>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px',
+                          textAlign: 'center',
+                          width: '120px'
+                        }}>Số lượng/trọng lượng</th>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px',
+                          textAlign: 'right',
+                          width: '100px'
+                        }}>Đơn giá</th>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px',
+                          textAlign: 'right',
+                          width: '120px'
+                        }}>Thành tiền</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedItemDetail.chiTietList && selectedItemDetail.chiTietList.length > 0 ? (
+                        selectedItemDetail.chiTietList.map((chiTiet: any, index: number) => (
+                          <tr key={index}>
+                            <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                              {index + 1}
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                              {getChiTietContent(chiTiet)}
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                              {chiTiet.donViTinh || 'null'}
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                              {chiTiet.tongTrongLuong || chiTiet.soLuong || 'N/A'}
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right' }}>
+                              {chiTiet.donGia ? formatCurrency(chiTiet.donGia) : 'N/A'}
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right' }}>
+                              {chiTiet.soTien ? formatCurrency(chiTiet.soTien) : chiTiet.thanhTien ? formatCurrency(chiTiet.thanhTien) : 'N/A'}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} style={{ 
+                            border: '1px solid #ddd', 
+                            padding: '20px', 
+                            textAlign: 'center',
+                            color: '#666'
+                          }}>
+                            Không có chi tiết phí
+                          </td>
+                        </tr>
+                      )}
+                      {selectedItemDetail.chiTietList && selectedItemDetail.chiTietList.length > 0 && (
+                        <tr style={{ backgroundColor: '#f8f9fa', fontWeight: 'bold' }}>
+                          <td colSpan={4} style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                            TỔNG SỐ:
+                          </td>
+                          <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                            {selectedItemDetail.chiTietList.length}
+                          </td>
+                          <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right' }}>
+                            {formatCurrency(selectedItemDetail.tongTienPhi || 0)}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Note */}
+                <div style={{ 
+                  fontSize: '11px', 
+                  color: '#666', 
+                  fontStyle: 'italic',
+                  marginBottom: '20px',
+                  textAlign: 'center'
+                }}>
+                  Số tiền bằng chữ: {selectedItemDetail.ghiChuKhaiPhi || 'Không có ghi chú'}
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  borderTop: '1px solid #eee',
+                  paddingTop: '15px'
+                }}>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      style={{
+                        backgroundColor: '#007bff',
+                        color: 'white',
+                        border: 'none',
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: '500',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = '#0056b3';
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = '#007bff';
+                      }}
+                      onClick={() => handleGetNotification(selectedItem)}
+                    >
+                      <span style={{ color: '#ffffff' }}>✓</span> Lấy thông báo
+                    </button>
+                    
+                    <button
+                      style={{
+                        backgroundColor: '#17a2b8',
+                        color: 'white',
+                        border: 'none',
+                        padding: '8px 16px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        fontWeight: '500'
+                      }}
+                      onClick={() => {
+                        // Find the corresponding FeeDeclaration object
+                        const feeDeclaration = feeDeclarations.find(fd => String(fd.id) === selectedItem.id);
+                        if (feeDeclaration) {
+                          handleCreateReceipt(feeDeclaration);
+                        } else {
+                          console.error('Could not find FeeDeclaration for selectedItem:', selectedItem);
+                        }
+                      }}
+                    >
+                      Tạo biên lai
+                    </button>
+                  </div>
+                  
+                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#d32f2f' }}>
+                    Tổng tiền: {formatCurrency(selectedItemDetail.tongTienPhi || 0)} VNĐ
+                  </div>
+                </div>
               </div>
-              <div>
-                <strong>Thông báo:</strong>
-                <button
-                  style={{
-                    backgroundColor: '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    padding: '4px 8px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '11px',
-                    fontWeight: '500',
-                    marginLeft: '8px',
-                    transition: 'background-color 0.2s'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = '#0056b3';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = '#007bff';
-                  }}
-                  onClick={() => handleGetNotification(selectedItem)}
-                >
-                  <span style={{ color: '#ffffff' }}>✓</span> Lấy thông báo
-                </button>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                Không thể tải chi tiết tờ khai
               </div>
-                             <div>
-                 <strong>Hành động:</strong>
-                 <button
-                   style={{
-                     backgroundColor: '#17a2b8',
-                     color: 'white',
-                     border: 'none',
-                     padding: '4px 8px',
-                     borderRadius: '4px',
-                     cursor: 'pointer',
-                     fontSize: '11px',
-                     fontWeight: '500',
-                     marginLeft: '8px'
-                   }}
-                   onClick={() => {
-                     // Find the corresponding FeeDeclaration object
-                     const feeDeclaration = feeDeclarations.find(fd => String(fd.id) === selectedItem.id);
-                     if (feeDeclaration) {
-                       handleCreateReceipt(feeDeclaration);
-                     } else {
-                       console.error('Could not find FeeDeclaration for selectedItem:', selectedItem);
-                     }
-                   }}
-                 >
-                   Tạo biên lai
-                 </button>
-               </div>
-               <div>
-                 <strong>Tổng tiền:</strong> 
-                 <span style={{ color: '#d32f2f', fontWeight: 'bold', marginLeft: '5px' }}>
-                   {formatCurrency(selectedItem.tongTien)} VNĐ
-                 </span>
-               </div>
-            </div>
+            )}
 
             <div style={{
               marginTop: '20px',
@@ -1128,214 +1686,249 @@ const FeeDeclarationManagePage: React.FC = () => {
               </button>
             </div>
 
-            {/* Info Row */}
-            <div style={{
-              display: 'flex',
-              gap: '20px',
-              marginBottom: '20px',
-              fontSize: '13px',
-              color: '#333'
-            }}>
-              <span>STK HQ: 1357487692765,</span>
-              <span>STB nộp phí: 2149093142570,</span>
-              <span>Nhóm loại hình: TP003 - Loại hình: A31</span>
-            </div>
-
-            {/* Company Info Section */}
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: '1fr 1fr', 
-              gap: '30px', 
-              marginBottom: '20px',
-              fontSize: '13px'
-            }}>
-              {/* Left: Đơn vị nhập tờ khai nộp phí */}
-              <div>
-                <h4 style={{ 
-                  margin: '0 0 15px 0', 
-                  fontSize: '14px', 
-                  fontWeight: 'bold',
-                  color: '#333'
-                }}>
-                  Đơn vị nhập tờ khai nộp phí:
-                </h4>
-                <div style={{ marginBottom: '8px' }}>
-                  <strong>Mã đơn vị:</strong> 0314308155
-                </div>
-                <div style={{ marginBottom: '8px' }}>
-                  <strong>Tên đơn vị:</strong> CÔNG TY TNHH DELVNETS VIETNAM
-                </div>
-                <div>
-                  <strong>Địa chỉ:</strong> Tầng 5, Cao ốc Vạn Phúc Số 25 Nguyễn Thị Điều - Phường 06 - Quận 3 - TP Hồ Chí Minh
-                </div>
+            {loadingNotification ? (
+              <div style={{ textAlign: 'center', padding: '40px' }}>
+                <i className="fas fa-spinner fa-spin" style={{ fontSize: '24px', color: '#007bff', marginBottom: '10px' }}></i>
+                <div style={{ color: '#007bff' }}>Đang tải thông báo...</div>
               </div>
-
-              {/* Right: Đơn vị xuất nhập khẩu (DNK) */}
+            ) : notificationDetail ? (
               <div>
-                <h4 style={{ 
-                  margin: '0 0 15px 0', 
-                  fontSize: '14px', 
-                  fontWeight: 'bold',
-                  color: '#333'
-                }}>
-                  Đơn vị xuất nhập khẩu (DNK):
-                </h4>
-                <div style={{ marginBottom: '8px' }}>
-                  <strong>Mã đơn vị:</strong> 0314308155
-                </div>
-                <div style={{ marginBottom: '8px' }}>
-                  <strong>Tên đơn vị:</strong> CÔNG TY TNHH DELVNETS VIETNAM
-                </div>
-                <div>
-                  <strong>Địa chỉ:</strong> Tầng 5, Cao ốc Vạn Phúc Số 25 Nguyễn Thị Điều - Phường 06 - Quận 3 - TP Hồ Chí Minh
-                </div>
-              </div>
-            </div>
-
-            {/* Fee Details Table */}
-            <div style={{ marginBottom: '20px' }}>
-              <h4 style={{ 
-                margin: '0 0 15px 0', 
-                fontSize: '14px', 
-                fontWeight: 'bold',
-                color: '#333'
-              }}>
-                Chi tiết nộp phí (Chuyển khoản):
-              </h4>
-              
-              <table style={{ 
-                width: '100%', 
-                borderCollapse: 'collapse', 
-                fontSize: '12px',
-                border: '1px solid #ddd'
-              }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f8f9fa' }}>
-                    <th style={{ 
-                      border: '1px solid #ddd', 
-                      padding: '10px', 
-                      textAlign: 'center',
-                      width: '60px'
-                    }}>STT</th>
-                    <th style={{ 
-                      border: '1px solid #ddd', 
-                      padding: '10px',
-                      textAlign: 'left'
-                    }}>Nội dung thu phí</th>
-                    <th style={{ 
-                      border: '1px solid #ddd', 
-                      padding: '10px',
-                      textAlign: 'center',
-                      width: '80px'
-                    }}>Mã DVT</th>
-                    <th style={{ 
-                      border: '1px solid #ddd', 
-                      padding: '10px',
-                      textAlign: 'center',
-                      width: '120px'
-                    }}>Số lượng/trong lượng</th>
-                    <th style={{ 
-                      border: '1px solid #ddd', 
-                      padding: '10px',
-                      textAlign: 'right',
-                      width: '100px'
-                    }}>Đơn giá</th>
-                    <th style={{ 
-                      border: '1px solid #ddd', 
-                      padding: '10px',
-                      textAlign: 'right',
-                      width: '120px'
-                    }}>Thành tiền</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>1</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                      Phí hỗ trợ nhập cảnh phi thuyền viên tờ khai (1355430545&4)
-                    </td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>null</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>1</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right' }}>250,000</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right' }}>250,000</td>
-                  </tr>
-                  <tr>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>2</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px' }}>
-                      Container 40 feet
-                    </td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>null</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>1</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right' }}>500,000</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right' }}>500,000</td>
-                  </tr>
-                  <tr style={{ backgroundColor: '#f8f9fa', fontWeight: 'bold' }}>
-                    <td colSpan={4} style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
-                      TỔNG SỐ:
-                    </td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>2</td>
-                    <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right' }}>750,000</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            {/* Note */}
-            <div style={{ 
-              fontSize: '11px', 
-              color: '#666', 
-              fontStyle: 'italic',
-              marginBottom: '20px',
-              textAlign: 'center'
-            }}>
-              Số tiền bằng chữ: Bảy trăm năm mươi nghìn đồng
-            </div>
-
-            {/* Footer Buttons */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              borderTop: '1px solid #eee',
-              paddingTop: '15px'
-            }}>
-              <button
-                style={{
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
+                {/* Info Row */}
+                <div style={{
+                  display: 'flex',
+                  gap: '20px',
+                  marginBottom: '20px',
                   fontSize: '13px',
-                  fontWeight: '500',
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = '#0056b3';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = '#007bff';
-                }}
-                onClick={handleDownloadNotification}
-              >
-                <span style={{ color: '#ffffff' }}>📥</span> Tải thông báo nộp phí
-              </button>
-              
-              <button
-                onClick={handleCloseNotificationModal}
-                style={{
-                  backgroundColor: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
+                  color: '#333',
+                  padding: '10px',
+                  backgroundColor: '#f8f9fa',
+                  borderRadius: '4px'
+                }}>
+                  <span><strong>STK HQ:</strong> {notificationDetail.soThongBaoNopPhi || 'N/A'},</span>
+                  <span><strong>STB nộp phí:</strong> {notificationDetail.soToKhai || 'N/A'},</span>
+                  <span><strong>Nhóm loại hình:</strong> {notificationDetail.nhomLoaiPhi || 'N/A'} - <strong>Loại hình:</strong> {notificationDetail.maLoaiHinh || 'N/A'}</span>
+                </div>
+
+                {/* Company Info Section */}
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: '1fr 1fr', 
+                  gap: '30px', 
+                  marginBottom: '20px',
                   fontSize: '13px'
-                }}
-              >
-                Đóng
-              </button>
-            </div>
+                }}>
+                  {/* Left: Đơn vị nhập tờ khai nộp phí */}
+                  <div>
+                    <h4 style={{ 
+                      margin: '0 0 15px 0', 
+                      fontSize: '14px', 
+                      fontWeight: 'bold',
+                      color: '#333'
+                    }}>
+                      Đơn vị nhập tờ khai nộp phí:
+                    </h4>
+                    <div style={{ marginBottom: '8px' }}>
+                      <strong>Mã đơn vị:</strong> {notificationDetail.maDoanhNghiepKhaiPhi || 'N/A'}
+                    </div>
+                    <div style={{ marginBottom: '8px' }}>
+                      <strong>Tên đơn vị:</strong> {notificationDetail.tenDoanhNghiepKhaiPhi || 'N/A'}
+                    </div>
+                    <div>
+                      <strong>Địa chỉ:</strong> {notificationDetail.diaChiKhaiPhi || 'N/A'}
+                    </div>
+                  </div>
+
+                  {/* Right: Đơn vị xuất nhập khẩu (DNK) */}
+                  <div>
+                    <h4 style={{ 
+                      margin: '0 0 15px 0', 
+                      fontSize: '14px', 
+                      fontWeight: 'bold',
+                      color: '#333'
+                    }}>
+                      Đơn vị xuất nhập khẩu (DNK):
+                    </h4>
+                    <div style={{ marginBottom: '8px' }}>
+                      <strong>Mã đơn vị:</strong> {notificationDetail.maDoanhNghiepXNK || 'N/A'}
+                    </div>
+                    <div style={{ marginBottom: '8px' }}>
+                      <strong>Tên đơn vị:</strong> {notificationDetail.tenDoanhNghiepXNK || 'N/A'}
+                    </div>
+                    <div>
+                      <strong>Địa chỉ:</strong> {notificationDetail.diaChiXNK || 'N/A'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fee Details Table */}
+                <div style={{ marginBottom: '20px' }}>
+                  <h4 style={{ 
+                    margin: '0 0 15px 0', 
+                    fontSize: '14px', 
+                    fontWeight: 'bold',
+                    color: '#333'
+                  }}>
+                    Chi tiết nộp phí ({notificationDetail.loaiThanhToan || 'Chuyển khoản'}):
+                  </h4>
+                  
+                  <table style={{ 
+                    width: '100%', 
+                    borderCollapse: 'collapse', 
+                    fontSize: '12px',
+                    border: '1px solid #ddd'
+                  }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#f8f9fa' }}>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px', 
+                          textAlign: 'center',
+                          width: '60px'
+                        }}>STT</th>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px',
+                          textAlign: 'left'
+                        }}>Nội dung thu phí</th>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px',
+                          textAlign: 'center',
+                          width: '80px'
+                        }}>Mã DVT</th>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px',
+                          textAlign: 'center',
+                          width: '120px'
+                        }}>Số lượng/trọng lượng</th>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px',
+                          textAlign: 'right',
+                          width: '100px'
+                        }}>Đơn giá</th>
+                        <th style={{ 
+                          border: '1px solid #ddd', 
+                          padding: '10px',
+                          textAlign: 'right',
+                          width: '120px'
+                        }}>Thành tiền</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {notificationDetail.chiTietList && notificationDetail.chiTietList.length > 0 ? (
+                        notificationDetail.chiTietList.map((chiTiet: any, index: number) => (
+                          <tr key={index}>
+                            <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                              {index + 1}
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px' }}>
+                              {getChiTietContent(chiTiet)}
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                              {chiTiet.donViTinh || 'null'}
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                              {chiTiet.tongTrongLuong || chiTiet.soLuong || 'N/A'}
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right' }}>
+                              {chiTiet.donGia ? formatCurrency(chiTiet.donGia) : 'N/A'}
+                            </td>
+                            <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right' }}>
+                              {chiTiet.soTien ? formatCurrency(chiTiet.soTien) : chiTiet.thanhTien ? formatCurrency(chiTiet.thanhTien) : 'N/A'}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={6} style={{ 
+                            border: '1px solid #ddd', 
+                            padding: '20px', 
+                            textAlign: 'center',
+                            color: '#666'
+                          }}>
+                            Không có chi tiết phí
+                          </td>
+                        </tr>
+                      )}
+                      {notificationDetail.chiTietList && notificationDetail.chiTietList.length > 0 && (
+                        <tr style={{ backgroundColor: '#f8f9fa', fontWeight: 'bold' }}>
+                          <td colSpan={5} style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center' }}>
+                            TỔNG SỐ:
+                          </td>
+                   
+                          <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right' }}>
+                            {formatCurrency(notificationDetail.tongTienPhi || 0)}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Note */}
+                <div style={{ 
+                  fontSize: '11px', 
+                  color: '#666', 
+                  fontStyle: 'italic',
+                  marginBottom: '20px',
+                  textAlign: 'center'
+                }}>
+                  Số tiền bằng chữ: {numberToVietnameseText(notificationDetail.tongTienPhi || 0)}
+                </div>
+
+                {/* Footer Buttons */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  borderTop: '1px solid #eee',
+                  paddingTop: '15px'
+                }}>
+                  <button
+                    style={{
+                      backgroundColor: '#007bff',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      transition: 'background-color 0.2s'
+                    }}
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.backgroundColor = '#0056b3';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.backgroundColor = '#007bff';
+                    }}
+                    onClick={handleDownloadNotification}
+                  >
+                    <span style={{ color: '#ffffff' }}>📥</span> Tải thông báo nộp phí
+                  </button>
+                  
+                  <button
+                    onClick={handleCloseNotificationModal}
+                    style={{
+                      backgroundColor: '#6c757d',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '13px'
+                    }}
+                  >
+                    Đóng
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                Không thể tải thông báo tờ khai
+              </div>
+            )}
                      </div>
          </div>
        )}

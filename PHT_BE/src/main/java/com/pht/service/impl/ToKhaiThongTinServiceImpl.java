@@ -22,6 +22,7 @@ import com.pht.model.request.UpdateTrangThaiPhatHanhRequest;
 import com.pht.model.response.NotificationResponse;
 import com.pht.repository.ToKhaiThongTinChiTietRepository;
 import com.pht.repository.ToKhaiThongTinRepository;
+import com.pht.repository.SbieuCuocRepository;
 import com.pht.service.ToKhaiThongTinService;
 import com.pht.util.SequenceGenerator;
 
@@ -35,6 +36,7 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<StoKhai, Long> im
 
     private final ToKhaiThongTinRepository toKhaiThongTinRepository;
     private final ToKhaiThongTinChiTietRepository toKhaiThongTinChiTietRepository;
+    private final SbieuCuocRepository sbieuCuocRepository;
     private final SequenceGenerator sequenceGenerator;
     
     // Atomic counter để tạo số thông báo duy nhất trong cùng thời điểm
@@ -168,6 +170,25 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<StoKhai, Long> im
             toKhaiThongTin.setSoThongBao(soThongBao);
             toKhaiThongTin.setMsgId(msgId);
             
+            // Xử lý tính phí và tổng tiền
+            String maPtVc = toKhaiThongTin.getMaPhuongThucVC();
+            
+            // Kiểm tra điều kiện ma_pt_vc
+            if (maPtVc == null || (!maPtVc.equals("2") && !maPtVc.equals("3") && !maPtVc.equals("4"))) {
+                log.info("Tờ khai có ma_pt_vc = {} (khác 2,3,4), đặt TONG_TIEN_PHI = 0", maPtVc);
+                toKhaiThongTin.setTongTienPhi(java.math.BigDecimal.ZERO);
+            } else {
+                log.info("Tờ khai có ma_pt_vc = {} (thuộc 2,3,4), xử lý tính phí theo loai_HH", maPtVc);
+                
+                if ("LBC001".equals(toKhaiThongTin.getLoaiHang())) {
+                    log.info("Tờ khai có loai_HH = 'LBC001', bắt đầu xử lý tính phí");
+                    xuLyTinhPhi(toKhaiThongTin.getId());
+                } else {
+                    log.info("Tờ khai có loai_HH != 'LBC001', tính tổng tiền từ các row hiện có");
+                    tinhTongTienPhi(toKhaiThongTin.getId());
+                }
+            }
+            
             // Lưu vào database
             toKhaiThongTinRepository.save(toKhaiThongTin);
             
@@ -240,5 +261,136 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<StoKhai, Long> im
     public List<StoKhai> findByTrangThai(String trangThai) {
         log.info("Tìm tờ khai thông tin theo trạng thái: {}", trangThai);
         return toKhaiThongTinRepository.findByTrangThai(trangThai);
+    }
+    
+    /**
+     * Xử lý tính phí cho tờ khai có loai_HH = 'LBC001'
+     */
+    private void xuLyTinhPhi(Long toKhaiId) {
+        try {
+            log.info("Bắt đầu xử lý tính phí cho tờ khai ID: {}", toKhaiId);
+            
+            // Lấy danh sách chi tiết tờ khai
+            List<StoKhaiCt> chiTietList = toKhaiThongTinChiTietRepository.findByToKhaiThongTinID(toKhaiId);
+            
+            if (chiTietList == null || chiTietList.isEmpty()) {
+                log.warn("Không tìm thấy chi tiết tờ khai cho ID: {}", toKhaiId);
+                return;
+            }
+            
+            int soLuongCapNhat = 0;
+            
+            for (StoKhaiCt chiTiet : chiTietList) {
+                // Kiểm tra ma_loai_cont và ma_tc_cont có giá trị không
+                if (chiTiet.getMaLoaiCont() != null && !chiTiet.getMaLoaiCont().trim().isEmpty() &&
+                    chiTiet.getMaTcCont() != null && !chiTiet.getMaTcCont().trim().isEmpty()) {
+                    
+                    // Query đơn giá từ bảng sbieu_cuoc
+                        log.info("Query đơn giá với maLoaiCont: '{}', maTcCont: '{}' (direct mapping)", 
+                                chiTiet.getMaLoaiCont(), chiTiet.getMaTcCont());
+                        
+                        List<java.math.BigDecimal> donGiaList = sbieuCuocRepository.findDonGiaByLoaiContAndTcCont(
+                            chiTiet.getMaLoaiCont(), chiTiet.getMaTcCont());
+                    
+                    log.info("Kết quả query: {} đơn giá tìm được", donGiaList.size());
+                    
+                    if (!donGiaList.isEmpty()) {
+                        // Lấy đơn giá đầu tiên (nếu có nhiều kết quả)
+                        java.math.BigDecimal donGia = donGiaList.get(0);
+                        
+                        log.info("Đơn giá tìm được: {}", donGia);
+                        
+                        // Cập nhật DON_GIA
+                        chiTiet.setDonGia(donGia);
+                        
+                        // Tính SO_TIEN (giả sử bằng đơn giá, có thể điều chỉnh logic tính toán)
+                        chiTiet.setSoTien(donGia);
+                        
+                        // Lưu chi tiết đã cập nhật
+                        toKhaiThongTinChiTietRepository.save(chiTiet);
+                        
+                        soLuongCapNhat++;
+                        
+                        log.info("Cập nhật đơn giá cho chi tiết ID: {}, ma_loai_cont: {}, ma_tc_cont: {}, đơn giá: {}", 
+                                chiTiet.getId(), chiTiet.getMaLoaiCont(), chiTiet.getMaTcCont(), donGia);
+                        } else {
+                            log.warn("Không tìm thấy đơn giá cho maLoaiCont: '{}', maTcCont: '{}'", 
+                                    chiTiet.getMaLoaiCont(), chiTiet.getMaTcCont());
+                        
+                        // Debug: Query tất cả biểu cước để xem có gì
+                        log.info("Debug: Kiểm tra tất cả biểu cước trong database...");
+                        List<com.pht.entity.SbieuCuoc> allBieuCuoc = sbieuCuocRepository.findAllActive();
+                        log.info("Debug: Tìm thấy {} biểu cước LBC001 với trạng thái = '1'", allBieuCuoc.size());
+                        for (com.pht.entity.SbieuCuoc bc : allBieuCuoc) {
+                            log.info("Debug: loaiBc='{}', maLoaiCont='{}', maTcCont='{}', loaiCont='{}', tinhChatCont='{}', donGia={}, trangThai='{}'", 
+                                    bc.getLoaiBc(), bc.getMaLoaiCont(), bc.getMaTcCont(), bc.getLoaiCont(), bc.getTinhChatCont(), bc.getDonGia(), bc.getTrangThai());
+                        }
+                    }
+                } else {
+                    log.debug("Chi tiết ID: {} không có đủ thông tin ma_loai_cont hoặc ma_tc_cont để tính phí", 
+                             chiTiet.getId());
+                }
+            }
+            
+            // Tính tổng tiền phí từ tất cả chi tiết
+            java.math.BigDecimal tongTienPhi = chiTietList.stream()
+                .filter(chiTiet -> chiTiet.getSoTien() != null)
+                .map(StoKhaiCt::getSoTien)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+            
+            // Cập nhật TONG_TIEN_PHI vào tờ khai chính
+            StoKhai toKhai = toKhaiThongTinRepository.findById(toKhaiId).orElse(null);
+            if (toKhai != null) {
+                toKhai.setTongTienPhi(tongTienPhi);
+                toKhaiThongTinRepository.save(toKhai);
+                
+                log.info("Cập nhật TONG_TIEN_PHI cho tờ khai ID: {}, tổng tiền: {}", toKhaiId, tongTienPhi);
+            }
+            
+            log.info("Hoàn thành xử lý tính phí cho tờ khai ID: {}, đã cập nhật {} chi tiết, tổng tiền phí: {}", 
+                    toKhaiId, soLuongCapNhat, tongTienPhi);
+                    
+        } catch (Exception e) {
+            log.error("Lỗi khi xử lý tính phí cho tờ khai ID: {}", toKhaiId, e);
+            // Không throw exception để không ảnh hưởng đến việc tạo thông báo
+        }
+    }
+    
+    /**
+     * Tính tổng tiền phí từ các row hiện có (khi loai_HH != 'LBC001')
+     */
+    private void tinhTongTienPhi(Long toKhaiId) {
+        try {
+            log.info("Bắt đầu tính tổng tiền phí cho tờ khai ID: {}", toKhaiId);
+            
+            // Lấy danh sách chi tiết tờ khai
+            List<StoKhaiCt> chiTietList = toKhaiThongTinChiTietRepository.findByToKhaiThongTinID(toKhaiId);
+            
+            if (chiTietList == null || chiTietList.isEmpty()) {
+                log.warn("Không tìm thấy chi tiết tờ khai cho ID: {}", toKhaiId);
+                return;
+            }
+            
+            // Tính tổng tiền phí từ tất cả chi tiết
+            java.math.BigDecimal tongTienPhi = chiTietList.stream()
+                .filter(chiTiet -> chiTiet.getSoTien() != null)
+                .map(StoKhaiCt::getSoTien)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+            
+            // Cập nhật TONG_TIEN_PHI vào tờ khai chính
+            StoKhai toKhai = toKhaiThongTinRepository.findById(toKhaiId).orElse(null);
+            if (toKhai != null) {
+                toKhai.setTongTienPhi(tongTienPhi);
+                toKhaiThongTinRepository.save(toKhai);
+                
+                log.info("Cập nhật TONG_TIEN_PHI cho tờ khai ID: {}, tổng tiền: {}", toKhaiId, tongTienPhi);
+            }
+            
+            log.info("Hoàn thành tính tổng tiền phí cho tờ khai ID: {}, tổng tiền: {}", toKhaiId, tongTienPhi);
+                    
+        } catch (Exception e) {
+            log.error("Lỗi khi tính tổng tiền phí cho tờ khai ID: {}", toKhaiId, e);
+            // Không throw exception để không ảnh hưởng đến việc tạo thông báo
+        }
     }
 }
