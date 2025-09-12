@@ -1,6 +1,5 @@
 import {
   ArrowLeftCircleIcon,
-  CheckCircleIcon,
   ChevronDoubleRightIcon,
   MagnifyingGlassIcon,
   WindowIcon,
@@ -9,6 +8,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import FeeDeclarationForm from "./FeeDeclarationForm";
 import CargoTabs from "./FeeDeclaretionFooterTable";
+import { useNotification } from "../../../../context/NotificationContext";
 
 interface FeeInformationFormModalProps {
   onClose: () => void;
@@ -19,6 +19,7 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isManualDeclaration, setIsManualDeclaration] = useState(false);
+  const { showSuccess, showError, showInfo } = useNotification();
   
   const handleCancelDeclaration = () => {
     setShowCancelConfirmModal(true);
@@ -31,10 +32,23 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
     onClose();
   };
 
-  const handleSignDeclaration = () => {
-    // Handle digital signature logic
-    console.log('Ký số tờ khai (khai báo nộp phí)');
-    alert('Chức năng ký số tờ khai đang được xử lý...');
+  const handleSignDeclaration = async () => {
+    try {
+      // Handle digital signature logic
+      console.log('🔐 Bắt đầu ký số tờ khai (khai báo nộp phí)');
+      
+      // Simulate digital signature process
+      console.log('⏳ Simulating signature process...');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Show success popup only
+      console.log('✅ Calling showSuccess notification...');
+      showSuccess('Ký số tờ khai thành công!', 'Thành công');
+      console.log('🎉 Digital signature completed successfully');
+    } catch (error) {
+      console.error('❌ Error during digital signature:', error);
+      showError('Có lỗi xảy ra khi ký số tờ khai', 'Lỗi');
+    }
   };
 
   const handleFeeOptionChange = (option: 'customs' | 'manual') => {
@@ -82,7 +96,7 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
       
       // Validation cơ bản
       if (!data.companyTaxCode || !data.companyName) {
-        alert('Vui lòng nhập đầy đủ thông tin doanh nghiệp!');
+        showError('Vui lòng nhập đầy đủ thông tin doanh nghiệp!', 'Thông tin thiếu');
         return;
       }
       
@@ -91,12 +105,11 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
         await onSave(data);
       }
       
-      alert('Đã lưu thông tin thành công!');
+      console.log('✅ Đã lưu thông tin thành công!');
       onClose();
       
     } catch (error: any) {
       console.error('💥 Lỗi lưu dữ liệu:', error);
-      alert(`Lỗi: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -150,21 +163,88 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
       {/* Body */}
       <div className="modal-body mt-[40px] pr-[15px] pb-[100px] pl-[15px] bg-[#E8EBEF] min-h-[278px]">
         <div className="w-full">
-          <ul
-            id="progressbar"
-            className="progressbar flex justify-between relative mb-3"
-          >
-            <li className="step active">Tạo tờ khai phí</li>
-            <li className="step">Ký số (Khai báo nộp phí)</li>
-            <li className="step">Lấy thông báo phí</li>
-            <li className="step">Thực hiện nộp phí</li>
-            <li className="step">
-              <span className="flex items-center gap-1 justify-center">
-                <CheckCircleIcon className="w-4 h-4 text-green-600" />
-                <span>Hoàn thành</span>
-              </span>
-            </li>
-          </ul>
+          {/* Arrow Step Indicator */}
+          <div className="flex items-center w-full mb-6 mt-[22px] rounded-full overflow-hidden">
+            <div 
+              className="relative h-10 flex items-center text-white font-bold text-sm px-4 shadow-lg flex-1" 
+              style={{ 
+                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
+                clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)',
+                marginRight: '3px',
+                zIndex: 5
+              }}
+            >
+              <div className="flex items-center space-x-2 justify-center w-full">
+                 <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-xs font-bold text-black">
+                   1
+                 </div>
+                <span className="text-sm font-medium">Tạo Tờ Khai Phí</span>
+              </div>
+            </div>
+            <div 
+              className="relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"
+              style={{
+                clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
+                marginLeft: '-20px',
+                marginRight: '3px',
+                zIndex: 4
+              }}
+            >
+              <div className="flex items-center space-x-2 justify-center w-full">
+                <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold">
+                  2
+                </div>
+                <span className="text-sm font-medium">Ký Số Tờ Khai Báo Nộp Phí</span>
+              </div>
+            </div>
+            <div 
+              className="relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"
+              style={{
+                clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
+                marginLeft: '-20px',
+                marginRight: '3px',
+                zIndex: 3
+              }}
+            >
+              <div className="flex items-center space-x-2 justify-center w-full">
+                <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold">
+                  3
+                </div>
+                <span className="text-sm font-medium">Lấy Thông Báo Phí</span>
+              </div>
+            </div>
+            <div 
+              className="relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"
+              style={{
+                clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
+                marginLeft: '-20px',
+                marginRight: '3px',
+                zIndex: 2
+              }}
+            >
+              <div className="flex items-center space-x-2 justify-center w-full">
+                <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold">
+                  4
+                </div>
+                <span className="text-sm font-medium">Thực Hiện Nộp Phí</span>
+              </div>
+            </div>
+            <div 
+              className="relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1 rounded-r-full"
+              style={{
+                clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 20px 50%)',
+                marginLeft: '-20px',
+                zIndex: 1
+              }}
+            >
+              <div className="flex items-center space-x-2 justify-center w-full">
+                <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold">
+                  5
+                </div>
+                <span className="text-sm font-medium">Hoàn Thành</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="data-master">

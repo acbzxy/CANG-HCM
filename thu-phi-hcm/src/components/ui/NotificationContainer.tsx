@@ -10,7 +10,7 @@ const NotificationContainer: React.FC = () => {
   }
 
   return (
-    <div className="fixed top-4 right-4 z-50 space-y-3 max-w-sm">
+    <div className="fixed top-20 right-4 z-[1001] space-y-3 max-w-sm">
       {notifications.map((notification) => (
         <Toast
           key={notification.id}

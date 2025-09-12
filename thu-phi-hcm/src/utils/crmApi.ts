@@ -1,7 +1,7 @@
 import type { ApiResponse } from '../types'
 
-// CRM API Base URL - backend localhost
-const CRM_API_BASE_URL = 'http://localhost:8081/PHT_BE'
+// CRM API Base URL - backend server
+const CRM_API_BASE_URL = 'http://10.14.122.24:8081/PHT_BE'
 
 // CRM API endpoints - CẬP NHẬT từ PHT_BE backend
 const CRM_ENDPOINTS = {
@@ -273,7 +273,7 @@ export interface ToKhaiThongTinRequest {
   diaChiXNK: string
   soToKhai: string
   ngayToKhai: string // format: "2025-09-08"
-  maHaiQuan: string
+  maCrm: string
   maLoaiHinh: string
   maLuuKho: string
   nuocXuatKhau: string
@@ -319,19 +319,18 @@ export interface UpdateToKhaiStatusRequest {
 // Interface cho chữ ký số request
 export interface ChuKySoRequest {
   toKhaiId: number
-  chuKySoId: string
-  matKhau: string
+  lanKy: number
+  serialNumber: string
 }
 
-// Interface cho thông tin chứng chỉ số
+// Interface cho thông tin chứng chỉ số - Updated to match backend response
 export interface ChuKySoInfo {
-  id: string
-  name: string
+  serialNumber: string
   issuer: string
+  subject: string
+  cert: string
   validFrom: string
   validTo: string
-  serialNumber: string
-  selected: boolean
 }
 
 // Interface cho XML Generate request
@@ -1105,18 +1104,17 @@ export class CrmApiService {
   /**
    * Ký số tờ khai thông tin - PHT_BE API chính thức
    * POST /api/chu-ky-so/ky-so
-   * @param data ChuKySoRequest - toKhaiId, chuKySoId, matKhau
+   * @param data ChuKySoRequest - toKhaiId, lanKy, serialNumber
    * @returns ApiDataResponse<{}> | ApiErrorResponse
    */
   static async kyTenSoToKhai(
-    data: ChuKySoRequest,
-    lanKy: number = 1
+    data: ChuKySoRequest
   ): Promise<ApiDataResponse<any> | ApiErrorResponse> {
     try {
       console.log('🔐 Ký số tờ khai:', { 
         toKhaiId: data.toKhaiId, 
-        chuKySoId: data.chuKySoId,
-        lanKy: lanKy 
+        lanKy: data.lanKy,
+        serialNumber: data.serialNumber
       })
       
       // Validate request data
@@ -1139,7 +1137,7 @@ export class CrmApiService {
         return validationError
       }
 
-      if (!data.chuKySoId || data.chuKySoId.trim() === '') {
+      if (!data.serialNumber || data.serialNumber.trim() === '') {
         const validationError: ApiErrorResponse = {
           status: 400,
           requestId: `validation-${Date.now()}`,
@@ -1150,16 +1148,15 @@ export class CrmApiService {
           message: 'Invalid request data',
           path: '/api/chu-ky-so/ky-so',
           data: {},
-          error: 'chuKySoId is required',
-          errors: ['chuKySoId is required', 'chuKySoId cannot be empty']
+          error: 'serialNumber is required',
+          errors: ['serialNumber is required', 'serialNumber cannot be empty']
         }
         
-        console.error('❌ Invalid chuKySoId in request data:', data.chuKySoId)
+        console.error('❌ Invalid serialNumber in request data:', data.serialNumber)
         return validationError
       }
 
-      // Note: matKhau can be empty string for some certificates (like CKS001)
-      if (data.matKhau === undefined || data.matKhau === null) {
+      if (!data.lanKy || data.lanKy <= 0) {
         const validationError: ApiErrorResponse = {
           status: 400,
           requestId: `validation-${Date.now()}`,
@@ -1170,31 +1167,11 @@ export class CrmApiService {
           message: 'Invalid request data',
           path: '/api/chu-ky-so/ky-so',
           data: {},
-          error: 'matKhau is required',
-          errors: ['matKhau must be provided (can be empty string)']
+          error: 'lanKy is required',
+          errors: ['lanKy is required', 'lanKy must be greater than 0']
         }
         
-        console.error('❌ matKhau is undefined/null in request data')
-        return validationError
-      }
-      
-      // Validate lanKy parameter
-      if (lanKy !== 1 && lanKy !== 2) {
-        const validationError: ApiErrorResponse = {
-          status: 400,
-          requestId: `validation-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          startTime: Date.now(),
-          endTime: Date.now(),
-          executionTime: 0,
-          message: 'Invalid lanKy parameter',
-          path: '/api/chu-ky-so/ky-so',
-          data: {},
-          error: 'lanKy must be 1 or 2',
-          errors: ['lanKy must be 1 (first signature) or 2 (second signature)']
-        }
-        
-        console.error('❌ Invalid lanKy parameter:', lanKy)
+        console.error('❌ Invalid lanKy in request data:', data.lanKy)
         return validationError
       }
       
@@ -1227,7 +1204,7 @@ export class CrmApiService {
       console.log(`📊 Current declaration status: "${currentStatus}" (${statusDescription})`)
       
       // Check if declaration can be signed
-      if (!ToKhaiStatusHelper.canSign(currentStatus, lanKy)) {
+      if (!ToKhaiStatusHelper.canSign(currentStatus, data.lanKy)) {
         const businessLogicError: ApiErrorResponse = {
           status: 400,
           requestId: `business-logic-${Date.now()}`,
@@ -1235,13 +1212,13 @@ export class CrmApiService {
           startTime: Date.now(),
           endTime: Date.now(),
           executionTime: 0,
-          message: `Tờ khai không thể ký ${lanKy === 1 ? 'lần 1' : 'lần 2'} ở trạng thái hiện tại`,
+          message: `Tờ khai không thể ký ${data.lanKy === 1 ? 'lần 1' : 'lần 2'} ở trạng thái hiện tại`,
           path: '/api/chu-ky-so/ky-so',
           data: {},
           error: 'Invalid status for signing',
           errors: [
             `Current status: "${currentStatus}" (${statusDescription})`,
-            lanKy === 1 
+            data.lanKy === 1 
               ? `Để ký lần 1, tờ khai phải ở trạng thái "${TOKHAI_STATUS.MOI_TAO}" (Mới tạo)`
               : `Để ký lần 2, tờ khai phải ở trạng thái "${TOKHAI_STATUS.LAY_THONG_BAO}" (Đã lấy thông báo)`,
             `Available actions: ${ToKhaiStatusHelper.getAvailableActions(currentStatus).join(', ')}`
@@ -1251,13 +1228,13 @@ export class CrmApiService {
         console.error('❌ Business logic validation failed:', {
           currentStatus,
           statusDescription,
-          lanKy,
-          canSign: ToKhaiStatusHelper.canSign(currentStatus, lanKy)
+          lanKy: data.lanKy,
+          canSign: ToKhaiStatusHelper.canSign(currentStatus, data.lanKy)
         })
         return businessLogicError
       }
       
-      console.log(`✅ Status validation passed: Can sign declaration (lần ${lanKy})`)
+      console.log(`✅ Status validation passed: Can sign declaration (lần ${data.lanKy})`)
       
       const response = await makeApiRequest<ApiDataResponse<any>>(CRM_ENDPOINTS.CHU_KY_SO_KY_SO, {
         method: 'POST',

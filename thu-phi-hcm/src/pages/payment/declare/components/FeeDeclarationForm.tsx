@@ -251,42 +251,80 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                 </label>
                 <select className="w-full border px-2 py-1  h-[35px]">
                   <option>-- Chọn --</option>
+                  <option value="1">1 - Đường không</option>
+                  <option value="2">2 - Đường biển (Container)</option>
+                  <option value="3">3 - Đường biển (Hàng rời, lỏng)</option>
+                  <option value="4">4 - Đường bộ (Xe tải)</option>
+                  <option value="5">5 - Đường sắt</option>
+                  <option value="6">6 - Đường sông</option>
+                  <option value="7">7 - Khác</option>
                 </select>
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Phương tiện vận chuyển</label>
                 <select className="w-full border px-2 py-1  h-[35px]">
                   <option>-- Chọn --</option>
+                  <option value="AIRPLANE">Máy bay</option>
+                  <option value="SHIP">Tàu biển</option>
+                  <option value="CONTAINER_SHIP">Tàu container</option>
+                  <option value="BULK_CARRIER">Tàu chở hàng rời</option>
+                  <option value="TRUCK">Xe tải</option>
+                  <option value="TRAIN">Tàu hỏa</option>
+                  <option value="BARGE">Sà lan</option>
+                  <option value="FERRY">Phà</option>
+                  <option value="OTHER">Khác</option>
                 </select>
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Mã địa điểm xếp hàng</label>
                 <select className="w-full border px-2 py-1  h-[35px]">
                   <option>-- Chọn --</option>
+                  <option value="VNADTT">VNADTT - CỬA KHẨU A DOT (THUA THIEN-HUE)</option>
+                  <option value="VNAPIT">VNAPIT - LỚI MỎ A PA CHAI</option>
+                  <option value="VNATH">VNATH - CẢNG AN THỚI</option>
+                  <option value="VNBAAT">VNBAAT - CỬA KHẨU BÁC HÀ (LAO CAI)</option>
                 </select>
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Mã địa điểm dỡ hàng</label>
                 <select className="w-full border px-2 py-1  h-[35px]">
                   <option>-- Chọn --</option>
+                  <option value="VNHCM">VNHCM - Cảng Sài Gòn (TP.HCM)</option>
+                  <option value="VNHAN">VNHAN - Cảng Hải Phòng</option>
+                  <option value="VNDAD">VNDAD - Cảng Đà Nẵng</option>
+                  <option value="VNQNH">VNQNH - Cảng Quy Nhơn</option>
+                  <option value="VNVUT">VNVUT - Cảng Vũng Tàu</option>
+                  <option value="VNCAN">VNCAN - Cảng Cần Thơ</option>
+                  <option value="VNPHU">VNPHU - Cảng Phú Mỹ</option>
+                  <option value="VNCAT">VNCAT - Cảng Cát Lái</option>
+                  <option value="VNTSN">VNTSN - Sân bay Tân Sơn Nhất</option>
+                  <option value="VNNOI">VNNOI - Sân bay Nội Bài</option>
+                  <option value="VNDAD_AIR">VNDAD_AIR - Sân bay Đà Nẵng</option>
+                  <option value="VNCXR">VNCXR - Cửa khẩu Cầu Treo</option>
+                  <option value="VNLAO">VNLAO - Cửa khẩu Lao Bảo</option>
+                  <option value="VNMOC">VNMOC - Cửa khẩu Móng Cái</option>
                 </select>
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Mã phân loại hàng hóa</label>
-                <select
-                  className="w-full border px-2 py-1 bg-[#eee] h-[35px]"
-                  disabled
-                >
+                <select className="w-full border px-2 py-1 h-[35px]">
                   <option>-- Chọn --</option>
+                  <option value="A">A - Hàng quá biều, quá tặng</option>
+                  <option value="B">B - Hàng an ninh, quốc phòng</option>
+                  <option value="C">C - Hàng cứu trợ khẩn cấp</option>
+                  <option value="D">D - Hàng phòng chống thiên tai, dịch bệnh</option>
                 </select>
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Mục đích vận chuyển</label>
                 <select
-                  className="w-full border px-2 py-1 bg-[#eee] h-[35px]"
-                  disabled
+                  className="w-full border px-2 py-1 h-[35px]"
                 >
                   <option>-- Chọn --</option>
+                  <option value="BAG">BAG - Vận chuyển hàng hóa là hành lý cá nhân</option>
+                  <option value="BTB">BTB - Vận chuyển hàng hóa giữa 2 khu vực lưu giữ hàng hóa chịu sự giám sát hải quan</option>
+                  <option value="BTG">BTG - Vận chuyển hàng hóa XK từ kho ngoại quan, CFS, CY đến cửa khẩu xuất</option>
+                  <option value="CIS">CIS - Vận chuyển hàng hóa NK về địa điểm: KT tập trung/p biến giới/hàng CPN, chân cổng tĩnh, CSF</option>
                 </select>
               </div>
             </div>

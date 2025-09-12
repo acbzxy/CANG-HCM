@@ -3,7 +3,7 @@
  * Run with: node test-crm-api.js
  */
 
-const CRM_API_BASE_URL = 'http://10.14.122.24:8081/CRM_BE';
+const CRM_API_BASE_URL = 'http://10.14.122.24:8081/PHT_BE';
 
 // Test endpoints
 const testEndpoints = [

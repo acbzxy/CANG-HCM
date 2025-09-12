@@ -37,12 +37,12 @@ const testEndpoints = [
   },
   {
     url: `${API_BASE}/api/chu-ky-so/ky-so`,
-    name: 'POST Chữ ký số - PHT_BE API (Valid)',
+    name: 'POST Chữ ký số - PHT_BE API (Valid - ID=2)',
     method: 'POST',
     data: {
-      "toKhaiId": 1,
-      "chuKySoId": "DIGITAL_CERT_001",
-      "matKhau": "test123456"
+      "toKhaiId": 2,
+      "lanKy": 1,
+      "serialNumber": "97CC8605BB55E734"
     }
   },
   {

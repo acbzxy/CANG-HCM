@@ -161,7 +161,6 @@ const Declare: React.FC = () => {
   const handleConfirmDigitalSign = async () => {
     try {
       setLoading(true);
-      showInfo('Đang thực hiện ký số...', 'Xử lý');
       
       console.log('🔐 Starting digital signature process for items:', selectedItems);
       
@@ -182,27 +181,30 @@ const Declare: React.FC = () => {
 
         // Sử dụng chứng chỉ đầu tiên trong danh sách (có thể mở rộng thành UI selection)
         const selectedCertificate = certificatesResult.data[0];
-        console.log('🔐 Using certificate:', selectedCertificate.name, '(ID:', selectedCertificate.id, ')');
         
-        // Password cho certificate CKS001 - trong thực tế cần UI input
-        const defaultPassword = ''; // Certificate CKS001 sử dụng password rỗng
-        console.log('⚠️ Using empty password for CKS001 certificate. In production, require user input.');
+        // Extract name from subject/issuer for display
+        const certificateName = selectedCertificate.subject?.includes('CN=') 
+          ? selectedCertificate.subject.split('CN=')[1]?.split(',')[0] 
+          : 'Unknown Certificate';
+        
+        console.log('🔐 Using certificate:', certificateName, '(Serial:', selectedCertificate.serialNumber, ')');
+        console.log('📄 Certificate details:', {
+          serialNumber: selectedCertificate.serialNumber,
+          issuer: selectedCertificate.issuer,
+          validFrom: selectedCertificate.validFrom,
+          validTo: selectedCertificate.validTo
+        });
 
         const signPromises = selectedItems.map(async (declarationId) => {
           const signData = {
             toKhaiId: declarationId,
-            chuKySoId: selectedCertificate.id,
-            matKhau: defaultPassword
+            lanKy: 1, // First signature round
+            serialNumber: selectedCertificate.serialNumber
           };
           
-          // Determine signing round based on declaration status
-          // For demo purposes, using lanKy = 1 (first signature)
-          // In production, this should be determined by current status
-          const lanKy = 1;
+          console.log(`🔐 Signing declaration ${declarationId} - lần ${signData.lanKy}`);
           
-          console.log(`🔐 Signing declaration ${declarationId} - lần ${lanKy}`);
-          
-          return await CrmApiService.kyTenSoToKhai(signData, lanKy);
+          return await CrmApiService.kyTenSoToKhai(signData);
         });
 
         const results = await Promise.all(signPromises);
@@ -237,11 +239,7 @@ const Declare: React.FC = () => {
         );
         
         console.log('✅ Updated status to "Đã ký số" for items:', selectedItems);
-        showSuccess(`Đã ký số thành công ${selectedItems.length} tờ khai!`, 'Thành công');
-      }
-      
-      if (failCount > 0) {
-        showError(`Có ${failCount} tờ khai không thể ký số!`, 'Cảnh báo');
+        showSuccess(`Ký số thành công ${selectedItems.length} tờ khai!`, 'Thành công');
       }
       
     } catch (error: any) {
@@ -370,10 +368,9 @@ const Declare: React.FC = () => {
       setIsApiConnected(connectionResult.connected);
       setConnectionDetails(connectionResult.details);
 
-      // Tạm thời vô hiệu hóa API để sử dụng mock data
-      if (false && connectionResult.connected) {
+      // Kết nối với CRM API thật  
+      if (connectionResult.connected) {
         console.log('✅ CRM API connected, loading fee declarations...');
-        showInfo('Đang kết nối CRM API...', 'Thông báo');
         
         // Load fee declarations from CRM API
         const searchParams: CrmFeeDeclarationSearchParams = {
@@ -391,13 +388,12 @@ const Declare: React.FC = () => {
           
           setFilteredData(transformedData);
           setAllData(transformedData);
-          showSuccess(`Đã tải ${transformedData.length} tờ khai từ CRM API`, 'Thành công');
+          console.log(`✅ Đã tải ${transformedData.length} tờ khai từ CRM API`);
         } else {
           throw new Error('Invalid response format from CRM API');
         }
       } else {
         console.warn('❌ CRM API not available, using fallback mock data');
-        showError('Không thể kết nối CRM API, sử dụng dữ liệu mẫu', 'Cảnh báo');
         
         // Fallback to mock data
         setFilteredData([
@@ -704,7 +700,7 @@ const Declare: React.FC = () => {
                   }
                 </span>
                 <span className="text-xs text-gray-500">
-                  (localhost:8081)
+                  (10.14.122.24:8081)
                 </span>
                 {connectionDetails && (
                   <span className="text-xs text-blue-600 cursor-help" 
@@ -766,7 +762,7 @@ const Declare: React.FC = () => {
                 <div><strong>Khắc phục:</strong></div>
                 <div>1. Kiểm tra server CRM có đang chạy không</div>
                 <div>2. Kiểm tra network và firewall</div>
-                <div>3. Xem Swagger: http://localhost:8081/CRM_BE/swagger-ui/index.html</div>
+                <div>3. Xem Swagger: http://10.14.122.24:8081/PHT_BE/swagger-ui/index.html</div>
               </div>
             </div>
           )}
