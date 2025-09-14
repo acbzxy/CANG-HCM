@@ -37,21 +37,21 @@ public abstract class TreeData_ {
 	public static volatile MappedSuperclassType<TreeData> class_;
 	
 	/**
-	 * @see com.pht.common.model.TreeData#getNodeId
-	 **/
-	public static volatile SingularAttribute<TreeData, Object> nodeId;
-	
-	/**
 	 * @see com.pht.common.model.TreeData#getChilds
 	 **/
 	public static volatile SingularAttribute<TreeData, List<? extends TreeData<?>>> childs;
+	
+	/**
+	 * @see com.pht.common.model.TreeData#getNodeId
+	 **/
+	public static volatile SingularAttribute<TreeData, Object> nodeId;
 
 	public static final String LEVEL = "level";
 	public static final String HAS_CHILD = "hasChild";
 	public static final String ROOT = "root";
 	public static final String PARENT_NODE_ID = "parentNodeId";
-	public static final String NODE_ID = "nodeId";
 	public static final String CHILDS = "childs";
+	public static final String NODE_ID = "nodeId";
 
 }
 

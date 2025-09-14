@@ -37,3 +37,4 @@ public class ImportCertificateResponse {
     @Schema(description = "Thông báo kết quả", example = "Import chữ ký số thành công")
     private String message;
 }
+

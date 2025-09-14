@@ -52,6 +52,7 @@ export interface TokhaiThongtinResponse {
   trangThai: string
   trangThaiPhatHanh?: string // '00' = Mới, '01' = Bản nháp, '02' = Phát hành, '03' = Đã hủy
   idPhatHanh?: string // ID phát hành từ FPT E-Invoice
+  idBienLai?: number // ID biên lai từ hệ thống
   kylan1Xml: string | null
   kylan2Xml: string | null
   chiTietList: any[]
@@ -121,6 +122,7 @@ export const mapTokhaiToFeeDeclaration = (tokhai: TokhaiThongtinResponse): FeeDe
     declarationStatus: mapTrangThaiToDeclarationStatus(tokhai.trangThai),
     trangThaiPhatHanh: tokhai.trangThaiPhatHanh || '00', // Default to '00' (Mới)
     idPhatHanh: tokhai.idPhatHanh, // ID phát hành từ FPT E-Invoice
+    idBienLai: tokhai.idBienLai, // ID biên lai từ hệ thống
     dueDate: undefined,
     paymentDate: tokhai.trangThaiNganHang === 'Đã thanh toán' ? tokhai.ngayBienLai : undefined,
     notes: tokhai.ghiChuKhaiPhi || '',

@@ -60,7 +60,7 @@ const NetworkDiagnosticPanel: React.FC<NetworkDiagnosticPanelProps> = ({ onClose
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded">
             <p className="text-blue-800 text-sm">
               Công cụ này sẽ kiểm tra kết nối tới server CRM tại{' '}
-              <code className="bg-blue-100 px-2 py-1 rounded">10.14.122.24:8081</code>{' '}
+              <code className="bg-blue-100 px-2 py-1 rounded">localhost:8081</code>{' '}
               và chỉ ra các vấn đề có thể gặp phải.
             </p>
           </div>
@@ -177,7 +177,7 @@ const NetworkDiagnosticPanel: React.FC<NetworkDiagnosticPanelProps> = ({ onClose
                 <div className="bg-gray-100 p-3 rounded text-xs font-mono">
                   <div><strong>Thời gian:</strong> {new Date(results.timestamp).toLocaleString('vi-VN')}</div>
                   <div><strong>User Agent:</strong> {navigator.userAgent}</div>
-                  <div><strong>Target:</strong> http://10.14.122.24:8081/PHT_BE</div>
+                  <div><strong>Target:</strong> http://localhost:8081/PHT_BE</div>
                   <div><strong>Origin:</strong> {window.location.origin}</div>
                 </div>
               </div>

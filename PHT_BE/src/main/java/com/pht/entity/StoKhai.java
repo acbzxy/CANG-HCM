@@ -145,6 +145,10 @@ public class StoKhai {
     @Column(name = "XEM_BL", length = 200)
     private String xemBienLai;
 
+    // ID biên lai liên kết
+    @Column(name = "ID_BIEN_LAI")
+    private Long idBienLai;
+
     // DANH MỤC LOẠI HÀNG MIỄN PHÍ
     @Column(name = "LOAI_HH_MP", length = 500)
     private String loaiHangMienPhi;

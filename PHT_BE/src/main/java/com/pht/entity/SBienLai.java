@@ -91,6 +91,12 @@ public class SBienLai {
     @Column(name = "NGUOI_SUA", length = 100)
     private String nguoiSua;
 
+    @Column(name = "ID_PH", length = 100)
+    private String idPhatHanh;
+
+    @Column(name = "IMG_BL", columnDefinition = "TEXT")
+    private String imageBl;
+
     // Relationship
     @OneToMany(mappedBy = "bienLai", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
