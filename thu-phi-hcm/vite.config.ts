@@ -14,7 +14,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:8081',
+        target: 'http://10.14.122.24:8081',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/PHT_BE/api')
       }
