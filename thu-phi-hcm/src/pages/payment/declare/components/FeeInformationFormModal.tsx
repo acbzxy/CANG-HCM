@@ -989,7 +989,7 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
         tongTienPhi: 0, // Default value
         
         // DANH MỤC LOẠI HÀNG MIỄN PHÍ
-        loaiHang: (formElement.querySelector('select[name="maLoaiHinh"]') as HTMLSelectElement)?.value || '',
+        loaiHang: '', // Sẽ được gán từ radio button sau
         trangThai: '00', // Default value
         trangThaiPhatHanh: '00' // Default value
       };
@@ -1031,7 +1031,7 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
           loai_hh = 'LBC001';
       }
       
-      console.log('📦 Selected cargo type:', {
+      console.log('📦 Thẻ loại hàng được chọn:', {
         radioValue: selectedCargoTypeValue,
         mappedLoaiHh: loai_hh,
         radioElement: selectedCargoTypeRadio
@@ -1154,11 +1154,11 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
       console.log('📦 Chi tiết container JSON:', JSON.stringify(chiTietList, null, 2));
       
       // Tạo request object
-      const createRequest: TokhaiThongtinCreateRequest = {
-        ...formData,
-        loai_hh: loai_hh, // Thêm field loai_hh từ radio button
-        chiTietList: chiTietList.length > 0 ? chiTietList : []
-      };
+        const createRequest: TokhaiThongtinCreateRequest = {
+          ...formData,
+          loaiHang: loai_hh, // Thẻ loại hàng từ radio button (LBC001, LBC002, LBC003)
+          chiTietList: chiTietList.length > 0 ? chiTietList : []
+        };
       
       console.log('📦 Final chiTietList in request:', createRequest.chiTietList);
       console.log('📦 Final chiTietList length:', createRequest.chiTietList?.length || 0);
@@ -1172,7 +1172,7 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
       console.log('  - maDoanhNghiepKhaiPhi:', createRequest.maDoanhNghiepKhaiPhi);
       console.log('  - tenDoanhNghiepKhaiPhi:', createRequest.tenDoanhNghiepKhaiPhi);
       console.log('  - soToKhai:', createRequest.soToKhai);
-      console.log('  - loai_hh:', createRequest.loai_hh, '(mapped from radio button value:', selectedCargoTypeValue, ')');
+      console.log('  - loaiHang (Thẻ loại hàng):', createRequest.loaiHang, '(mapped from radio button value:', selectedCargoTypeValue, ')');
       console.log('  - chiTietList length:', createRequest.chiTietList?.length || 0);
       if (createRequest.chiTietList && createRequest.chiTietList.length > 0) {
         createRequest.chiTietList.forEach((item, index) => {

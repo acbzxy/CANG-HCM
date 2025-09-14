@@ -111,8 +111,7 @@ export interface TokhaiThongtinCreateRequest {
 
   // DANH MỤC LOẠI HÀNG MIỄN PHÍ
   loaiHangMienPhi?: string
-  loaiHang?: string
-  loai_hh?: string // Field cho radio button LOAI_TK_NP (LBC001, LBC002, LBC003)
+  loaiHang?: string // Thẻ loại hàng - radio button LOAI_TK_NP (LBC001, LBC002, LBC003)
   trangThai?: string
   trangThaiPhatHanh?: string
 
