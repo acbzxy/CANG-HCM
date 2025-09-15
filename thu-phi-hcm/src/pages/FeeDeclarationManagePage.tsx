@@ -924,51 +924,9 @@ const FeeDeclarationManagePage: React.FC = () => {
 
   return (
     <div style={{ padding: '20px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-      {/* Debug Info */}
-      {isDebugMode() && (
-        <div style={{
-          backgroundColor: '#fff3cd',
-          border: '1px solid #ffeaa7',
-          borderRadius: '4px',
-          padding: '10px',
-          marginBottom: '20px',
-          fontSize: '12px',
-          color: '#856404'
-        }}>
-          <strong>DEBUG MODE:</strong> 
-          <span style={{ marginLeft: '10px' }}>
-            Loading: {loading ? 'Yes' : 'No'} | 
-            Data count: {feeDeclarations.length} | 
-            Total: {totalElements} |
-            Backend URL: {window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'Production'}
-          </span>
-          <button 
-            onClick={() => (window as any).debug.disableDebug()}
-            style={{ 
-              marginLeft: '10px', 
-              fontSize: '10px', 
-              padding: '2px 6px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '2px',
-              cursor: 'pointer'
-            }}
-          >
-            Tắt Debug
-          </button>
-        </div>
-      )}
+      {/* Debug Info removed as per user request */}
       
-      {/* Page Title */}
-      <div style={{ 
-        marginBottom: '20px',
-        fontSize: '14px',
-        fontWeight: 'bold'
-      }}>
-        [ {totalElements} tờ khai phí ] - Trang: {currentPage + 1}/{totalPages || 1}
-        {loading && <span style={{ marginLeft: '10px', color: '#007bff' }}>Đang tải...</span>}
-      </div>
+      {/* Title removed: hide total declarations line */}
 
       {/* Filter Section */}
       <div style={{
@@ -1263,7 +1221,7 @@ const FeeDeclarationManagePage: React.FC = () => {
                     </span>
                   )}
                 </td>
-                <td style={{ padding: '8px', textAlign: 'center', fontSize: '12px' }}>
+                <td style={{ padding: '8px', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>
                   <button
                     style={{
                       backgroundColor: '#007bff',

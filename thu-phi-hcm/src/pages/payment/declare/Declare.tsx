@@ -768,13 +768,7 @@ const Declare: React.FC = () => {
                 <PlusCircleIcon className="w-4 h-4 " />
                 &nbsp;Thêm mới
               </button>
-              <button
-                className="btn btn-warning btn-padding rounded flex items-center"
-                type="button"
-                onClick={() => setShowCompanyModal(true)}
-              >
-                🏢&nbsp;Quản lý công ty
-              </button>
+              
               <button
                 className="btn btn-primary btn-padding rounded flex items-center"
                 type="button"

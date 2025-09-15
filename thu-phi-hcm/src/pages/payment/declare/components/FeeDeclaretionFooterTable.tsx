@@ -428,13 +428,13 @@ export default function CargoTabs() {
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="w-12 text-center border p-2">STT</th>
-                    <th className="text-center border p-2">Số vận đơn</th>
+                    <th className="text-center border p-2">Số vận đơn <span className="text-red-500">*</span></th>
                     <th className="text-center border p-2">
-                      Số hiệu Container
+                      Số hiệu Container <span className="text-red-500">*</span>
                     </th>
                     <th className="text-center border p-2">Số Seal</th>
-                    <th className="text-center border p-2">Loại Cont</th>
-                    <th className="text-center border p-2">Tính chất Cont</th>
+                    <th className="text-center border p-2">Loại Cont <span className="text-red-500">*</span></th>
+                    <th className="text-center border p-2">Tính chất Cont <span className="text-red-500">*</span></th>
                     <th className="text-center border p-2">Ghi chú</th>
                     <th className="w-10 border p-2">#</th>
                   </tr>
