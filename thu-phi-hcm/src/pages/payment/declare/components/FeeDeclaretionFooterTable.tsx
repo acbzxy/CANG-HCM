@@ -1,31 +1,208 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 interface ContainerData {
   id: number;
   stt: number;
   soVanDon: string;
-  soHieuContainer: string;
+  soHieu: string; // Updated to match API
   soSeal: string;
   loaiCont: string;
   tinhChatCont: string;
+  tongTrongLuong?: number;
+  donViTinh?: string;
   ghiChu: string;
+  maLoaiCont?: string;
+  maTcCont?: string;
+  donGia?: number;
+  soTien?: number;
+  isEditing: boolean;
+}
+
+interface RoiLongKienData {
+  id: number;
+  stt: number;
+  soVanDon: string;
+  tongTrongLuong?: number;
+  donViTinh?: string;
+  ghiChu: string;
+  isEditing: boolean;
+}
+
+interface ContainerCFSData {
+  id: number;
+  stt: number;
+  soHieu: string;
+  tongTrongLuong?: number;
+  donViTinh?: string;
+  ghiChu: string;
+  isEditing: boolean;
+}
+
+interface TokhaiLienQuanData {
+  id: number;
+  stt: number;
+  soToKhai: string;
+  ngayToKhai: string;
+  maLoaiHinh: string;
+  maHaiQuan: string;
   isEditing: boolean;
 }
 
 export default function CargoTabs() {
   const [selectedTab, setSelectedTab] = useState("HANG_CONTAINER");
+  const [selectedCargoType, setSelectedCargoType] = useState("100"); // Default to "HÀNG CONTAINER"
   const [containers, setContainers] = useState<ContainerData[]>([]);
   const [editingContainer, setEditingContainer] = useState<Partial<ContainerData>>({});
+  
+  // State for other tabs
+  const [roiLongKien, setRoiLongKien] = useState<RoiLongKienData[]>([]);
+  const [editingRoiLongKien, setEditingRoiLongKien] = useState<Partial<RoiLongKienData>>({});
+  
+  const [containerCFS, setContainerCFS] = useState<ContainerCFSData[]>([]);
+  const [editingContainerCFS, setEditingContainerCFS] = useState<Partial<ContainerCFSData>>({});
+  
+  const [tokhaiLienQuan, setTokhaiLienQuan] = useState<TokhaiLienQuanData[]>([]);
+  const [editingTokhaiLienQuan, setEditingTokhaiLienQuan] = useState<Partial<TokhaiLienQuanData>>({});
+
+  // Create stable callback for getting container data
+  const handleGetContainerData = useCallback(() => {
+    console.log('📦 CargoTabs received request for container data');
+    console.log('📦 Current containers state:', containers);
+    console.log('📦 Current containers length:', containers.length);
+    
+    // Dispatch current container data back
+    const responseEvent = new CustomEvent('containerDataResponse', {
+      detail: {
+        containers: containers,
+        roiLongKien: roiLongKien,
+        containerCFS: containerCFS,
+        tokhaiLienQuan: tokhaiLienQuan
+      }
+    });
+    window.dispatchEvent(responseEvent);
+    console.log('📦 Dispatched container data response:', {
+      containers: containers.length,
+      roiLongKien: roiLongKien.length,
+      containerCFS: containerCFS.length,
+      tokhaiLienQuan: tokhaiLienQuan.length
+    });
+  }, [containers, roiLongKien, containerCFS, tokhaiLienQuan]);
+
+  // Listen for data population events from form modal
+  useEffect(() => {
+    const handlePopulateContainers = (event: CustomEvent) => {
+      console.log('📦 CargoTabs received container data:', event.detail);
+      if (event.detail && event.detail.containers) {
+        setContainers(event.detail.containers);
+        console.log('📦 Updated containers state with', event.detail.containers.length, 'items');
+        
+        // Debug: Log combo box values
+        event.detail.containers.forEach((container: any, index: number) => {
+          console.log(`📦 Container ${index + 1} combo box values:`, {
+            id: container.id,
+            stt: container.stt,
+            soVanDon: container.soVanDon,
+            soHieu: container.soHieu,
+            loaiCont: container.loaiCont,
+            tinhChatCont: container.tinhChatCont,
+            maLoaiCont: container.maLoaiCont,
+            maTcCont: container.maTcCont,
+            isEditing: container.isEditing
+          });
+        });
+        
+        // Set editing state for containers from API response
+        if (event.detail.containers.length > 0) {
+          // Set all containers to editing mode to show combo boxes
+          const containersWithEditing = event.detail.containers.map((container: any) => ({
+            ...container,
+            isEditing: true
+          }));
+          setContainers(containersWithEditing);
+          
+          // Set first container as active editing
+          const firstContainer = containersWithEditing[0];
+          setEditingContainer(firstContainer);
+          console.log('📦 Set all containers to editing mode to show combo boxes:', containersWithEditing);
+        }
+        
+        // Switch to container tab and select "HÀNG CONTAINER" if data is populated
+        if (event.detail.containers.length > 0) {
+          setSelectedTab("HANG_CONTAINER");
+          setSelectedCargoType("100"); // Auto-select "HÀNG CONTAINER"
+          console.log('📦 Switched to container tab and auto-selected "HÀNG CONTAINER" to show populated data');
+        }
+      }
+    };
+
+    const handlePopulateRoiLongKien = (event: CustomEvent) => {
+      console.log('📦 CargoTabs received roi long kien data:', event.detail);
+      if (event.detail && event.detail.roiLongKien) {
+        setRoiLongKien(event.detail.roiLongKien);
+        console.log('📦 Updated roi long kien state with', event.detail.roiLongKien.length, 'items');
+        
+        if (event.detail.roiLongKien.length > 0) {
+          setSelectedTab("HANG_ROILONGKIEN");
+          console.log('📦 Switched to roi long kien tab to show populated data');
+        }
+      }
+    };
+
+    const handlePopulateContainerCFS = (event: CustomEvent) => {
+      console.log('📦 CargoTabs received container CFS data:', event.detail);
+      if (event.detail && event.detail.containerCFS) {
+        setContainerCFS(event.detail.containerCFS);
+        console.log('📦 Updated container CFS state with', event.detail.containerCFS.length, 'items');
+        
+        if (event.detail.containerCFS.length > 0) {
+          setSelectedTab("HANG_CONTAINER_CFS");
+          console.log('📦 Switched to container CFS tab to show populated data');
+        }
+      }
+    };
+
+    const handlePopulateTokhaiLienQuan = (event: CustomEvent) => {
+      console.log('📦 CargoTabs received tokhai lien quan data:', event.detail);
+      if (event.detail && event.detail.tokhaiLienQuan) {
+        setTokhaiLienQuan(event.detail.tokhaiLienQuan);
+        console.log('📦 Updated tokhai lien quan state with', event.detail.tokhaiLienQuan.length, 'items');
+        
+        if (event.detail.tokhaiLienQuan.length > 0) {
+          setSelectedTab("TOKHAI_CHUNG_CONT");
+          console.log('📦 Switched to tokhai lien quan tab to show populated data');
+        }
+      }
+    };
+
+
+    window.addEventListener('populateContainers', handlePopulateContainers as EventListener);
+    window.addEventListener('populateRoiLongKien', handlePopulateRoiLongKien as EventListener);
+    window.addEventListener('populateContainerCFS', handlePopulateContainerCFS as EventListener);
+    window.addEventListener('populateTokhaiLienQuan', handlePopulateTokhaiLienQuan as EventListener);
+    window.addEventListener('getContainerData', handleGetContainerData as EventListener);
+    
+    return () => {
+      window.removeEventListener('populateContainers', handlePopulateContainers as EventListener);
+      window.removeEventListener('populateRoiLongKien', handlePopulateRoiLongKien as EventListener);
+      window.removeEventListener('populateContainerCFS', handlePopulateContainerCFS as EventListener);
+      window.removeEventListener('populateTokhaiLienQuan', handlePopulateTokhaiLienQuan as EventListener);
+      window.removeEventListener('getContainerData', handleGetContainerData as EventListener);
+    };
+  }, [handleGetContainerData]);
 
   // Dropdown options
   const loaiContOptions = [
     { value: '', label: '-- Chọn --' },
-    { value: '20 feet', label: '20 feet' },
-    { value: '40 feet', label: '40 feet' },
+    { value: '20', label: '20 feet' },
+    { value: '40', label: '40 feet' },
+    { value: '40HC', label: '40HC' },
+    { value: '45', label: '45 feet' },
   ];
 
   const tinhChatContOptions = [
     { value: '', label: '-- Chọn --' },
+    { value: 'KHO', label: 'Hàng khô' },
+    { value: 'LANH', label: 'Hàng lạnh' },
     { value: 'FCL', label: 'FCL' },
     { value: 'LCL', label: 'LCL' },
     { value: 'Empty', label: 'Empty' },
@@ -37,7 +214,7 @@ export default function CargoTabs() {
       id: Date.now(),
       stt: containers.length + 1,
       soVanDon: '',
-      soHieuContainer: '',
+      soHieu: '', // Fixed: was soHieuContainer
       soSeal: '',
       loaiCont: '',
       tinhChatCont: '',
@@ -46,12 +223,23 @@ export default function CargoTabs() {
     };
     setContainers(prev => [...prev, newContainer]);
     setEditingContainer(newContainer);
+    console.log('➕ Added new container with editing mode:', newContainer);
   };
 
   // Save container
   const handleSave = (containerId: number) => {
-    if (!editingContainer.soVanDon || !editingContainer.soHieuContainer) {
+    if (!editingContainer.soVanDon || !editingContainer.soHieu) {
       alert('Vui lòng nhập đầy đủ Số vận đơn và Số hiệu Container!');
+      return;
+    }
+
+    if (!editingContainer.loaiCont) {
+      alert('Vui lòng chọn Loại Container!');
+      return;
+    }
+
+    if (!editingContainer.tinhChatCont) {
+      alert('Vui lòng chọn Tính chất Container!');
       return;
     }
 
@@ -88,7 +276,7 @@ export default function CargoTabs() {
 
   // Cancel editing
   const handleCancel = (containerId: number) => {
-    const isNewContainer = containers.find(c => c.id === containerId && !c.soVanDon && !c.soHieuContainer);
+    const isNewContainer = containers.find(c => c.id === containerId && !c.soVanDon && !c.soHieu);
     
     if (isNewContainer) {
       setContainers(prev => prev.filter(c => c.id !== containerId));
@@ -102,10 +290,20 @@ export default function CargoTabs() {
 
   // Handle input change
   const handleInputChange = (field: keyof ContainerData, value: string) => {
+    console.log('🔄 handleInputChange called:', { field, value });
     setEditingContainer(prev => ({
       ...prev,
       [field]: value
     }));
+    
+    // Also update the container in the containers array
+    setContainers(prev => 
+      prev.map(container => 
+        container.id === editingContainer.id
+          ? { ...container, [field]: value }
+          : container
+      )
+    );
   };
 
   const tabs = [
@@ -125,7 +323,8 @@ export default function CargoTabs() {
             type="radio"
             name="LOAI_TK_NP"
             value="100"
-            defaultChecked
+            checked={selectedCargoType === "100"}
+            onChange={(e) => setSelectedCargoType(e.target.value)}
             className="appearance-none w-4 h-4 border border-gray-400 rounded-none
                  checked:after:content-['✓'] checked:after:text-green-600 
                  checked:after:flex checked:after:items-center checked:after:justify-center 
@@ -138,6 +337,8 @@ export default function CargoTabs() {
             type="radio"
             name="LOAI_TK_NP"
             value="101"
+            checked={selectedCargoType === "101"}
+            onChange={(e) => setSelectedCargoType(e.target.value)}
             className="appearance-none w-4 h-4 border border-gray-400 rounded-none
                  checked:after:content-['✓'] checked:after:text-green-600 
                  checked:after:flex checked:after:items-center checked:after:justify-center 
@@ -150,6 +351,8 @@ export default function CargoTabs() {
             type="radio"
             name="LOAI_TK_NP"
             value="102"
+            checked={selectedCargoType === "102"}
+            onChange={(e) => setSelectedCargoType(e.target.value)}
             className="appearance-none w-4 h-4 border border-gray-400 rounded-none
                  checked:after:content-['✓'] checked:after:text-green-600 
                  checked:after:flex checked:after:items-center checked:after:justify-center 
@@ -187,6 +390,27 @@ export default function CargoTabs() {
                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-full flex items-center gap-1 transition-colors"
               >
                 <i className="fa fa-plus-circle"></i> Thêm mới
+              </button>
+              <button 
+                onClick={() => {
+                  console.log('🧪 Testing combo box display...');
+                  const testContainer: ContainerData = {
+                    id: Date.now(),
+                    stt: containers.length + 1,
+                    soVanDon: 'TEST123',
+                    soHieu: 'CONT001',
+                    soSeal: 'SEAL001',
+                    loaiCont: '40HC',
+                    tinhChatCont: 'KHO',
+                    ghiChu: 'Test container',
+                    isEditing: false
+                  };
+                  setContainers(prev => [...prev, testContainer]);
+                  console.log('📦 Added test container with combo box values:', testContainer);
+                }}
+                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-1 rounded-full flex items-center gap-1 transition-colors"
+              >
+                <i className="fa fa-flask"></i> Test Combo
               </button>
               <button className="bg-green-500 text-white px-4 py-1 rounded-full flex items-center gap-1">
                 <i className="fa fa-file-excel-o"></i> Import Excel
@@ -247,13 +471,13 @@ export default function CargoTabs() {
                           {container.isEditing ? (
                             <input
                               type="text"
-                              value={editingContainer.soHieuContainer || container.soHieuContainer}
-                              onChange={(e) => handleInputChange('soHieuContainer', e.target.value)}
+                              value={editingContainer.soHieu || container.soHieu}
+                              onChange={(e) => handleInputChange('soHieu', e.target.value)}
                               className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                               placeholder="Nhập số hiệu container"
                             />
                           ) : (
-                            <span>{container.soHieuContainer}</span>
+                            <span>{container.soHieu}</span>
                           )}
                         </td>
 
@@ -274,40 +498,46 @@ export default function CargoTabs() {
 
                         {/* Loại Cont */}
                         <td className="border p-2">
-                          {container.isEditing ? (
-                            <select
-                              value={editingContainer.loaiCont || container.loaiCont}
-                              onChange={(e) => handleInputChange('loaiCont', e.target.value)}
-                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                              {loaiContOptions.map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <span>{container.loaiCont || '-- Chọn --'}</span>
-                          )}
+                          <select
+                            value={container.loaiCont || ''}
+                            onChange={(e) => {
+                              console.log('🔄 Loại Cont changed:', e.target.value);
+                              console.log('🔄 Container ID:', container.id);
+                              console.log('🔄 Container data:', container);
+                              handleInputChange('loaiCont', e.target.value);
+                            }}
+                            className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                            required
+                            style={{ minHeight: '32px' }}
+                          >
+                            {loaiContOptions.map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
                         </td>
 
                         {/* Tính chất Cont */}
                         <td className="border p-2">
-                          {container.isEditing ? (
-                            <select
-                              value={editingContainer.tinhChatCont || container.tinhChatCont}
-                              onChange={(e) => handleInputChange('tinhChatCont', e.target.value)}
-                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                            >
-                              {tinhChatContOptions.map(option => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <span>{container.tinhChatCont || '-- Chọn --'}</span>
-                          )}
+                          <select
+                            value={container.tinhChatCont || ''}
+                            onChange={(e) => {
+                              console.log('🔄 Tính chất Cont changed:', e.target.value);
+                              console.log('🔄 Container ID:', container.id);
+                              console.log('🔄 Container data:', container);
+                              handleInputChange('tinhChatCont', e.target.value);
+                            }}
+                            className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                            required
+                            style={{ minHeight: '32px' }}
+                          >
+                            {tinhChatContOptions.map(option => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
                         </td>
 
                         {/* Ghi chú */}
@@ -374,13 +604,35 @@ export default function CargoTabs() {
 
         {selectedTab === "HANG_ROILONGKIEN" && (
           <div>
-            <a
-              href="/Files/FileTmp/DS_CHITIET_ROI.xlsx"
-              className="text-blue-600 italic flex items-center gap-1 mb-3"
-            >
-              <i className="fa fa-download"></i> Tải mẫu file import hàng
-              lỏng,rời
-            </a>
+            <div className="flex gap-2 mb-3">
+              <button 
+                onClick={() => {
+                  const newItem: RoiLongKienData = {
+                    id: Date.now(),
+                    stt: roiLongKien.length + 1,
+                    soVanDon: '',
+                    tongTrongLuong: 0,
+                    donViTinh: '',
+                    ghiChu: '',
+                    isEditing: true
+                  };
+                  setRoiLongKien(prev => [...prev, newItem]);
+                  setEditingRoiLongKien(newItem);
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-full flex items-center gap-1 transition-colors"
+              >
+                <i className="fa fa-plus-circle"></i> Thêm mới
+              </button>
+              <button className="bg-green-500 text-white px-4 py-1 rounded-full flex items-center gap-1">
+                <i className="fa fa-file-excel-o"></i> Import Excel
+              </button>
+              <a
+                href="/Files/FileTmp/DS_CHITIET_ROI.xlsx"
+                className="text-blue-600 italic flex items-center gap-1"
+              >
+                <i className="fa fa-download"></i> Tải mẫu file import hàng lỏng,rời
+              </a>
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full border border-gray-200">
                 <thead className="bg-gray-100">
@@ -394,11 +646,117 @@ export default function CargoTabs() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td colSpan={6} className="text-center p-4">
-                      Không có dữ liệu
-                    </td>
-                  </tr>
+                  {roiLongKien.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center p-4 text-gray-500">
+                        Không có dữ liệu
+                      </td>
+                    </tr>
+                  ) : (
+                    roiLongKien.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="border p-2 text-center">{item.stt}</td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="text"
+                              value={editingRoiLongKien.soVanDon || item.soVanDon}
+                              onChange={(e) => setEditingRoiLongKien(prev => ({...prev, soVanDon: e.target.value}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Nhập số vận đơn"
+                            />
+                          ) : (
+                            <span>{item.soVanDon}</span>
+                          )}
+                        </td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="number"
+                              value={editingRoiLongKien.tongTrongLuong || item.tongTrongLuong || ''}
+                              onChange={(e) => setEditingRoiLongKien(prev => ({...prev, tongTrongLuong: parseFloat(e.target.value) || 0}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Nhập trọng lượng"
+                            />
+                          ) : (
+                            <span>{item.tongTrongLuong?.toLocaleString() || ''}</span>
+                          )}
+                        </td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="text"
+                              value={editingRoiLongKien.donViTinh || item.donViTinh || ''}
+                              onChange={(e) => setEditingRoiLongKien(prev => ({...prev, donViTinh: e.target.value}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="VD: KG, TON"
+                            />
+                          ) : (
+                            <span>{item.donViTinh || ''}</span>
+                          )}
+                        </td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="text"
+                              value={editingRoiLongKien.ghiChu || item.ghiChu}
+                              onChange={(e) => setEditingRoiLongKien(prev => ({...prev, ghiChu: e.target.value}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Nhập ghi chú"
+                            />
+                          ) : (
+                            <span>{item.ghiChu}</span>
+                          )}
+                        </td>
+                        <td className="border p-2 text-center">
+                          {item.isEditing ? (
+                            <div className="flex gap-1 justify-center">
+                              <button
+                                onClick={() => {
+                                  setRoiLongKien(prev => prev.map(c => c.id === item.id ? {...c, ...editingRoiLongKien, isEditing: false} : c));
+                                  setEditingRoiLongKien({});
+                                }}
+                                className="text-green-600 hover:text-green-800 px-1 py-1 rounded"
+                                title="Lưu"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setRoiLongKien(prev => prev.map(c => c.id === item.id ? {...c, isEditing: false} : c));
+                                  setEditingRoiLongKien({});
+                                }}
+                                className="text-red-600 hover:text-red-800 px-1 py-1 rounded"
+                                title="Hủy"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-1 justify-center">
+                              <button
+                                onClick={() => {
+                                  setEditingRoiLongKien(item);
+                                  setRoiLongKien(prev => prev.map(c => c.id === item.id ? {...c, isEditing: true} : c));
+                                }}
+                                className="text-blue-600 hover:text-blue-800 px-1 py-1 rounded"
+                                title="Sửa"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                onClick={() => setRoiLongKien(prev => prev.filter(c => c.id !== item.id))}
+                                className="text-red-600 hover:text-red-800 px-1 py-1 rounded"
+                                title="Xóa"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -407,13 +765,35 @@ export default function CargoTabs() {
 
         {selectedTab === "HANG_CONTAINER_CFS" && (
           <div>
-            <a
-              href="/Files/FileTmp/DS_CHITIET_CONT_CFS.xlsx"
-              className="text-blue-600 italic flex items-center gap-1 mb-3"
-            >
-              <i className="fa fa-download"></i> Tải mẫu file import hàng
-              container CFS
-            </a>
+            <div className="flex gap-2 mb-3">
+              <button 
+                onClick={() => {
+                  const newItem: ContainerCFSData = {
+                    id: Date.now(),
+                    stt: containerCFS.length + 1,
+                    soHieu: '',
+                    tongTrongLuong: 0,
+                    donViTinh: '',
+                    ghiChu: '',
+                    isEditing: true
+                  };
+                  setContainerCFS(prev => [...prev, newItem]);
+                  setEditingContainerCFS(newItem);
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-full flex items-center gap-1 transition-colors"
+              >
+                <i className="fa fa-plus-circle"></i> Thêm mới
+              </button>
+              <button className="bg-green-500 text-white px-4 py-1 rounded-full flex items-center gap-1">
+                <i className="fa fa-file-excel-o"></i> Import Excel
+              </button>
+              <a
+                href="/Files/FileTmp/DS_CHITIET_CONT_CFS.xlsx"
+                className="text-blue-600 italic flex items-center gap-1"
+              >
+                <i className="fa fa-download"></i> Tải mẫu file import hàng container CFS
+              </a>
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full border border-gray-200">
                 <thead className="bg-gray-100">
@@ -429,11 +809,117 @@ export default function CargoTabs() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td colSpan={6} className="text-center p-4">
-                      Không có dữ liệu
-                    </td>
-                  </tr>
+                  {containerCFS.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center p-4 text-gray-500">
+                        Không có dữ liệu
+                      </td>
+                    </tr>
+                  ) : (
+                    containerCFS.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="border p-2 text-center">{item.stt}</td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="text"
+                              value={editingContainerCFS.soHieu || item.soHieu}
+                              onChange={(e) => setEditingContainerCFS(prev => ({...prev, soHieu: e.target.value}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Nhập số hiệu container"
+                            />
+                          ) : (
+                            <span>{item.soHieu}</span>
+                          )}
+                        </td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="number"
+                              value={editingContainerCFS.tongTrongLuong || item.tongTrongLuong || ''}
+                              onChange={(e) => setEditingContainerCFS(prev => ({...prev, tongTrongLuong: parseFloat(e.target.value) || 0}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Nhập trọng lượng"
+                            />
+                          ) : (
+                            <span>{item.tongTrongLuong?.toLocaleString() || ''}</span>
+                          )}
+                        </td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="text"
+                              value={editingContainerCFS.donViTinh || item.donViTinh || ''}
+                              onChange={(e) => setEditingContainerCFS(prev => ({...prev, donViTinh: e.target.value}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="VD: KG, TON"
+                            />
+                          ) : (
+                            <span>{item.donViTinh || ''}</span>
+                          )}
+                        </td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="text"
+                              value={editingContainerCFS.ghiChu || item.ghiChu}
+                              onChange={(e) => setEditingContainerCFS(prev => ({...prev, ghiChu: e.target.value}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Nhập ghi chú"
+                            />
+                          ) : (
+                            <span>{item.ghiChu}</span>
+                          )}
+                        </td>
+                        <td className="border p-2 text-center">
+                          {item.isEditing ? (
+                            <div className="flex gap-1 justify-center">
+                              <button
+                                onClick={() => {
+                                  setContainerCFS(prev => prev.map(c => c.id === item.id ? {...c, ...editingContainerCFS, isEditing: false} : c));
+                                  setEditingContainerCFS({});
+                                }}
+                                className="text-green-600 hover:text-green-800 px-1 py-1 rounded"
+                                title="Lưu"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setContainerCFS(prev => prev.map(c => c.id === item.id ? {...c, isEditing: false} : c));
+                                  setEditingContainerCFS({});
+                                }}
+                                className="text-red-600 hover:text-red-800 px-1 py-1 rounded"
+                                title="Hủy"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-1 justify-center">
+                              <button
+                                onClick={() => {
+                                  setEditingContainerCFS(item);
+                                  setContainerCFS(prev => prev.map(c => c.id === item.id ? {...c, isEditing: true} : c));
+                                }}
+                                className="text-blue-600 hover:text-blue-800 px-1 py-1 rounded"
+                                title="Sửa"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                onClick={() => setContainerCFS(prev => prev.filter(c => c.id !== item.id))}
+                                className="text-red-600 hover:text-red-800 px-1 py-1 rounded"
+                                title="Xóa"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -442,13 +928,35 @@ export default function CargoTabs() {
 
         {selectedTab === "TOKHAI_CHUNG_CONT" && (
           <div>
-            <a
-              href="/Files/FileTmp/Mau_danh_sach_to_khai_chung_container.xlsx"
-              className="text-blue-600 italic flex items-center gap-1 mb-3"
-            >
-              <i className="fa fa-download"></i> Tải mẫu file import tờ khai
-              chung container
-            </a>
+            <div className="flex gap-2 mb-3">
+              <button 
+                onClick={() => {
+                  const newItem: TokhaiLienQuanData = {
+                    id: Date.now(),
+                    stt: tokhaiLienQuan.length + 1,
+                    soToKhai: '',
+                    ngayToKhai: '',
+                    maLoaiHinh: '',
+                    maHaiQuan: '',
+                    isEditing: true
+                  };
+                  setTokhaiLienQuan(prev => [...prev, newItem]);
+                  setEditingTokhaiLienQuan(newItem);
+                }}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-1 rounded-full flex items-center gap-1 transition-colors"
+              >
+                <i className="fa fa-plus-circle"></i> Thêm mới
+              </button>
+              <button className="bg-green-500 text-white px-4 py-1 rounded-full flex items-center gap-1">
+                <i className="fa fa-file-excel-o"></i> Import Excel
+              </button>
+              <a
+                href="/Files/FileTmp/Mau_danh_sach_to_khai_chung_container.xlsx"
+                className="text-blue-600 italic flex items-center gap-1"
+              >
+                <i className="fa fa-download"></i> Tải mẫu file import tờ khai chung container
+              </a>
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full border border-gray-200">
                 <thead className="bg-gray-100">
@@ -462,11 +970,116 @@ export default function CargoTabs() {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td colSpan={6} className="text-center p-4">
-                      Không có dữ liệu
-                    </td>
-                  </tr>
+                  {tokhaiLienQuan.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center p-4 text-gray-500">
+                        Không có dữ liệu
+                      </td>
+                    </tr>
+                  ) : (
+                    tokhaiLienQuan.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50">
+                        <td className="border p-2 text-center">{item.stt}</td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="text"
+                              value={editingTokhaiLienQuan.soToKhai || item.soToKhai}
+                              onChange={(e) => setEditingTokhaiLienQuan(prev => ({...prev, soToKhai: e.target.value}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Nhập số tờ khai"
+                            />
+                          ) : (
+                            <span>{item.soToKhai}</span>
+                          )}
+                        </td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="date"
+                              value={editingTokhaiLienQuan.ngayToKhai || item.ngayToKhai}
+                              onChange={(e) => setEditingTokhaiLienQuan(prev => ({...prev, ngayToKhai: e.target.value}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                          ) : (
+                            <span>{item.ngayToKhai}</span>
+                          )}
+                        </td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="text"
+                              value={editingTokhaiLienQuan.maLoaiHinh || item.maLoaiHinh}
+                              onChange={(e) => setEditingTokhaiLienQuan(prev => ({...prev, maLoaiHinh: e.target.value}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Nhập mã loại hình"
+                            />
+                          ) : (
+                            <span>{item.maLoaiHinh}</span>
+                          )}
+                        </td>
+                        <td className="border p-2">
+                          {item.isEditing ? (
+                            <input
+                              type="text"
+                              value={editingTokhaiLienQuan.maHaiQuan || item.maHaiQuan}
+                              onChange={(e) => setEditingTokhaiLienQuan(prev => ({...prev, maHaiQuan: e.target.value}))}
+                              className="w-full px-2 py-1 border rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Nhập mã hải quan"
+                            />
+                          ) : (
+                            <span>{item.maHaiQuan}</span>
+                          )}
+                        </td>
+                        <td className="border p-2 text-center">
+                          {item.isEditing ? (
+                            <div className="flex gap-1 justify-center">
+                              <button
+                                onClick={() => {
+                                  setTokhaiLienQuan(prev => prev.map(c => c.id === item.id ? {...c, ...editingTokhaiLienQuan, isEditing: false} : c));
+                                  setEditingTokhaiLienQuan({});
+                                }}
+                                className="text-green-600 hover:text-green-800 px-1 py-1 rounded"
+                                title="Lưu"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setTokhaiLienQuan(prev => prev.map(c => c.id === item.id ? {...c, isEditing: false} : c));
+                                  setEditingTokhaiLienQuan({});
+                                }}
+                                className="text-red-600 hover:text-red-800 px-1 py-1 rounded"
+                                title="Hủy"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-1 justify-center">
+                              <button
+                                onClick={() => {
+                                  setEditingTokhaiLienQuan(item);
+                                  setTokhaiLienQuan(prev => prev.map(c => c.id === item.id ? {...c, isEditing: true} : c));
+                                }}
+                                className="text-blue-600 hover:text-blue-800 px-1 py-1 rounded"
+                                title="Sửa"
+                              >
+                                ✏️
+                              </button>
+                              <button
+                                onClick={() => setTokhaiLienQuan(prev => prev.filter(c => c.id !== item.id))}
+                                className="text-red-600 hover:text-red-800 px-1 py-1 rounded"
+                                title="Xóa"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
