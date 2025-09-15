@@ -2,13 +2,9 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import { useAuth } from './context/AuthContext'
 import Layout from './components/layout/Layout'
+import { NotificationProvider } from './context/NotificationContext'
 import LoadingSpinner from './components/ui/LoadingSpinner'
 import ErrorBoundary from './components/ui/ErrorBoundary'
-
-// Mock NotificationProvider để tránh lỗi
-const MockNotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return <>{children}</>
-}
 
 // Lazy load components for better performance
 const LoginPage = lazy(() => import('./pages/LoginPage'))
@@ -76,7 +72,7 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <MockNotificationProvider>
+      <NotificationProvider>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
           {/* Public routes */}
@@ -176,8 +172,8 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
-      </MockNotificationProvider>
-    </ErrorBoundary>
+    </NotificationProvider>
+  </ErrorBoundary>
   )
 }
 

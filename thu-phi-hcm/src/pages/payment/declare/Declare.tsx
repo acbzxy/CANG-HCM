@@ -47,7 +47,8 @@ const Declare: React.FC = () => {
 
   const handleViewNote = (rowData: any) => {
     setSelectedRowData(rowData);
-    setShowDetailModal(true);
+    // Hiển thị form "Thêm mới" ở dạng popup chỉ xem
+    setShowFeeInfoModal(true);
   };
 
   // === NOTIFICATION HANDLER ===
@@ -1121,12 +1122,29 @@ const Declare: React.FC = () => {
         </div>
       </div>
       {showFeeInfoModal && (
-        <div className="absolute inset-0 z-10 bg-white shadow-lg h-[86vh]">
-          <FeeInformationFormModal 
-            onClose={() => setShowFeeInfoModal(false)} 
-            onSave={handleSaveNewDeclaration}
-          />
-        </div>
+        selectedRowData ? (
+          // View mode -> hiển thị dưới dạng popup overlay
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div style={{ width: '95vw', height: '90vh', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 20px 60px rgba(0,0,0,0.35)', overflow: 'hidden' }}>
+              <FeeInformationFormModal 
+                onClose={() => { setShowFeeInfoModal(false); setSelectedRowData(null); }} 
+                onSave={handleSaveNewDeclaration}
+                mode={'view'}
+                initialData={selectedRowData?.rawData || selectedRowData}
+                asPopup
+              />
+            </div>
+          </div>
+        ) : (
+          // Create mode -> giữ nguyên màn điền form trượt vào
+          <div className="absolute inset-0 z-10 bg-white shadow-lg h-[86vh]">
+            <FeeInformationFormModal 
+              onClose={() => setShowFeeInfoModal(false)} 
+              onSave={handleSaveNewDeclaration}
+              mode={'create'}
+            />
+          </div>
+        )
       )}
 
       {/* Detail Modal */}

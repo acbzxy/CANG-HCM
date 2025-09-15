@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import Header from './Header'
 import Sidebar from './Sidebar'
 import Footer from './Footer'
+import NotificationContainer from '../ui/NotificationContainer'
+import { FEATURE_FLAGS } from '../../utils/constants'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -30,6 +32,9 @@ const Layout: React.FC<LayoutProps> = ({ children, showFooter = false }) => {
       </main>
       
       {showFooter && <Footer />}
+      
+      {/* Notification Container */}
+      {FEATURE_FLAGS.enableNotifications && <NotificationContainer />}
     </div>
   )
 }

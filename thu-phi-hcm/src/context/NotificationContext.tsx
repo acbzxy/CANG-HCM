@@ -162,17 +162,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
 export const useNotification = (): NotificationContextType => {
   const context = useContext(NotificationContext)
   if (context === undefined) {
-    // Return mock implementation to avoid errors
-    return {
-      notifications: [],
-      addNotification: () => '',
-      removeNotification: () => {},
-      clearAll: () => {},
-      showSuccess: () => '',
-      showError: () => '',
-      showWarning: () => '',
-      showInfo: () => ''
-    }
+    throw new Error('useNotification must be used within a NotificationProvider')
   }
   return context
 }

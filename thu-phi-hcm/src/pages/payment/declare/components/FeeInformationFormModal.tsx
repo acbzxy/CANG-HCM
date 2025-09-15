@@ -15,9 +15,12 @@ import { FeeDeclarationApiService, type TokhaiThongtinResponse, type TokhaiThong
 interface FeeInformationFormModalProps {
   onClose: () => void;
   onSave?: (data: any) => void;
+  mode?: 'create' | 'view';
+  initialData?: TokhaiThongtinResponse | any;
+  asPopup?: boolean;
 }
 
-export default function FeeInformationFormModal({ onClose, onSave }: FeeInformationFormModalProps) {
+export default function FeeInformationFormModal({ onClose, onSave, mode = 'create', initialData, asPopup = false }: FeeInformationFormModalProps) {
   const [showCancelConfirmModal, setShowCancelConfirmModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isManualDeclaration, setIsManualDeclaration] = useState(false);
@@ -28,6 +31,7 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
   const [showSelectedData, setShowSelectedData] = useState(false);
   const { showSuccess, showError, showInfo } = useNotification();
   const { user } = useAuth();
+  const modalRootRef = React.useRef<HTMLDivElement | null>(null);
 
   // Debug effect to monitor fetchedData changes
   React.useEffect(() => {
@@ -44,6 +48,54 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
       setCompanyCode(user.taxCode);
     }
   }, [user, companyCode]);
+
+  // View-only mode initializer (does not affect default 'create' usage)
+  React.useEffect(() => {
+    if (mode === 'view' && initialData) {
+      try {
+        setIsManualDeclaration(true);
+        setSelectedTokhai(initialData as any);
+        setShowSelectedData(true);
+        setTimeout(() => {
+          handleAutoFillForm();
+          // Lock inputs in view mode (only inside this modal)
+          const container = modalRootRef.current;
+          if (container) {
+            const selectors = 'input, select, textarea, button';
+            container.querySelectorAll(selectors).forEach((el) => {
+              const element = el as HTMLInputElement;
+              const isCloseBtn = element.getAttribute('data-allow-click') === 'true';
+              if (isCloseBtn) return;
+              if (element.tagName === 'BUTTON') {
+                (element as HTMLButtonElement).disabled = true;
+              } else {
+                element.readOnly = true;
+                element.disabled = true;
+              }
+            });
+          }
+        }, 250);
+      } catch (e) {
+        console.error('❌ Failed to init view mode:', e);
+      }
+    }
+    // Cleanup: re-enable controls when unmount or mode changes
+    return () => {
+      const container = modalRootRef.current;
+      if (container) {
+        const selectors = 'input, select, textarea, button';
+        container.querySelectorAll(selectors).forEach((el) => {
+          const element = el as HTMLInputElement;
+          if (element.tagName === 'BUTTON') {
+            (element as HTMLButtonElement).disabled = false;
+          } else {
+            element.readOnly = false;
+            element.disabled = false;
+          }
+        });
+      }
+    };
+  }, [mode, initialData]);
   
   const handleCancelDeclaration = () => {
     setShowCancelConfirmModal(true);
@@ -1213,19 +1265,20 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
     }
   };
   return (
-    <motion.div
+    <motion.div ref={modalRootRef}
       className="w-full flex flex-col bg-white"
-      initial={{ x: "100%" }}
-      animate={{ x: 0 }}
-      exit={{ x: "100%" }}
-      transition={{ type: "tween", duration: 0.3 }}
+      initial={asPopup ? { opacity: 0, scale: 0.98 } : { x: "100%" }}
+      animate={asPopup ? { opacity: 1, scale: 1 } : { x: 0 }}
+      exit={asPopup ? { opacity: 0 } : { x: "100%" }}
+      transition={{ type: "tween", duration: 0.25 }}
     >
       {/* Header */}
-      <div className="modal-header fixed top-[85px] w-[calc(100%-45px)] z-20 bg-white">
+      <div className={asPopup ? "modal-header sticky top-0 w-full z-20 bg-white" : "modal-header fixed top-[85px] w-[calc(100%-45px)] z-20 bg-white"}>
         <h4 className="modal-title">
           <button
             onClick={onClose}
             className="btn btn-default text-blue-500 me-4 rounded"
+            data-allow-click="true"
           >
             <ArrowLeftCircleIcon className="w-4 h-4" />
             Quay lại
@@ -1236,6 +1289,7 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
           <button 
             onClick={handleCancelDeclaration}
             className="btn btn-default bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+            disabled={mode === 'view'}
           >
             <i className="fas fa-times w-4 h-4 me-1"></i>
             Hủy tờ khai
@@ -1243,13 +1297,14 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
           <button 
             onClick={handleSignDeclaration}
             className="btn btn-default bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+            disabled={mode === 'view'}
           >
             <i className="fas fa-signature w-4 h-4 me-1"></i>
             Ký số tờ khai (khai báo nộp phí)
           </button>
           <button 
             onClick={handleSave}
-            disabled={loading}
+            disabled={loading || mode === 'view'}
             className="btn btn-default bg-blue-800 text-white rounded hover:bg-blue-900 transition-colors disabled:bg-gray-400"
           >
             <WindowIcon className="w-4 h-4 me-1" />
@@ -1260,7 +1315,7 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
       </div>
 
       {/* Body */}
-      <div className="modal-body mt-[40px] pr-[15px] pb-[100px] pl-[15px] bg-[#E8EBEF] min-h-[278px]">
+      <div className={asPopup ? "modal-body mt-[40px] pr-[15px] pb-[100px] pl-[15px] bg-[#E8EBEF] min-h-[278px] overflow-y-auto" : "modal-body mt-[40px] pr-[15px] pb-[100px] pl-[15px] bg-[#E8EBEF] min-h-[278px]"}>
         <div className="w-full">
           {/* Arrow Step Indicator */}
           <div className="flex items-center w-full mb-6 mt-[22px] rounded-full overflow-hidden">
