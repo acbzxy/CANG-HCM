@@ -58,6 +58,91 @@ export interface TokhaiThongtinResponse {
   chiTietList: any[]
 }
 
+// Request interface for creating new tokhai thong tin
+export interface TokhaiThongtinCreateRequest {
+  // NGUỒN THÔNG TIN TỜ KHAI
+  nguonTK: number
+
+  // DOANH NGHIỆP KHAI PHÍ
+  maDoanhNghiepKhaiPhi: string
+  tenDoanhNghiepKhaiPhi: string
+  diaChiKhaiPhi: string
+
+  // DOANH NGHIỆP XNK
+  maDoanhNghiepXNK: string
+  tenDoanhNghiepXNK: string
+  diaChiXNK: string
+
+  // TỜ KHAI HẢI QUAN
+  soToKhai: string
+  ngayToKhai: string
+  maHaiQuan: string
+  maLoaiHinh: string
+  maLuuKho: string
+  nuocXuatKhau: string
+
+  // THÔNG TIN HÀNG HÓA
+  maPhuongThucVC: string
+  phuongTienVC: string
+  maDiaDiemXepHang: string
+  maDiaDiemDoHang: string
+  maPhanLoaiHangHoa: string
+  mucDichVC: string
+
+  // TỜ KHAI PHÍ
+  soTiepNhanKhaiPhi?: string // Optional - backend will generate
+  ngayKhaiPhi?: string // Optional - backend will set to current date
+  nhomLoaiPhi: string
+  loaiThanhToan: string
+  ghiChuKhaiPhi: string
+
+  // THÔNG TIN THU PHÍ
+  soThongBaoNopPhi?: string
+  soThongBao?: string
+  msgId?: string
+  idPhatHanh?: string
+  tongTienPhi?: number
+  trangThaiNganHang?: string
+  soBienLai?: string
+  ngayBienLai?: string
+  kyHieuBienLai?: string
+  mauBienLai?: string
+  maTraCuuBienLai?: string
+  xemBienLai?: string
+
+  // DANH MỤC LOẠI HÀNG MIỄN PHÍ
+  loaiHangMienPhi?: string
+  loaiHang?: string // Thẻ loại hàng - radio button LOAI_TK_NP (LBC001, LBC002, LBC003)
+  trangThai?: string
+  trangThaiPhatHanh?: string
+
+  // XML DATA FIELDS
+  kylan1Xml?: string
+  kylan2Xml?: string
+
+  // IMAGE DATA FIELD
+  imageBl?: string
+
+  // Chi tiết
+  chiTietList?: TokhaiThongtinChiTietCreateRequest[]
+}
+
+// Request interface for creating chi tiet
+export interface TokhaiThongtinChiTietCreateRequest {
+  soVanDon: string
+  soHieu: string
+  soSeal?: string
+  loaiCont?: string
+  tinhChatCont?: string
+  maLoaiCont?: string
+  maTcCont?: string
+  tongTrongLuong?: number
+  donViTinh?: string
+  ghiChu?: string
+  donGia?: number
+  soTien?: number
+}
+
 // API Base URL - Updated to use the new backend API with proxy
 const API_BASE_URL = '/api'
 // For new CRM API, use crmApi.ts
@@ -66,6 +151,9 @@ const API_BASE_URL = '/api'
 const ENDPOINTS = {
   FEE_DECLARATIONS: `${API_BASE_URL}/tokhai-thongtin/ds-nphi`,
   SEARCH: `${API_BASE_URL}/tokhai-thongtin/ds-nphi`,
+  ALL_TOKHAI: `${API_BASE_URL}/tokhai-thongtin/all`,
+  HAI_QUAN_LAY_THONG_TIN: `${API_BASE_URL}/hai-quan/lay-thong-tin`,
+  CREATE_TOKHAI: `${API_BASE_URL}/tokhai-thongtin/create`,
   STATISTICS: `${API_BASE_URL}/tokhai-thongtin/statistics`,
   NEEDING_NOTIFICATION: `${API_BASE_URL}/tokhai-thongtin/needing-notification`,
 }
@@ -299,6 +387,171 @@ export class FeeDeclarationApiService {
   }
 
   /**
+   * Get all tokhai thong tin from /tokhai-thongtin/all endpoint
+   */
+  static async getAllToKhaiThongTin(): Promise<TokhaiThongtinResponse[]> {
+    try {
+      const url = ENDPOINTS.ALL_TOKHAI
+      console.log('🔍 Fetching all tokhai thong tin from:', url)
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const responseData: ApiResponseWrapper<TokhaiThongtinResponse[]> = await response.json()
+      console.log('🔍 Raw API response from /all:', responseData)
+      
+      // Extract data from the wrapped response
+      const data: TokhaiThongtinResponse[] = responseData.data || []
+      console.log('🔍 Extracted tokhai thong tin data:', data.length, 'records')
+      
+      return data
+      
+    } catch (error) {
+      console.error('❌ Error fetching all tokhai thong tin:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get thong tin from /hai-quan/lay-thong-tin endpoint
+   */
+  static async getHaiQuanThongTin(params?: {
+    companyCode?: string;
+    customsDeclarationNumber?: string;
+  }): Promise<TokhaiThongtinResponse[]> {
+    try {
+      const url = ENDPOINTS.HAI_QUAN_LAY_THONG_TIN
+      console.log('🔍 Fetching hai quan thong tin from:', url)
+      console.log('🔍 Request params:', params)
+      
+      // Build query parameters
+      const queryParams = new URLSearchParams()
+      if (params?.companyCode) {
+        queryParams.append('companyCode', params.companyCode)
+      }
+      if (params?.customsDeclarationNumber) {
+        queryParams.append('customsDeclarationNumber', params.customsDeclarationNumber)
+      }
+      
+      // Try POST method first (in case API requires POST)
+      console.log('🔍 Trying POST method with body...')
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          companyCode: params?.companyCode || '',
+          customsDeclarationNumber: params?.customsDeclarationNumber || ''
+        })
+      })
+      
+      if (!response.ok) {
+        // Get error details from response
+        let errorMessage = `HTTP error! status: ${response.status}`
+        try {
+          const errorData = await response.json()
+          console.error('❌ API Error Response:', errorData)
+          errorMessage = errorData.message || errorData.error || errorMessage
+        } catch (parseError) {
+          console.error('❌ Could not parse error response:', parseError)
+        }
+        throw new Error(errorMessage)
+      }
+      
+      const responseData = await response.json()
+      console.log('🔍 Raw API response from /hai-quan/lay-thong-tin:', responseData)
+      
+      // Handle different response formats
+      let data: TokhaiThongtinResponse[]
+      
+      if (responseData.data) {
+        // Wrapped response format: {data: [...]}
+        data = Array.isArray(responseData.data) ? responseData.data : [responseData.data]
+        console.log('🔍 Extracted from wrapped response:', data.length, 'records')
+      } else if (Array.isArray(responseData)) {
+        // Direct array format: [...]
+        data = responseData
+        console.log('🔍 Direct array response:', data.length, 'records')
+      } else if (responseData.id) {
+        // Single object format: {...}
+        data = [responseData]
+        console.log('🔍 Single object response, normalized to array:', data.length, 'record')
+      } else {
+        // Empty or unknown format
+        data = []
+        console.log('🔍 Empty or unknown response format')
+      }
+      
+      return data
+      
+    } catch (error) {
+      console.error('❌ Error fetching hai quan thong tin with POST:', error)
+      
+      // Try GET method as fallback
+      try {
+        console.log('🔄 Trying GET method as fallback...')
+        const fallbackUrl = ENDPOINTS.HAI_QUAN_LAY_THONG_TIN
+        const queryParams = new URLSearchParams()
+        if (params?.companyCode) {
+          queryParams.append('companyCode', params.companyCode)
+        }
+        if (params?.customsDeclarationNumber) {
+          queryParams.append('customsDeclarationNumber', params.customsDeclarationNumber)
+        }
+        
+        const fullUrl = queryParams.toString() ? `${fallbackUrl}?${queryParams.toString()}` : fallbackUrl
+        console.log('🔍 Fallback GET URL:', fullUrl)
+        
+        const getResponse = await fetch(fullUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+        })
+        
+        if (!getResponse.ok) {
+          throw new Error(`GET fallback also failed: ${getResponse.status}`)
+        }
+        
+        const responseData = await getResponse.json()
+        console.log('✅ GET fallback successful:', responseData)
+        
+        // Handle different response formats for GET fallback
+        let data: TokhaiThongtinResponse[]
+        
+        if (responseData.data) {
+          data = Array.isArray(responseData.data) ? responseData.data : [responseData.data]
+        } else if (Array.isArray(responseData)) {
+          data = responseData
+        } else if (responseData.id) {
+          data = [responseData]
+        } else {
+          data = []
+        }
+        
+        return data
+        
+      } catch (getError) {
+        console.error('❌ GET fallback also failed:', getError)
+        throw error // Throw original error
+      }
+    }
+  }
+
+  /**
    * Get all fee declarations with pagination
    */
   static async getAllFeeDeclarations(
@@ -461,6 +714,91 @@ export class FeeDeclarationApiService {
       
     } catch (error) {
       console.error('Error searching fee declarations:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Create new tokhai thong tin
+   */
+  static async createTokhaiThongTin(request: TokhaiThongtinCreateRequest): Promise<TokhaiThongtinResponse> {
+    try {
+      const url = ENDPOINTS.CREATE_TOKHAI
+      console.log('🔍 Creating tokhai thong tin:', url)
+      console.log('📤 Request data:', request)
+      console.log('📤 Request JSON string:', JSON.stringify(request, null, 2))
+      
+      // Log chi tiết request body
+      console.log('📋 Request body details:')
+      console.log('  - URL:', url)
+      console.log('  - Method: POST')
+      console.log('  - Headers:', {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      })
+      console.log('  - Body size:', JSON.stringify(request).length, 'characters')
+      console.log('  - chiTietList count:', request.chiTietList?.length || 0)
+      
+      const requestBody = JSON.stringify(request)
+      console.log('📤 Final request body:', requestBody)
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: requestBody
+      })
+      
+      if (!response.ok) {
+        let errorMessage = `HTTP error! status: ${response.status}`
+        try {
+          const errorData = await response.json()
+          if (errorData.message) {
+            errorMessage = errorData.message
+          } else if (errorData.error) {
+            errorMessage = errorData.error
+          }
+        } catch (parseError) {
+          console.warn('Could not parse error response:', parseError)
+        }
+        throw new Error(errorMessage)
+      }
+      
+      const responseData = await response.json()
+      console.log('✅ Create tokhai thong tin successful!')
+      console.log('📥 Response status:', response.status)
+      console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()))
+      console.log('📥 Response data:', responseData)
+      console.log('📥 Response JSON string:', JSON.stringify(responseData, null, 2))
+      
+      // Log chi tiết response
+      console.log('📋 Response details:')
+      console.log('  - Status:', response.status)
+      console.log('  - Status Text:', response.statusText)
+      console.log('  - Response type:', typeof responseData)
+      console.log('  - Has data field:', !!responseData.data)
+      console.log('  - Data type:', typeof responseData.data)
+      
+      // Handle response format
+      let data: TokhaiThongtinResponse
+      if (responseData.data) {
+        data = responseData.data
+        console.log('📥 Using responseData.data:', data)
+      } else {
+        data = responseData
+        console.log('📥 Using responseData directly:', data)
+      }
+      
+      console.log('📥 Final returned data:', data)
+      console.log('📥 Final data ID:', data.id)
+      console.log('📥 Final data soTiepNhanKhaiPhi:', data.soTiepNhanKhaiPhi)
+      
+      return data
+      
+    } catch (error) {
+      console.error('❌ Error creating tokhai thong tin:', error)
       throw error
     }
   }

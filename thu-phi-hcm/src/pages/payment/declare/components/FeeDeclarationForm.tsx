@@ -101,8 +101,9 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold ">Mã Hải quan</label>
-                    <select className="w-full border px-2 py-1">
+                    <select className="w-full border px-2 py-1" name="maHaiQuan">
                       <option>-- Chọn --</option>
+                      <option value="HQHCM01">HQHCM01 - Chi cục Hải quan TP.HCM</option>
                       <option value="01AC">01AC - Chi cục HQ Gia Lâm</option>
                       <option value="01B1">01B1 - Chi cục HQ CK Sân bay quốc tế Nội Bài</option>
                       <option value="01B2">01B2 - Chi cục HQ CK Sân bay quốc tế Nội Bài</option>
@@ -113,7 +114,7 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold ">Mã loại hình</label>
-                    <select className="w-full border px-2 py-1">
+                    <select className="w-full border px-2 py-1" name="maLoaiHinh">
                       <option>-- Chọn --</option>
                       <option value="A12">A12 - Nhập kinh doanh sản xuất</option>
                       <option value="A21">A21 - Chuyển tiêu thụ nội địa từ nguồn tạm nhập</option>
@@ -127,8 +128,9 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                     <label className="block text-sm font-bold ">
                       Mã lưu kho/ Dịch vụ
                     </label>
-                    <select className="w-full border px-2 py-1">
+                    <select className="w-full border px-2 py-1" name="maLuuKho">
                       <option>-- Chọn --</option>
+                      <option value="KHO123">KHO123 - Kho lưu trữ hàng hóa 123</option>
                       <option value="02ABA01">02ABA01 - CT DVHH TAN SON NHAT</option>
                       <option value="02ABAAB">02ABAAB - SB QT TAN SON NHAT</option>
                       <option value="02ABC01">02ABC01 - KHO THU GOM HANG LE</option>
@@ -139,8 +141,11 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold ">Nước xuất khẩu</label>
-                    <select className="w-full border px-2 py-1">
+                    <select className="w-full border px-2 py-1" name="nuocXuatKhau">
                       <option>-- Chọn --</option>
+                      <option value="VN">VN - Vietnam</option>
+                      <option value="US">US - United States</option>
+                      <option value="CN">CN - China</option>
                       <option value="AD">AD - Andorra</option>
                       <option value="AE">AE - United Arab Emirates</option>
                       <option value="AF">AF - Afganistan</option>
@@ -180,12 +185,18 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold ">Nhóm loại phí</label>
-                    <select className="w-full border px-2 py-1">
+                    <select className="w-full border px-2 py-1" name="nhomLoaiPhi">
                       <option>-- Chọn --</option>
+                      <option value="HẠ TẦNG CẢNG BIỂN">HẠ TẦNG CẢNG BIỂN</option>
                       <option value="TP001">TP001 - Hàng tạm nhập tái xuất; Hàng tái xuất tạm nhập; Hàng quá cảnh</option>
                       <option value="TP002">TP002 - Hàng hóa nhập khẩu, xuất khẩu mở tờ khai ngoài TP.HCM</option>
                       <option value="TP003">TP003 - Hàng hóa nhập khẩu, xuất khẩu mở tờ khai tại TP.HCM</option>
                       <option value="TP004">TP004 - Hàng gửi kho ngoại quan; Hàng chuyển khẩu được đưa vào khu vực kho bãi thuộc các cảng biển thành phố (không đưa vào kho ngoại quan và khu vực trung chuyển)</option>
+                      <option value="PHÍ DỊCH VỤ CẢNG">PHÍ DỊCH VỤ CẢNG</option>
+                      <option value="PHÍ XẾP DỠ HÀNG HÓA">PHÍ XẾP DỠ HÀNG HÓA</option>
+                      <option value="PHÍ LƯU KHO">PHÍ LƯU KHO</option>
+                      <option value="PHÍ VẬN CHUYỂN">PHÍ VẬN CHUYỂN</option>
+                      <option value="PHÍ THUẾ XUẤT NHẬP KHẨU">PHÍ THUẾ XUẤT NHẬP KHẨU</option>
                     </select>
                   </div>
                   <div className="col-span-2">
@@ -249,7 +260,7 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                 <label className="block text-sm font-bold ">
                   Mã hiệu phương thức vận chuyển
                 </label>
-                <select className="w-full border px-2 py-1  h-[35px]">
+                <select className="w-full border px-2 py-1  h-[35px]" name="maPhuongThucVC">
                   <option>-- Chọn --</option>
                   <option value="1">1 - Đường không</option>
                   <option value="2">2 - Đường biển (Container)</option>
@@ -262,8 +273,9 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Phương tiện vận chuyển</label>
-                <select className="w-full border px-2 py-1  h-[35px]">
+                <select className="w-full border px-2 py-1  h-[35px]" name="phuongTienVC">
                   <option>-- Chọn --</option>
+                  <option value="CONTAINER SHIP">CONTAINER SHIP</option>
                   <option value="AIRPLANE">Máy bay</option>
                   <option value="SHIP">Tàu biển</option>
                   <option value="CONTAINER_SHIP">Tàu container</option>
@@ -277,8 +289,9 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Mã địa điểm xếp hàng</label>
-                <select className="w-full border px-2 py-1  h-[35px]">
+                <select className="w-full border px-2 py-1  h-[35px]" name="maDiaDiemXepHang">
                   <option>-- Chọn --</option>
+                  <option value="CANGCATLAI">CANGCATLAI - Cảng Cát Lái</option>
                   <option value="VNADTT">VNADTT - CỬA KHẨU A DOT (THUA THIEN-HUE)</option>
                   <option value="VNAPIT">VNAPIT - LỚI MỎ A PA CHAI</option>
                   <option value="VNATH">VNATH - CẢNG AN THỚI</option>
@@ -287,8 +300,9 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Mã địa điểm dỡ hàng</label>
-                <select className="w-full border px-2 py-1  h-[35px]">
+                <select className="w-full border px-2 py-1  h-[35px]" name="maDiaDiemDoHang">
                   <option>-- Chọn --</option>
+                  <option value="CANGHAIPHONG">CANGHAIPHONG - Cảng Hải Phòng</option>
                   <option value="VNHCM">VNHCM - Cảng Sài Gòn (TP.HCM)</option>
                   <option value="VNHAN">VNHAN - Cảng Hải Phòng</option>
                   <option value="VNDAD">VNDAD - Cảng Đà Nẵng</option>
@@ -307,24 +321,35 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Mã phân loại hàng hóa</label>
-                <select className="w-full border px-2 py-1 h-[35px]">
+                <select className="w-full border px-2 py-1 h-[35px]" name="maPhanLoaiHangHoa">
                   <option>-- Chọn --</option>
+                  <option value="XNK">XNK - Xuất nhập khẩu</option>
                   <option value="A">A - Hàng quá biều, quá tặng</option>
                   <option value="B">B - Hàng an ninh, quốc phòng</option>
                   <option value="C">C - Hàng cứu trợ khẩn cấp</option>
                   <option value="D">D - Hàng phòng chống thiên tai, dịch bệnh</option>
+                  <option value="E">E - Hàng tạm nhập tái xuất</option>
+                  <option value="F">F - Hàng quá cảnh</option>
+                  <option value="G">G - Hàng chuyển khẩu</option>
                 </select>
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Mục đích vận chuyển</label>
                 <select
                   className="w-full border px-2 py-1 h-[35px]"
+                  name="mucDichVC"
                 >
                   <option>-- Chọn --</option>
+                  <option value="Xuất khẩu hàng dệt may">Xuất khẩu hàng dệt may</option>
+                  <option value="Vận chuyển hàng hóa là hành lý cá nhân">Vận chuyển hàng hóa là hành lý cá nhân</option>
+                  <option value="Vận chuyển hàng hóa giữa 2 khu vực lưu giữ hàng hóa chịu sự giám sát hải quan">Vận chuyển hàng hóa giữa 2 khu vực lưu giữ hàng hóa chịu sự giám sát hải quan</option>
                   <option value="BAG">BAG - Vận chuyển hàng hóa là hành lý cá nhân</option>
                   <option value="BTB">BTB - Vận chuyển hàng hóa giữa 2 khu vực lưu giữ hàng hóa chịu sự giám sát hải quan</option>
                   <option value="BTG">BTG - Vận chuyển hàng hóa XK từ kho ngoại quan, CFS, CY đến cửa khẩu xuất</option>
                   <option value="CIS">CIS - Vận chuyển hàng hóa NK về địa điểm: KT tập trung/p biến giới/hàng CPN, chân cổng tĩnh, CSF</option>
+                  <option value="Nhập khẩu hàng điện tử">Nhập khẩu hàng điện tử</option>
+                  <option value="Xuất khẩu hàng may mặc">Xuất khẩu hàng may mặc</option>
+                  <option value="Vận chuyển hàng hóa nông sản">Vận chuyển hàng hóa nông sản</option>
                 </select>
               </div>
             </div>
