@@ -20,7 +20,6 @@ const CRM_ENDPOINTS = {
   
   // === DOANH NGHIỆP / COMPANIES ===
   COMPANIES: `${CRM_API_BASE_URL}/api/companies`,
-  COMPANIES_ALL: `${CRM_API_BASE_URL}/api/companies/all`,
   COMPANIES_CREATE: `${CRM_API_BASE_URL}/api/companies/create`,
   COMPANIES_UPDATE: `${CRM_API_BASE_URL}/api/companies/update`,
   COMPANIES_DELETE: `${CRM_API_BASE_URL}/api/companies/delete`,
@@ -657,11 +656,6 @@ export class CrmApiService {
         name: 'Tờ khai thông tin - All',
         method: 'GET'
       },
-      { 
-        url: CRM_ENDPOINTS.COMPANIES_ALL,
-        name: 'Companies - All', 
-        method: 'GET'
-      }
     ];
 
     const results: any[] = [];
@@ -1535,47 +1529,17 @@ export class CrmApiService {
   // === COMPANIES API METHODS ===
   
   /**
-   * Lấy tất cả danh sách công ty - Đã implement cho trang Declare
+   * Lấy tất cả danh sách công ty - Đã xóa vì API không cần thiết
    */
   static async getAllCompanies(): Promise<ApiResponse<CrmCompany[]>> {
-    try {
-      console.log('🏢 Loading all companies...');
-      const response = await makeApiRequest<ApiResponse<CrmCompany[]>>(CRM_ENDPOINTS.COMPANIES_ALL);
-      console.log('✅ Companies loaded successfully:', response);
-      return response;
-      
-    } catch (error) {
-      console.error('❌ Failed to load companies:', error);
-      
-      // Return mock data if API fails
-      const mockResponse: ApiResponse<CrmCompany[]> = {
-        success: true,
-        message: 'Mock companies loaded (API unavailable)',
-        data: [
-          {
-            id: 1,
-            companyName: 'Công ty TNHH ABC',
-            taxCode: 'MST123456789',
-            address: '123 Đường ABC, Q1, TP.HCM',
-            phone: '0901234567',
-            email: 'contact@abc.com',
-            status: 'active'
-          },
-          {
-            id: 2,
-            companyName: 'Công ty XNK DEF',
-            taxCode: 'XNK987654321', 
-            address: '456 Đường DEF, Q3, TP.HCM',
-            phone: '0909876543',
-            email: 'info@def.com',
-            status: 'active'
-          }
-        ],
-        timestamp: new Date().toISOString()
-      };
-      
-      return mockResponse;
-    }
+    // Method đã được disable vì API api/companies/all không cần thiết
+    console.log('🏢 getAllCompanies() - Method disabled');
+    return {
+      success: false,
+      message: 'API api/companies/all đã bị vô hiệu hóa',
+      data: [],
+      timestamp: new Date().toISOString()
+    };
   }
 
   /**

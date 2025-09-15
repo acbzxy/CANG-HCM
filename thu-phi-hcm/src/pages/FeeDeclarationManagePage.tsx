@@ -1252,30 +1252,38 @@ const FeeDeclarationManagePage: React.FC = () => {
                   </button>
                 </td>
                                  <td style={{ padding: '8px', textAlign: 'center', fontSize: '12px' }}>
-                   <button
-                     style={{
-                       backgroundColor: '#17a2b8',
-                       color: 'white',
-                       border: 'none',
-                       padding: '6px 12px',
-                       borderRadius: '4px',
-                       cursor: 'pointer',
-                       fontSize: '11px',
-                       fontWeight: '500'
-                     }}
-                     onClick={() => {
-                       // Find the corresponding FeeDeclaration object
-                       const feeDeclaration = feeDeclarations.find(fd => String(fd.id) === item.id);
-                       if (feeDeclaration) {
-                         handleCreateReceipt(feeDeclaration);
-                       } else {
-                         console.error('Could not find FeeDeclaration for item:', item);
-                       }
-                     }}
-                     title="Tạo biên lai"
-                   >
-                     Tạo biên lai
-                   </button>
+                   {(() => {
+                     // Find the corresponding FeeDeclaration object to get trangThai from API
+                     const feeDeclaration = feeDeclarations.find(fd => String(fd.id) === item.id);
+                     const canCreateReceipt = feeDeclaration?.trangThai === '03' && feeDeclaration?.trangThaiPhatHanh !== '02';
+                     
+                     return (
+                       <button
+                         style={{
+                           backgroundColor: canCreateReceipt ? '#17a2b8' : '#6c757d',
+                           color: 'white',
+                           border: 'none',
+                           padding: '6px 12px',
+                           borderRadius: '4px',
+                           cursor: canCreateReceipt ? 'pointer' : 'not-allowed',
+                           fontSize: '11px',
+                           fontWeight: '500',
+                           opacity: canCreateReceipt ? 1 : 0.6
+                         }}
+                         disabled={!canCreateReceipt}
+                         onClick={() => {
+                           if (canCreateReceipt && feeDeclaration) {
+                             handleCreateReceipt(feeDeclaration);
+                           } else {
+                             console.error('Could not find FeeDeclaration for item:', item);
+                           }
+                         }}
+                         title={canCreateReceipt ? 'Tạo biên lai' : `Không thể tạo biên lai (Trạng thái: ${feeDeclaration?.trangThai || 'N/A'})`}
+                       >
+                         Tạo biên lai
+                       </button>
+                     );
+                   })()}
                  </td>
                 <td style={{ padding: '8px', textAlign: 'right', fontSize: '12px', fontWeight: 'bold' }}>
                   {formatCurrency(item.tongTien)}

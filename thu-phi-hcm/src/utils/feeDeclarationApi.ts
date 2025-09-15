@@ -150,7 +150,8 @@ const API_BASE_URL = '/api'
 const ENDPOINTS = {
   FEE_DECLARATIONS: `${API_BASE_URL}/tokhai-thongtin/ds-nphi`,
   SEARCH: `${API_BASE_URL}/tokhai-thongtin/ds-nphi`,
-  ALL_TOKHAI: `${API_BASE_URL}/tokhai-thongtin/all`,
+  ALL_TOKHAI: `${API_BASE_URL}/tokhai-thongtin/all`, // For payment/declare page
+  ALL_TOKHAI_MANAGE: `${API_BASE_URL}/tokhai-thongtin/ds-nphi-03`, // For fee-declaration/manage page
   HAI_QUAN_LAY_THONG_TIN: `${API_BASE_URL}/hai-quan/lay-thong-tin`,
   CREATE_TOKHAI: `${API_BASE_URL}/tokhai-thongtin/create`,
   STATISTICS: `${API_BASE_URL}/tokhai-thongtin/statistics`,
@@ -207,6 +208,7 @@ export const mapTokhaiToFeeDeclaration = (tokhai: TokhaiThongtinResponse): FeeDe
     remainingAmount: tokhai.trangThaiNganHang === 'Đã thanh toán' ? 0 : (tokhai.tongTienPhi || 0),
     paymentStatus: tokhai.trangThaiNganHang === 'Đã thanh toán' ? 'PAID' : 'PENDING',
     declarationStatus: mapTrangThaiToDeclarationStatus(tokhai.trangThai),
+    trangThai: tokhai.trangThai, // Keep trangThai from API for button logic
     trangThaiPhatHanh: tokhai.trangThaiPhatHanh || '00', // Default to '00' (Mới)
     idPhatHanh: tokhai.idPhatHanh, // ID phát hành từ FPT E-Invoice
     idBienLai: tokhai.idBienLai, // ID biên lai từ hệ thống
@@ -558,8 +560,8 @@ export class FeeDeclarationApiService {
     size = 10
   ): Promise<PageResponse<FeeDeclaration>> {
     try {
-      // Use the PHT_BE API endpoint
-      const url = `${API_BASE_URL}/tokhai-thongtin/all`
+      // Use the PHT_BE API endpoint for fee-declaration/manage page
+      const url = ENDPOINTS.ALL_TOKHAI_MANAGE
       console.log('Fetching data from:', url)
       
       const response = await fetch(url, {
@@ -621,8 +623,8 @@ export class FeeDeclarationApiService {
     searchParams: FeeDeclarationSearchParams
   ): Promise<PageResponse<FeeDeclaration>> {
     try {
-      // Use PHT_BE API endpoint for search
-      const url = `${API_BASE_URL}/tokhai-thongtin/all`
+      // Use PHT_BE API endpoint for search in fee-declaration/manage page
+      const url = ENDPOINTS.ALL_TOKHAI_MANAGE
       console.log('Searching with params:', searchParams)
       console.log('Fetching data from:', url)
       

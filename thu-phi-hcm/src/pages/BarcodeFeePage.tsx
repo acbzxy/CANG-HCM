@@ -88,3 +88,4 @@ const BarcodeFeePage: React.FC = () => {
 }
 
 export default BarcodeFeePage
+

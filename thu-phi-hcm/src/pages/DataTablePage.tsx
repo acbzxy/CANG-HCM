@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
-
+import React, { useState, useEffect } from 'react'
+import { useNotification } from '../context/NotificationContext'
 
 interface BienLai {
+  id: number
   stt: number
   yeuCau: string
   ngayYeuCau: string
@@ -12,224 +13,620 @@ interface BienLai {
   mauKyHieu: string
   soBienLai: string
   ngayBienLai: string
-  tongTien: string
+  tongTien: number
   maTraCuu: string
   soToKhai: string
   ngayToKhai: string
   loaiHinh: string
+  trangThai?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
-const rawData: BienLai[] = [
-  {
-    stt: 1,
-    yeuCau: "Hủy",
-    ngayYeuCau: "2025-08-01",
-    ngayXuLy: "2025-08-02",
-    ttLienQuan: "TT01",
-    loaiBienLai: "Thuế",
-    noiDung: "Nội dung 1",
-    mauKyHieu: "AA/22P",
-    soBienLai: "0001",
-    ngayBienLai: "2025-08-01",
-    tongTien: "1,000,000",
-    maTraCuu: "TRA001",
-    soToKhai: "TK123",
-    ngayToKhai: "2025-08-01",
-    loaiHinh: "Xuất khẩu",
-  },
-  {
-    stt: 2,
-    yeuCau: "Điều chỉnh",
-    ngayYeuCau: "2025-08-05",
-    ngayXuLy: "2025-08-06",
-    ttLienQuan: "TT02",
-    loaiBienLai: "Lệ phí",
-    noiDung: "Nội dung 2",
-    mauKyHieu: "BB/22P",
-    soBienLai: "0002",
-    ngayBienLai: "2025-08-05",
-    tongTien: "2,500,000",
-    maTraCuu: "TRA002",
-    soToKhai: "TK456",
-    ngayToKhai: "2025-08-05",
-    loaiHinh: "Nhập khẩu",
-  },
-]
+interface ApiResponse<T> {
+  status: number
+  timestamp: string
+  message: string
+  data: T
+}
+
+interface PageResponse<T> {
+  content: T[]
+  totalElements: number
+  totalPages: number
+  size: number
+  number: number
+  first: boolean
+  last: boolean
+}
 
 const DataTablePage: React.FC = () => {
+  const { showError, showSuccess } = useNotification()
+  
+  // States
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState<BienLai[]>([])
+  const [filteredData, setFilteredData] = useState<BienLai[]>([])
+  const [currentPage, setCurrentPage] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [totalElements, setTotalElements] = useState(0)
+  const [pageSize] = useState(10)
+  
   const [filters, setFilters] = useState({
-    fromDate: "",
-    toDate: "",
-    soToKhai: "",
-    soThongBao: "",
-    maTraCuu: "",
+    fromDate: '',
+    toDate: '',
+    soToKhai: '',
+    soThongBao: '',
+    maTraCuu: '',
+    loaiBienLai: '',
+    trangThai: ''
   })
 
-  const [filteredData, setFilteredData] = useState<BienLai[]>(rawData)
+  // Load data from API
+  const loadData = async (page = 0, size = 10) => {
+    try {
+      setLoading(true)
+      console.log('🔍 Loading bien lai data from API...')
+      
+      const response = await fetch(`/api/bien-lai/all?page=${page}&size=${size}&sortBy=ngayTao&sortDir=desc`, {
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      
+      const result: ApiResponse<PageResponse<BienLai>> = await response.json()
+      console.log('🔍 API Response:', result)
+      
+      if (result.status === 200 && result.data) {
+        const apiData = result.data.content || []
+        setData(apiData)
+        setFilteredData(apiData)
+        setTotalElements(result.data.totalElements)
+        setTotalPages(result.data.totalPages)
+        setCurrentPage(result.data.number)
+        console.log('✅ Data loaded successfully:', apiData.length, 'records')
+        showSuccess(`Đã tải ${apiData.length} biên lai`)
+      } else {
+        console.log('❌ No data received')
+        setData([])
+        setFilteredData([])
+        setTotalElements(0)
+        setTotalPages(0)
+      }
+    } catch (error) {
+      console.error('❌ Error loading data:', error)
+      showError('Có lỗi xảy ra khi tải dữ liệu biên lai: ' + (error as Error).message)
+      
+      // Fallback to mock data
+      console.log('🔄 Using mock data as fallback...')
+      const mockData: BienLai[] = [
+        {
+          id: 1,
+          stt: 1,
+          yeuCau: "Hủy",
+          ngayYeuCau: "2025-08-01",
+          ngayXuLy: "2025-08-02",
+          ttLienQuan: "TT01",
+          loaiBienLai: "Thuế",
+          noiDung: "Nội dung 1",
+          mauKyHieu: "AA/22P",
+          soBienLai: "0001",
+          ngayBienLai: "2025-08-01",
+          tongTien: 1000000,
+          maTraCuu: "TRA001",
+          soToKhai: "TK123",
+          ngayToKhai: "2025-08-01",
+          loaiHinh: "Xuất khẩu",
+          trangThai: "Đã xử lý"
+        },
+        {
+          id: 2,
+          stt: 2,
+          yeuCau: "Điều chỉnh",
+          ngayYeuCau: "2025-08-05",
+          ngayXuLy: "2025-08-06",
+          ttLienQuan: "TT02",
+          loaiBienLai: "Lệ phí",
+          noiDung: "Nội dung 2",
+          mauKyHieu: "BB/22P",
+          soBienLai: "0002",
+          ngayBienLai: "2025-08-05",
+          tongTien: 2500000,
+          maTraCuu: "TRA002",
+          soToKhai: "TK456",
+          ngayToKhai: "2025-08-05",
+          loaiHinh: "Nhập khẩu",
+          trangThai: "Đang xử lý"
+        }
+      ]
+      setData(mockData)
+      setFilteredData(mockData)
+      setTotalElements(mockData.length)
+      setTotalPages(1)
+      showSuccess('Sử dụng dữ liệu demo')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Load data on component mount
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  // Handle filter changes
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFilters((prev) => ({
+    setFilters(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }))
   }
 
+  // Apply filters
   const handleSearch = () => {
-    let result = rawData
+    let result = [...data]
 
+    // Date range filter
     if (filters.fromDate && filters.toDate) {
       const from = new Date(filters.fromDate)
       const to = new Date(filters.toDate)
-      result = result.filter((row) => {
+      result = result.filter(row => {
         const ngayBL = new Date(row.ngayBienLai)
         return ngayBL >= from && ngayBL <= to
       })
     }
 
-    if (filters.soToKhai.trim() !== "") {
-      result = result.filter((row) =>
+    // Text filters
+    if (filters.soToKhai.trim() !== '') {
+      result = result.filter(row =>
         row.soToKhai.toLowerCase().includes(filters.soToKhai.toLowerCase())
       )
     }
 
-    if (filters.soThongBao.trim() !== "") {
-      result = result.filter((row) =>
+    if (filters.soThongBao.trim() !== '') {
+      result = result.filter(row =>
         row.soBienLai.toLowerCase().includes(filters.soThongBao.toLowerCase())
       )
     }
 
-    if (filters.maTraCuu.trim() !== "") {
-      result = result.filter((row) =>
+    if (filters.maTraCuu.trim() !== '') {
+      result = result.filter(row =>
         row.maTraCuu.toLowerCase().includes(filters.maTraCuu.toLowerCase())
       )
     }
 
+    if (filters.loaiBienLai.trim() !== '') {
+      result = result.filter(row =>
+        row.loaiBienLai.toLowerCase().includes(filters.loaiBienLai.toLowerCase())
+      )
+    }
+
+    if (filters.trangThai.trim() !== '') {
+      result = result.filter(row =>
+        row.trangThai?.toLowerCase().includes(filters.trangThai.toLowerCase())
+      )
+    }
+
     setFilteredData(result)
+    showSuccess(`Tìm thấy ${result.length} biên lai`)
+  }
+
+  // Reset filters
+  const handleReset = () => {
+    setFilters({
+      fromDate: '',
+      toDate: '',
+      soToKhai: '',
+      soThongBao: '',
+      maTraCuu: '',
+      loaiBienLai: '',
+      trangThai: ''
+    })
+    setFilteredData(data)
+    showSuccess('Đã reset bộ lọc')
+  }
+
+  // Format currency
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('vi-VN').format(amount)
+  }
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('vi-VN')
+    } catch {
+      return dateString
+    }
+  }
+
+  // Get status badge color
+  const getStatusBadgeColor = (status?: string) => {
+    switch (status) {
+      case 'Đã xử lý':
+        return 'bg-green-100 text-green-800'
+      case 'Đang xử lý':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'Chờ xử lý':
+        return 'bg-blue-100 text-blue-800'
+      case 'Đã hủy':
+        return 'bg-red-100 text-red-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  // Handle action buttons
+  const handleAction = (action: 'huy' | 'dieu-chinh', row: BienLai) => {
+    console.log(`🔍 Action: ${action}`, row)
+    
+    if (action === 'huy') {
+      // Handle cancel action
+      showSuccess(`Đã hủy biên lai ${row.soBienLai}`)
+      // TODO: Implement cancel API call
+    } else if (action === 'dieu-chinh') {
+      // Handle adjust action
+      showSuccess(`Điều chỉnh biên lai ${row.soBienLai}`)
+      // TODO: Implement adjust functionality
+    }
   }
 
   return (
-    <div className="max-w-screen overflow-x-hidden p-4">
-      {/* Bộ lọc */}
-      <div className="flex flex-wrap items-center justify-end gap-2 mb-4 text-sm">
-        <label className="font-medium">Ngày biên lai, từ:</label>
-        <input
-          type="date"
-          name="fromDate"
-          value={filters.fromDate}
-          onChange={handleChange}
-          className="border rounded px-2 py-1  focus:bg-white"
-        />
-        <label className="font-medium">đến:</label>
-        <input
-          type="date"
-          name="toDate"
-          value={filters.toDate}
-          onChange={handleChange}
-          className="border rounded px-2 py-1  focus:bg-white"
-        />
-        <input
-          type="text"
-          name="soToKhai"
-          value={filters.soToKhai}
-          onChange={handleChange}
-          placeholder="Số tờ khai"
-          className="border rounded px-2 py-1 w-28  focus:bg-white"
-        />
-        <input
-          type="text"
-          name="soThongBao"
-          value={filters.soThongBao}
-          onChange={handleChange}
-          placeholder="Số thông báo"
-          className="border rounded px-2 py-1 w-32  focus:bg-white"
-        />
-        <input
-          type="text"
-          name="maTraCuu"
-          value={filters.maTraCuu}
-          onChange={handleChange}
-          placeholder="Mã tra cứu"
-          className="border rounded px-2 py-1 w-28  focus:bg-white"
-        />
-        <button
-          onClick={handleSearch}
-          className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition-colors"
-        >
-          Tìm kiếm
-        </button>
+    <div className="min-h-screen bg-gray-50 p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          Danh sách biên lai
+        </h1>
+        <p className="text-gray-600">
+          Quản lý và tra cứu thông tin biên lai thu phí
+        </p>
       </div>
 
-      {/* Bảng */}
-      <div className="border rounded-sm w-full overflow-x-auto">
-        <table className="border-collapse text-sm min-w-[1200px] w-max">
-          <thead>
-            <tr className="text-center font-semibold h-12">
-              <th rowSpan={2} className="border px-2 py-2 bg-white">
-                STT
-              </th>
-              <th rowSpan={2} className="border px-2 py-2 bg-white">
-                #
-              </th>
-              <th colSpan={4} className="border px-2 py-2 bg-[#ffeeba]">
-                THÔNG TIN YÊU CẦU XỬ LÝ
-              </th>
-              <th colSpan={10} className="border px-2 py-2 bg-[#e2e3e5]">
-                THÔNG TIN BIÊN LAI GỐC
-              </th>
-            </tr>
-            <tr className="bg-[#f9f9f9] text-center font-semibold h-10">
-              <th className="border px-2 py-1 bg-[#fff3cd]">LOẠI YÊU CẦU</th>
-              <th className="border px-2 py-1 bg-[#fff3cd]">NGÀY YÊU CẦU</th>
-              <th className="border px-2 py-1 bg-[#fff3cd]">NGÀY XỬ LÝ</th>
-              <th className="border px-2 py-1 bg-[#fff3cd]">TT LIÊN QUAN</th>
-              <th className="border px-2 py-1">LOẠI BIÊN LAI</th>
-              <th className="border px-2 py-1">NỘI DUNG BIÊN LAI</th>
-              <th className="border px-2 py-1">MẪU/ KÝ HIỆU</th>
-              <th className="border px-2 py-1">SỐ BIÊN LAI</th>
-              <th className="border px-2 py-1">NGÀY BIÊN LAI</th>
-              <th className="border px-2 py-1">TỔNG TIỀN</th>
-              <th className="border px-2 py-1">MÃ TRA CỨU</th>
-              <th className="border px-2 py-1">SỐ TỜ KHAI</th>
-              <th className="border px-2 py-1">NGÀY TỜ KHAI</th>
-              <th className="border px-2 py-1">LOẠI HÌNH</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map((row, i) => (
-              <tr key={i} className="text-center">
-                <td className="border px-2 py-1">{row.stt}</td>
-                <td className="border px-2 py-1">{i + 1}</td>
-                <td className="border px-2 py-1">{row.yeuCau}</td>
-                <td className="border px-2 py-1">{row.ngayYeuCau}</td>
-                <td className="border px-2 py-1">{row.ngayXuLy}</td>
-                <td className="border px-2 py-1">{row.ttLienQuan}</td>
-                <td className="border px-2 py-1">{row.loaiBienLai}</td>
-                <td className="border px-2 py-1">{row.noiDung}</td>
-                <td className="border px-2 py-1">{row.mauKyHieu}</td>
-                <td className="border px-2 py-1">{row.soBienLai}</td>
-                <td className="border px-2 py-1">{row.ngayBienLai}</td>
-                <td className="border px-2 py-1">{row.tongTien}</td>
-                <td className="border px-2 py-1">{row.maTraCuu}</td>
-                <td className="border px-2 py-1">{row.soToKhai}</td>
-                <td className="border px-2 py-1">{row.ngayToKhai}</td>
-                <td className="border px-2 py-1">{row.loaiHinh}</td>
+      {/* Filter Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">
+            Bộ lọc tìm kiếm
+          </h2>
+          <div className="flex gap-2">
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <i className="fas fa-search mr-2"></i>
+              Tìm kiếm
+            </button>
+            <button
+              onClick={handleReset}
+              className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+            >
+              <i className="fas fa-refresh mr-2"></i>
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {/* Date Range */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Ngày biên lai từ
+            </label>
+            <input
+              type="date"
+              name="fromDate"
+              value={filters.fromDate}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Đến
+            </label>
+            <input
+              type="date"
+              name="toDate"
+              value={filters.toDate}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Text Filters */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Số tờ khai
+            </label>
+            <input
+              type="text"
+              name="soToKhai"
+              value={filters.soToKhai}
+              onChange={handleChange}
+              placeholder="Nhập số tờ khai"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Số biên lai
+            </label>
+            <input
+              type="text"
+              name="soThongBao"
+              value={filters.soThongBao}
+              onChange={handleChange}
+              placeholder="Nhập số biên lai"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mã tra cứu
+            </label>
+            <input
+              type="text"
+              name="maTraCuu"
+              value={filters.maTraCuu}
+              onChange={handleChange}
+              placeholder="Nhập mã tra cứu"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Loại biên lai
+            </label>
+            <select
+              name="loaiBienLai"
+              value={filters.loaiBienLai}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Tất cả</option>
+              <option value="Thuế">Thuế</option>
+              <option value="Lệ phí">Lệ phí</option>
+              <option value="Phí dịch vụ">Phí dịch vụ</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Trạng thái
+            </label>
+            <select
+              name="trangThai"
+              value={filters.trangThai}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Tất cả</option>
+              <option value="Đã xử lý">Đã xử lý</option>
+              <option value="Đang xử lý">Đang xử lý</option>
+              <option value="Chờ xử lý">Chờ xử lý</option>
+              <option value="Đã hủy">Đã hủy</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Data Table */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        {/* Table Header */}
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Danh sách biên lai
+            </h3>
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">
+                Hiển thị <span className="font-semibold text-blue-600">{filteredData.length}</span> trong tổng số <span className="font-semibold text-blue-600">{totalElements}</span> biên lai
+              </span>
+              <button
+                onClick={() => loadData(currentPage, pageSize)}
+                disabled={loading}
+                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 transition-colors"
+              >
+                <i className="fas fa-sync-alt mr-1"></i>
+                Làm mới
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  STT
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  #
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Loại yêu cầu
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ngày yêu cầu
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ngày xử lý
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  TT liên quan
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Loại biên lai
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Nội dung
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Mẫu/Ký hiệu
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Số biên lai
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ngày biên lai
+                </th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Tổng tiền
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Mã tra cứu
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Số tờ khai
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ngày tờ khai
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Loại hình
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Trạng thái
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {loading ? (
+                <tr>
+                  <td colSpan={17} className="px-4 py-8 text-center">
+                    <div className="flex items-center justify-center">
+                      <i className="fas fa-spinner fa-spin text-blue-600 text-xl mr-3"></i>
+                      <span className="text-gray-600">Đang tải dữ liệu...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredData.length === 0 ? (
+                <tr>
+                  <td colSpan={17} className="px-4 py-8 text-center">
+                    <div className="text-gray-500">
+                      <i className="fas fa-inbox text-4xl mb-4"></i>
+                      <p>Không có dữ liệu biên lai</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredData.map((row, index) => (
+                  <tr key={row.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {row.stt}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {index + 1}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      <div className="flex gap-2">
+                        <button
+                          className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+                          onClick={() => handleAction('huy', row)}
+                        >
+                          <i className="fas fa-times mr-1"></i>
+                          Hủy
+                        </button>
+                        <button
+                          className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                          onClick={() => handleAction('dieu-chinh', row)}
+                        >
+                          <i className="fas fa-edit mr-1"></i>
+                          Điều chỉnh
+                        </button>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {formatDate(row.ngayYeuCau)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {formatDate(row.ngayXuLy)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {row.ttLienQuan}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {row.loaiBienLai}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">
+                      {row.noiDung}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {row.mauKyHieu}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                      {row.soBienLai}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {formatDate(row.ngayBienLai)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 text-right font-semibold">
+                      {formatCurrency(row.tongTien)} VNĐ
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {row.maTraCuu}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {row.soToKhai}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {formatDate(row.ngayToKhai)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900">
+                      {row.loaiHinh}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(row.trangThai)}`}>
+                        {row.trangThai || 'Chưa xác định'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
-      {/* Hiển thị tổng số biên lai */}
-      <div className="mt-2 text-sm">
-        Có{" "}
-        <span className="text-blue-600 font-bold">{filteredData.length}</span>{" "}
-        biên lai
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Trang {currentPage + 1} / {totalPages}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => loadData(currentPage - 1, pageSize)}
+                  disabled={currentPage === 0 || loading}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <i className="fas fa-chevron-left mr-1"></i>
+                  Trước
+                </button>
+                <button
+                  onClick={() => loadData(currentPage + 1, pageSize)}
+                  disabled={currentPage >= totalPages - 1 || loading}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Sau
+                  <i className="fas fa-chevron-right ml-1"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
-
-
 }
 
-export default DataTablePage 
+export default DataTablePage

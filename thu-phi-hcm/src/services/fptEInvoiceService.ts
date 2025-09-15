@@ -29,6 +29,7 @@ export interface FPTEInvoiceRequest {
     type: string;
     form: string;
     serial: string;
+    //aun: number;
     seq: string;
     ma_cqthu: string;
     bname: string;

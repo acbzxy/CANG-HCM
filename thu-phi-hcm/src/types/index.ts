@@ -80,6 +80,7 @@ export interface FeeDeclaration {
   remainingAmount: number
   paymentStatus: 'PENDING' | 'PARTIAL' | 'PAID' | 'OVERDUE'
   declarationStatus: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'CANCELLED'
+  trangThai?: string // Trạng thái từ API (e.g., '03')
   trangThaiPhatHanh?: string // '00' = Mới, '01' = Bản nháp, '02' = Phát hành, '03' = Đã hủy
   idPhatHanh?: string // ID phát hành từ FPT E-Invoice
   idBienLai?: number // ID biên lai từ hệ thống

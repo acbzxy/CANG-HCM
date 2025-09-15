@@ -14,3 +14,4 @@ public interface SDonHangCtRepository extends BaseRepository<SDonHangCt, Long> {
     void deleteByDonHangId(Long donHangId);
 }
 
+
