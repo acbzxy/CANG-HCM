@@ -31,6 +31,7 @@ const CRM_ENDPOINTS = {
   THONG_BAO_PHI_ALL: `${CRM_API_BASE_URL}/api/thong-bao-phi/all`,
   THONG_BAO_PHI_CREATE: `${CRM_API_BASE_URL}/api/thong-bao-phi/create`,
   THONG_BAO_PHI_UPDATE: `${CRM_API_BASE_URL}/api/thong-bao-phi/update`,
+  TOKHAI_THONGTIN_NOTIFICATION: `${CRM_API_BASE_URL}/api/tokhai-thongtin/notification`,
   
   // === BIÊN LAI / RECEIPTS ===
   BIEN_LAI: `${CRM_API_BASE_URL}/api/bien-lai`,
@@ -1098,6 +1099,51 @@ export class CrmApiService {
       }
       
       return errorResponse
+    }
+  }
+
+  /**
+   * Lấy thông báo tờ khai
+   * POST /api/tokhai-thongtin/notification
+   * @param toKhaiId ID của tờ khai
+   * @returns ApiDataResponse<{}> | ApiErrorResponse
+   */
+  static async layThongBaoToKhai(
+    toKhaiId: string
+  ): Promise<ApiDataResponse<any> | ApiErrorResponse> {
+    try {
+      console.log(`📄 Getting notification for tokhai: ${toKhaiId}`)
+      
+      const response = await makeApiRequest<ApiDataResponse<any>>(CRM_ENDPOINTS.TOKHAI_THONGTIN_NOTIFICATION, {
+        method: 'POST',
+        body: JSON.stringify({ toKhaiId })
+      })
+      
+      console.log('✅ Lấy thông báo tờ khai thành công:', {
+        status: response.status,
+        message: response.message,
+        requestId: response.requestId,
+        executionTime: response.executionTime + 'ms',
+        toKhaiId: toKhaiId
+      })
+      
+      return response
+      
+    } catch (error: any) {
+      console.error('❌ Lấy thông báo tờ khai thất bại:', error)
+      return {
+        status: 500,
+        requestId: `error-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        startTime: Date.now(),
+        endTime: Date.now(),
+        executionTime: 0,
+        message: 'Lỗi khi lấy thông báo tờ khai',
+        path: '/api/tokhai-thongtin/notification',
+        data: {},
+        error: error.message || 'Unknown error',
+        errors: [error.message || 'Unknown error']
+      }
     }
   }
 

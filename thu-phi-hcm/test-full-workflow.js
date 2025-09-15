@@ -93,7 +93,7 @@ async function testFullWorkflow() {
     const createData = {
       "nguonTK": 0,
       "maDoanhNghiepKhaiPhi": `TEST${Date.now()}`,
-      "tenDoanhNghiepKhaiPhi": "Công ty TNHH Test Workflow",
+      "tenDoanhNghiepKhaiPhi": "Công ty TNHH Vận Tải Biển Đông Workflow",
       "diaChiKhaiPhi": "123 Test Street, Test City",
       "maDoanhNghiepXNK": `XNK${Date.now()}`,
       "tenDoanhNghiepXNK": "Công ty XNK Test Workflow", 

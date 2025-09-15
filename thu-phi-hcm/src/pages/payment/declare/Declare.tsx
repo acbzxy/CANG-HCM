@@ -54,33 +54,36 @@ const Declare: React.FC = () => {
       
       console.log('📄 Getting notification for declaration:', row.id);
       
-      // Mock API call for getting notification
-      // In production, this would call actual notification API
-      setTimeout(() => {
+      // Call actual API for getting notification
+      const response = await CrmApiService.layThongBaoToKhai(row.id);
+      
+      if (response.status === 200) {
         // Update the notification status
         setFilteredData(prevData =>
           prevData.map(item =>
             item.id === row.id
-              ? { ...item, thongBao: 'Đã lấy' }
+              ? { ...item, thongBao: 'Đã lấy', trangThai: 'Đã lấy thông báo' }
               : item
           )
         );
         setAllData(prevData =>
           prevData.map(item =>
             item.id === row.id
-              ? { ...item, thongBao: 'Đã lấy' }
+              ? { ...item, thongBao: 'Đã lấy', trangThai: 'Đã lấy thông báo' }
               : item
           )
         );
         
         showSuccess('Đã lấy thông báo thành công!', 'Thành công');
         console.log('✅ Notification retrieved successfully for item:', row.id);
-        setLoading(false);
-      }, 1500);
+      } else {
+        throw new Error(response.message || 'Lỗi khi lấy thông báo');
+      }
       
     } catch (error: any) {
       console.error('💥 Get notification failed:', error);
       showError(`Lỗi lấy thông báo: ${error.message}`, 'Lỗi');
+    } finally {
       setLoading(false);
     }
   };
@@ -339,8 +342,8 @@ const Declare: React.FC = () => {
   const transformApiDataToDisplayFormat = (apiData: any[]) => {
     return apiData.map((item: any, index: number) => ({
       id: item.id,
-      doanhNghiepKB: item.companyName || item.tenDoanhNghiepKhaiPhi || 'Công ty TNHH Test',
-      doanhNghiepXNK: item.companyName || item.tenDoanhNghiepXuatNhapKhau || 'Công ty TNHH Test',
+      doanhNghiepKB: item.companyName || item.tenDoanhNghiepKhaiPhi || 'Công ty TNHH Vận Tải Biển Đông',
+      doanhNghiepXNK: item.companyName || item.tenDoanhNghiepXuatNhapKhau || 'Công ty TNHH Vận Tải Biển Đông',
       maHQ: item.declarationNumber || item.soToKhai || `${Math.floor(100000000 + Math.random() * 900000000)}`,
       ngayHQ: item.createdAt ? new Date(item.createdAt).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
       ngayPhi: item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
@@ -419,9 +422,9 @@ const Declare: React.FC = () => {
           },
           {
             id: 2,
-            doanhNghiepKB: "Công ty TNHH Test",
-            doanhNghiepXNK: "Công ty TNHH Test", 
-            tenDoanhNghiep: "Công ty TNHH Test",
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông", 
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông",
             maDoanhNghiep: "0201398888",
             soToKhai: "234567890",
             maHQ: "200300400",
@@ -439,9 +442,9 @@ const Declare: React.FC = () => {
           },
           {
             id: 3,
-            doanhNghiepKB: "Công ty TNHH Test",
-            doanhNghiepXNK: "Công ty TNHH Test",
-            tenDoanhNghiep: "Công ty TNHH Test", 
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
             maDoanhNghiep: "0201399999",
             soToKhai: "345678901",
             maHQ: "345678901",
@@ -459,9 +462,9 @@ const Declare: React.FC = () => {
           },
           {
             id: 4,
-            doanhNghiepKB: "Công ty TNHH Test",
-            doanhNghiepXNK: "Công ty TNHH Test",
-            tenDoanhNghiep: "Công ty TNHH Test", 
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
             maDoanhNghiep: "0201399999",
             soToKhai: "456789012",
             maHQ: "300400500",
@@ -479,9 +482,9 @@ const Declare: React.FC = () => {
           },
           {
             id: 5,
-            doanhNghiepKB: "Công ty TNHH Test",
-            doanhNghiepXNK: "Công ty TNHH Test",
-            tenDoanhNghiep: "Công ty TNHH Test", 
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
             maDoanhNghiep: "0201399999",
             soToKhai: "567890123",
             maHQ: "567890123",
@@ -499,9 +502,9 @@ const Declare: React.FC = () => {
           },
           {
             id: 6,
-            doanhNghiepKB: "Công ty TNHH Test",
-            doanhNghiepXNK: "Công ty TNHH Test",
-            tenDoanhNghiep: "Công ty TNHH Test", 
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
             maDoanhNghiep: "0201399999",
             soToKhai: "678901234",
             maHQ: "678901234",
@@ -519,9 +522,9 @@ const Declare: React.FC = () => {
           },
           {
             id: 7,
-            doanhNghiepKB: "Công ty TNHH Test",
-            doanhNghiepXNK: "Công ty TNHH Test",
-            tenDoanhNghiep: "Công ty TNHH Test", 
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
             maDoanhNghiep: "0201399999",
             soToKhai: "789012345",
             maHQ: "789012345",
@@ -559,9 +562,9 @@ const Declare: React.FC = () => {
           },
           {
             id: 9,
-            doanhNghiepKB: "Công ty TNHH Test",
-            doanhNghiepXNK: "Công ty TNHH Test",
-            tenDoanhNghiep: "Công ty TNHH Test", 
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
             maDoanhNghiep: "0201399999",
             soToKhai: "901234567",
             maHQ: "901234567",
@@ -579,9 +582,9 @@ const Declare: React.FC = () => {
           },
           {
             id: 10,
-            doanhNghiepKB: "Công ty TNHH Test",
-            doanhNghiepXNK: "Công ty TNHH Test",
-            tenDoanhNghiep: "Công ty TNHH Test", 
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
             maDoanhNghiep: "0201399999",
             soToKhai: "012345678",
             maHQ: "012345678",
@@ -628,9 +631,9 @@ const Declare: React.FC = () => {
         },
         {
           id: 2,
-          doanhNghiepKB: "Công ty TNHH Test",
-          doanhNghiepXNK: "Công ty TNHH Test",
-          tenDoanhNghiep: "Công ty TNHH Test",
+          doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+          doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+          tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông",
           maDoanhNghiep: "0201398888",
           soToKhai: "444555666",
           maHQ: "444555666",
@@ -1075,27 +1078,23 @@ const Declare: React.FC = () => {
                         <i className="fas fa-sticky-note"></i>
                       </button>
                     </td>
-                    <td>{row.doanhNghiepKB || row.doanhNghiepXNK || 'Công ty TNHH Test'}</td>
+                    <td>{row.doanhNghiepKB || row.doanhNghiepXNK || 'Công ty TNHH Vận Tải Biển Đông'}</td>
                     <td>{row.maHQ}</td>
                     <td>{row.ngayHQ}</td>
                     <td>{row.ngayPhi}</td>
                     <td>{row.loai}</td>
                     <td className="text-center">
-                      {row.trangThai === 'Đã ký số' ? (
+                      {row.thongBao !== 'Đã lấy' ? (
                         <button
                           onClick={() => handleGetNotification(row)}
-                          disabled={loading || row.thongBao === 'Đã lấy'}
-                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                            row.thongBao === 'Đã lấy'
-                              ? 'bg-green-100 text-green-800 border border-green-300 cursor-not-allowed'
-                              : 'bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer'
-                          }`}
+                          disabled={loading}
+                          className="px-3 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {row.thongBao === 'Đã lấy' ? 'Đã lấy' : 'Lấy thông báo'}
+                          {loading ? 'Đang xử lý...' : 'Lấy thông báo'}
                         </button>
                       ) : (
-                        <span className="text-gray-500 text-xs">
-                          {row.thongBao}
+                        <span className="px-3 py-1 text-xs rounded border bg-green-100 text-green-800 border border-green-300">
+                          Đã lấy
                         </span>
                       )}
                     </td>
@@ -1277,7 +1276,7 @@ const Declare: React.FC = () => {
                     <div>
                       <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Doanh nghiệp:</span>
                       <div style={{ fontSize: '14px', color: '#1e293b', fontWeight: '600', marginTop: '2px' }}>
-                        {selectedRowData.doanhNghiepKB || selectedRowData.doanhNghiepXNK || 'Công ty TNHH Test'}
+                        {selectedRowData.doanhNghiepKB || selectedRowData.doanhNghiepXNK || 'Công ty TNHH Vận Tải Biển Đông'}
                       </div>
                     </div>
                     
@@ -1728,7 +1727,7 @@ const Declare: React.FC = () => {
                             borderBottom: index < Math.min(companies.length, 10) - 1 ? '1px solid #f3f4f6' : 'none'
                           }}>
                             <td style={{ padding: '12px' }}>{company.id || '-'}</td>
-                            <td style={{ padding: '12px', fontWeight: '500' }}>{company.companyName || company.tenCongTy || 'Công ty TNHH Test'}</td>
+                            <td style={{ padding: '12px', fontWeight: '500' }}>{company.companyName || company.tenCongTy || 'Công ty TNHH Vận Tải Biển Đông'}</td>
                             <td style={{ padding: '12px' }}>{company.taxCode || company.maSoThue || '0201399999'}</td>
                             <td style={{ padding: '12px' }}>
                               <span style={{
