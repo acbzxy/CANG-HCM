@@ -6,6 +6,9 @@ const ReceiptLookupPage: React.FC = () => {
   const [verificationCode, setVerificationCode] = useState('')
   const [captcha, setCaptcha] = useState('JRHMG')
   const [selectedReceipt, setSelectedReceipt] = useState<any>(null)
+  const [showReceiptModal, setShowReceiptModal] = useState(false)
+  const [receiptData, setReceiptData] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
 
   // Mock receipt data based on the image
   const mockReceipt = {
@@ -61,17 +64,77 @@ const ReceiptLookupPage: React.FC = () => {
     }
   }
 
-  const handleSearch = () => {
-    // Simulate search - in real app, this would call API
-    if (receiptId && verificationCode) {
-      setSelectedReceipt(mockReceipt)
-    } else {
+  const handleSearch = async () => {
+    if (!receiptId || !verificationCode) {
       alert('Vui lòng nhập đầy đủ thông tin!')
+      return
+    }
+
+    setLoading(true)
+    try {
+      // Call API to search receipt by maBl
+      const response = await fetch(`/api/bien-lai/search-by-mabl?maBl=${receiptId}`)
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      const result = await response.json()
+      console.log('🔍 Receipt search response:', result)
+      
+      if (result.status === 200 && result.data) {
+        console.log('🔍 Receipt data received:', result.data)
+        console.log('🔍 imageBl type:', typeof result.data.imageBl)
+        console.log('🔍 imageBl length:', result.data.imageBl?.length)
+        console.log('🔍 imageBl preview:', result.data.imageBl?.substring(0, 100) + '...')
+        setReceiptData(result.data)
+        setShowReceiptModal(true)
+      } else {
+        alert('Không tìm thấy biên lai với mã: ' + receiptId)
+      }
+    } catch (error) {
+      console.error('❌ Error searching receipt:', error)
+      alert('Có lỗi xảy ra khi tìm kiếm biên lai: ' + (error as Error).message)
+    } finally {
+      setLoading(false)
     }
   }
 
   const handlePrint = () => {
     window.print()
+  }
+
+  const handleCloseModal = () => {
+    setShowReceiptModal(false)
+    setReceiptData(null)
+  }
+
+  const handleDownloadPDF = () => {
+    if (receiptData?.imageBl) {
+      try {
+        // Create blob from base64
+        const byteCharacters = atob(receiptData.imageBl)
+        const byteNumbers = new Array(byteCharacters.length)
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i)
+        }
+        const byteArray = new Uint8Array(byteNumbers)
+        const blob = new Blob([byteArray], { type: 'application/pdf' })
+        
+        // Create download link
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `bien-lai-${receiptData.maBl}.pdf`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+        
+        console.log('✅ PDF downloaded successfully')
+      } catch (error) {
+        console.error('❌ Error downloading PDF:', error)
+        alert('Có lỗi khi tải PDF: ' + (error as Error).message)
+      }
+    }
   }
 
   const refreshCaptcha = () => {
@@ -172,9 +235,10 @@ const ReceiptLookupPage: React.FC = () => {
                         <td className="py-6 pl-4">
                           <button
                             onClick={handleSearch}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 transition-colors duration-200 flex items-center"
+                            disabled={loading}
+                            className={`${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'} text-white font-medium px-6 py-2 transition-colors duration-200 flex items-center`}
                           >
-                            🔍 Tìm biên lai
+                            {loading ? '⏳ Đang tìm...' : '🔍 Tìm biên lai'}
                           </button>
                         </td>
                       </tr>
@@ -364,6 +428,167 @@ const ReceiptLookupPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Receipt Modal - PDF Viewer Style */}
+      {showReceiptModal && receiptData && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          zIndex: 1000,
+          display: 'flex',
+          flexDirection: 'column'
+        }}>
+          {/* Header */}
+          <div style={{
+            backgroundColor: '#1f2937',
+            color: 'white',
+            padding: '12px 20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderBottom: '1px solid #374151'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '16px', fontWeight: 'bold' }}>▲ Phát hành biên lai điện tử</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={handleCloseModal}
+                style={{
+                  backgroundColor: 'transparent',
+                  color: 'white',
+                  border: 'none',
+                  fontSize: '20px',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px'
+                }}
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          {/* PDF Viewer Area */}
+          <div style={{
+            flex: 1,
+            backgroundColor: '#f3f4f6',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'
+          }}>
+            {/* Toolbar */}
+            <div style={{
+              backgroundColor: 'white',
+              borderBottom: '1px solid #e5e7eb',
+              padding: '8px 16px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              fontSize: '12px'
+            }}>
+              <button style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}>📋</button>
+              <button style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}>🖨️</button>
+              <button style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}>⋯</button>
+              <div style={{ width: '1px', height: '20px', backgroundColor: '#d1d5db' }}></div>
+              <button style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}>-</button>
+              <span style={{ fontSize: '11px', color: '#6b7280' }}>100%</span>
+              <button style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}>+</button>
+              <div style={{ width: '1px', height: '20px', backgroundColor: '#d1d5db' }}></div>
+              <button style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}>‹</button>
+              <span style={{ fontSize: '11px', color: '#6b7280' }}>1 of 1</span>
+              <button style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}>›</button>
+              <div style={{ width: '1px', height: '20px', backgroundColor: '#d1d5db' }}></div>
+              <button style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}>🔄</button>
+              <button style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}>📋</button>
+              <button style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}>🔍</button>
+              <button 
+                onClick={handleDownloadPDF}
+                style={{ 
+                  padding: '4px 8px', 
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '4px', 
+                  backgroundColor: 'white',
+                  cursor: 'pointer'
+                }}
+                title="Tải PDF"
+              >
+                💾
+              </button>
+              <button style={{ padding: '4px 8px', border: '1px solid #d1d5db', borderRadius: '4px', backgroundColor: 'white' }}>⋯</button>
+            </div>
+
+            {/* PDF Content */}
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              padding: '20px',
+              overflow: 'auto'
+            }}>
+              {receiptData.imageBl ? (
+                <iframe
+                  src={`data:application/pdf;base64,${receiptData.imageBl}`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                    backgroundColor: 'white'
+                  }}
+                  title="Biên lai điện tử PDF"
+                />
+              ) : (
+                <div style={{
+                  backgroundColor: 'white',
+                  padding: '40px',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  textAlign: 'center',
+                  color: '#6b7280'
+                }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>📄</div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px' }}>Biên lai điện tử</div>
+                  <div style={{ fontSize: '14px' }}>Mã biên lai: {receiptData.maBl}</div>
+                  <div style={{ fontSize: '14px' }}>Số biên lai: {receiptData.soBl}</div>
+                  <div style={{ fontSize: '14px' }}>Ngày tạo: {new Date(receiptData.ngayTao).toLocaleDateString('vi-VN')}</div>
+                  <div style={{ fontSize: '12px', marginTop: '16px', color: '#9ca3af' }}>
+                    Không có dữ liệu PDF từ server
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{
+            backgroundColor: '#f9fafb',
+            borderTop: '1px solid #e5e7eb',
+            padding: '12px 20px',
+            textAlign: 'right'
+          }}>
+            <button
+              onClick={handleCloseModal}
+              style={{
+                backgroundColor: '#6b7280',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '8px 16px',
+                fontSize: '14px',
+                cursor: 'pointer'
+              }}
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -29,6 +29,7 @@ import com.pht.model.response.CancelInvoiceResponse;
 import com.pht.model.response.DeleteInvoiceResponse;
 import com.pht.model.response.ReplaceInvoiceResponse;
 import com.pht.service.ToKhaiThongTinService;
+import com.pht.service.SBienLaiService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -49,6 +50,7 @@ public class FptEInvoiceController {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final ToKhaiThongTinService toKhaiThongTinService;
+    private final SBienLaiService sBienLaiService;
 
     @Value("${fpt.einvoice.api.url:https://api-uat.einvoice.fpt.com.vn}")
     private String einvoiceApiUrl;
@@ -569,6 +571,9 @@ public class FptEInvoiceController {
                 // Lưu vào StoKhai
                 saveBase64ToStoKhai(toKhaiId, processedBase64);
                 
+                // Cập nhật imageBl cho SBienLai từ StoKhai thông qua ID_BIEN_LAI
+                updateBienLaiImageBlFromStoKhai(toKhaiId, processedBase64);
+                
                 log.info("Đã lưu base64 data cho tờ khai ID: {}", toKhaiId);
                 
                 return processedBase64;
@@ -741,6 +746,43 @@ public class FptEInvoiceController {
         } catch (Exception e) {
             log.error("Lỗi khi cập nhật trạng thái phát hành cho tờ khai ID {}: ", toKhaiId, e);
             throw new RuntimeException("Lỗi khi cập nhật trạng thái phát hành: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Cập nhật imageBl của SBienLai từ StoKhai thông qua ID_BIEN_LAI
+     */
+    private void updateBienLaiImageBlFromStoKhai(Long toKhaiId, String base64Data) {
+        try {
+            // Lấy tờ khai để lấy ID_BIEN_LAI
+            com.pht.entity.StoKhai toKhai = toKhaiThongTinService.getToKhaiThongTinById(toKhaiId);
+            
+            if (toKhai.getIdBienLai() != null) {
+                log.info("Tìm thấy ID_BIEN_LAI: {} trong tờ khai ID: {}, bắt đầu cập nhật imageBl cho biên lai", 
+                        toKhai.getIdBienLai(), toKhaiId);
+                
+                // Lấy biên lai từ ID_BIEN_LAI
+                com.pht.entity.SBienLai bienLai = sBienLaiService.findById(toKhai.getIdBienLai());
+                
+                if (bienLai != null) {
+                    // Cập nhật imageBl cho biên lai
+                    bienLai.setImageBl(base64Data);
+                    
+                    // Lưu vào database
+                    sBienLaiService.save(bienLai);
+                    
+                    log.info("Đã cập nhật imageBl cho biên lai ID: {} từ tờ khai ID: {}, độ dài data: {}", 
+                            toKhai.getIdBienLai(), toKhaiId, base64Data.length());
+                } else {
+                    log.warn("Không tìm thấy biên lai với ID: {} từ tờ khai ID: {}", 
+                            toKhai.getIdBienLai(), toKhaiId);
+                }
+            } else {
+                log.info("Tờ khai ID: {} không có ID_BIEN_LAI, bỏ qua cập nhật imageBl cho biên lai", toKhaiId);
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi cập nhật imageBl cho biên lai từ tờ khai ID {}: ", toKhaiId, e);
+            // Không throw exception để không ảnh hưởng đến flow chính
         }
     }
 

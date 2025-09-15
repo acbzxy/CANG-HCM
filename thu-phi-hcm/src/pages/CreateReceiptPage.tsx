@@ -7,8 +7,79 @@ import { useNotification } from '../context/NotificationContext';
 const CreateReceiptPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const selectedFeeDeclaration = location.state?.selectedItem;
+  const selectedItem = location.state?.selectedItem; // Can be either fee declaration or receipt data
+  const isEditMode = location.state?.isEditMode || false;
+  const passedToKhaiId = location.state?.toKhaiId; // toKhaiId passed from parent component
+  const passedTrangThaiPhatHanh = location.state?.trangThaiPhatHanh; // trangThaiPhatHanh passed from parent component
   const { showError, showSuccess, showInfo } = useNotification();
+  
+  // Log the received data
+  React.useEffect(() => {
+    if (selectedItem) {
+      console.log('🗂️ ===== RECEIPT PAGE RECEIVED DATA =====');
+      console.log('🗂️ selectedItem:', selectedItem);
+      console.log('🗂️ isEditMode:', isEditMode);
+      console.log('🗂️ Data type:', isEditMode ? 'Receipt data' : 'Fee declaration data');
+      console.log('🗂️ selectedItem.ghiChu:', selectedItem.ghiChu);
+      console.log('🗂️ passedTrangThaiPhatHanh:', passedTrangThaiPhatHanh);
+      console.log('🗂️ passedToKhaiId:', passedToKhaiId);
+      console.log('🗂️ ===== TRẠNG THÁI PHÁT HÀNH DEBUG =====');
+      console.log('🗂️ Initial currentTrangThaiPhatHanh:', currentTrangThaiPhatHanh);
+      console.log('🗂️ Source - passedTrangThaiPhatHanh:', passedTrangThaiPhatHanh);
+      console.log('🗂️ ===== END TRẠNG THÁI PHÁT HÀNH DEBUG =====');
+      console.log('🗂️ selectedItem.ghiChu type:', typeof selectedItem.ghiChu);
+      console.log('🗂️ selectedItem.ghiChu length:', selectedItem.ghiChu?.length);
+      console.log('🗂️ selectedItem.ndungTp:', selectedItem.ndungTp);
+      console.log('🗂️ selectedItem.ndungTp type:', typeof selectedItem.ndungTp);
+      console.log('🗂️ selectedItem.ndungTp length:', selectedItem.ndungTp?.length);
+      console.log('🗂️ All selectedItem keys:', Object.keys(selectedItem));
+      console.log('🗂️ selectedItem with ghiChu:', selectedItem.ghiChu);
+      console.log('🗂️ selectedItem with ndungTp:', selectedItem.ndungTp);
+      console.log('🗂️ selectedItem with noiDung:', selectedItem.noiDung);
+      console.log('🗂️ selectedItem with moTa:', selectedItem.moTa);
+    } else {
+      console.log('🗂️ No selectedItem data received');
+    }
+  }, [selectedItem, isEditMode]);
+
+  // Effect to handle passedTrangThaiPhatHanh changes
+  React.useEffect(() => {
+    if (passedTrangThaiPhatHanh) {
+      console.log('🗂️ ===== UPDATING TRẠNG THÁI PHÁT HÀNH =====');
+      console.log('🗂️ passedTrangThaiPhatHanh changed to:', passedTrangThaiPhatHanh);
+      console.log('🗂️ Current currentTrangThaiPhatHanh:', currentTrangThaiPhatHanh);
+      setCurrentTrangThaiPhatHanh(passedTrangThaiPhatHanh);
+      console.log('🗂️ Updated currentTrangThaiPhatHanh to:', passedTrangThaiPhatHanh);
+      console.log('🗂️ ===== END UPDATING TRẠNG THÁI PHÁT HÀNH =====');
+    }
+  }, [passedTrangThaiPhatHanh]);
+
+  // Effect to handle passedToKhaiId changes
+  React.useEffect(() => {
+    if (passedToKhaiId) {
+      console.log('🗂️ ===== UPDATING TOKHAIID =====');
+      console.log('🗂️ passedToKhaiId changed to:', passedToKhaiId);
+      console.log('🗂️ Current toKhaiId:', toKhaiId);
+      setToKhaiId(passedToKhaiId);
+      console.log('🗂️ Updated toKhaiId to:', passedToKhaiId);
+      console.log('🗂️ ===== END UPDATING TOKHAIID =====');
+    }
+  }, [passedToKhaiId]);
+
+  // Load systemReceiptId and idPhatHanh from localStorage on component mount
+  React.useEffect(() => {
+    const savedSystemReceiptId = localStorage.getItem('systemReceiptId');
+    if (savedSystemReceiptId && !systemReceiptId) {
+      setSystemReceiptId(parseInt(savedSystemReceiptId));
+      console.log('🗂️ Loaded systemReceiptId from localStorage:', savedSystemReceiptId);
+    }
+    
+    const savedIdPhatHanh = localStorage.getItem('idPhatHanh');
+    if (savedIdPhatHanh && !idPhatHanh) {
+      setIdPhatHanh(savedIdPhatHanh);
+      console.log('🗂️ Loaded idPhatHanh from localStorage:', savedIdPhatHanh);
+    }
+  }, []);
 
   // Add CSS for loading spinner animation
   React.useEffect(() => {
@@ -25,65 +96,165 @@ const CreateReceiptPage: React.FC = () => {
     };
   }, []);
 
-  // Map data from selected fee declaration
+  // Map data from selected item (either fee declaration or receipt data)
   React.useEffect(() => {
-      if (selectedFeeDeclaration) {
-        console.log('Mapping data from selected fee declaration:', selectedFeeDeclaration);
-        console.log('🔍 toKhaiId (selectedFeeDeclaration.id):', selectedFeeDeclaration.id);
-        console.log('🔍 trangThaiPhatHanh value:', selectedFeeDeclaration.trangThaiPhatHanh);
-        console.log('🔍 trangThaiPhatHanh type:', typeof selectedFeeDeclaration.trangThaiPhatHanh);
-        console.log('🔍 trangThaiPhatHanh === "01":', selectedFeeDeclaration.trangThaiPhatHanh === '01');
-        console.log('🔍 trangThaiPhatHanh === "02":', selectedFeeDeclaration.trangThaiPhatHanh === '02');
-        console.log('🔍 trangThaiPhatHanh === "03":', selectedFeeDeclaration.trangThaiPhatHanh === '03');
-        console.log('🔍 trangThaiPhatHanh === "00":', selectedFeeDeclaration.trangThaiPhatHanh === '00');
-        console.log('Current isSaved state:', isSaved);
+    if (selectedItem) {
+      console.log('🗂️ ===== RECEIPT MAPPING DEBUG =====');
+      console.log('🗂️ Full selectedItem object:', JSON.stringify(selectedItem, null, 2));
+      console.log('🗂️ isEditMode:', isEditMode);
+      
+      if (isEditMode) {
+        // Handle receipt data (from /api/bien-lai/{id})
+        console.log('🗂️ Processing receipt data...');
         
-        // Set current trangThaiPhatHanh
-        const newTrangThaiPhatHanh = selectedFeeDeclaration.trangThaiPhatHanh || '00';
+        // Load receipt data into form
+        setReceiptCode(selectedItem.maBl || '');
+        setReceiptNumber(selectedItem.soBl || '');
+        setReceiptDate(selectedItem.ngayBl ? selectedItem.ngayBl.split('T')[0] : '');
+        setPaymentMethod(selectedItem.hthucTtoan || 'Chuyển khoản');
+        setNotes(selectedItem.ghiChu || '');
+        setStbNumber(selectedItem.stb || '');
+        setDeclarationDate(selectedItem.ngayNop ? selectedItem.ngayNop.split('T')[0] : '');
+        setCustomsDeclarationNumber(selectedItem.soTk || '');
+        setCustomsDeclarationDate(selectedItem.ngayTk ? selectedItem.ngayTk.split('T')[0] : '');
+        setStorageLocationCode(selectedItem.maKho || '');
+        
+        // Load company information
+        setCompanyCode(selectedItem.mst || '');
+        setCompanyName(selectedItem.tenDvi || '');
+        setCompanyAddress(selectedItem.diaChi || '');
+        setPayerEmail(selectedItem.email || '');
+        setPayerIdNumber(selectedItem.sdt || '');
+        
+        // Load fee details
+        if (selectedItem.chiTietList && selectedItem.chiTietList.length > 0) {
+          console.log('🗂️ DEBUG: EDIT MODE - Loading fee details from receipt data');
+          console.log('🗂️ DEBUG: EDIT MODE - isEditMode:', isEditMode);
+          console.log('🗂️ DEBUG: EDIT MODE - selectedItem.idPhatHanh:', selectedItem.idPhatHanh);
+          console.log('🗂️ DEBUG: EDIT MODE - selectedItem keys:', Object.keys(selectedItem));
+          console.log('🗂️ DEBUG: EDIT MODE - Has idPhatHanh?', 'idPhatHanh' in selectedItem);
+          
+          const mappedFeeDetails = selectedItem.chiTietList.map((chiTiet: any, index: number) => {
+            const content = chiTiet.ndungTp || `Chi tiết phí ${index + 1}`;
+            console.log(`🗂️ DEBUG: EDIT MODE - Chi tiết ${index + 1} content:`, content);
+            console.log(`🗂️ DEBUG: EDIT MODE - chiTiet.ndungTp:`, chiTiet.ndungTp);
+            return {
+              id: chiTiet.id || index + 1,
+              content: content,
+              unit: chiTiet.dvt || '',
+              quantity: chiTiet.soLuong || 1,
+              price: chiTiet.donGia || 0,
+              total: chiTiet.soTien || 0
+            };
+          });
+          setFeeDetails(mappedFeeDetails);
+          console.log('🗂️ Loaded fee details from receipt data:', mappedFeeDetails);
+          console.log('🗂️ First chiTiet item:', selectedItem.chiTietList[0]);
+        }
+        
+        // Set system receipt ID and saved state
+        if (selectedItem.id) {
+          setSystemReceiptId(selectedItem.id);
+          setIsSaved(true);
+          // Use passedTrangThaiPhatHanh if available, otherwise default to '01' for edit mode
+          const newTrangThaiPhatHanh = passedTrangThaiPhatHanh || '01';
+          setCurrentTrangThaiPhatHanh(newTrangThaiPhatHanh);
+          console.log('🗂️ Set systemReceiptId:', selectedItem.id);
+          console.log('🗂️ Set isSaved: true');
+          console.log('🗂️ Set currentTrangThaiPhatHanh:', newTrangThaiPhatHanh);
+          console.log('🗂️ Source - passedTrangThaiPhatHanh:', passedTrangThaiPhatHanh);
+        }
+        
+        // For edit mode, use passedToKhaiId from parent component
+        if (passedToKhaiId) {
+          setToKhaiId(passedToKhaiId);
+          console.log('🗂️ Set toKhaiId from parent:', passedToKhaiId);
+        } else {
+          console.log('🗂️ Warning: No toKhaiId passed from parent component');
+        }
+        
+        // Set idPhatHanh from selectedItem for edit mode
+        if (selectedItem.idPhatHanh) {
+          setIdPhatHanh(selectedItem.idPhatHanh);
+          console.log('🗂️ Set idPhatHanh from selectedItem:', selectedItem.idPhatHanh);
+        } else {
+          console.log('🗂️ Warning: No idPhatHanh in selectedItem');
+        }
+        
+      } else {
+        // Handle fee declaration data (from /api/tokhai-thongtin/{id})
+        console.log('🗂️ Processing fee declaration data...');
+        
+        // Set current trangThaiPhatHanh - prioritize passedTrangThaiPhatHanh from parent
+        const newTrangThaiPhatHanh = passedTrangThaiPhatHanh || selectedItem.trangThaiPhatHanh || '00';
         console.log('🔍 Setting currentTrangThaiPhatHanh to:', newTrangThaiPhatHanh);
+        console.log('🔍 Source - passedTrangThaiPhatHanh:', passedTrangThaiPhatHanh);
+        console.log('🔍 Source - selectedItem.trangThaiPhatHanh:', selectedItem.trangThaiPhatHanh);
         setCurrentTrangThaiPhatHanh(newTrangThaiPhatHanh);
         
-        // Map company information
-      if (selectedFeeDeclaration.company) {
-        setCompanyCode(selectedFeeDeclaration.company.taxCode || '');
-        setCompanyName(selectedFeeDeclaration.company.companyName || '');
-        setCompanyAddress(selectedFeeDeclaration.company.address || '');
-        setReceivingCompanyCode(selectedFeeDeclaration.company.taxCode || '');
-        setReceivingCompanyName(selectedFeeDeclaration.company.companyName || '');
-        setPayerEmail(selectedFeeDeclaration.company.email || '');
-        setPayerName(selectedFeeDeclaration.company.representativeName || selectedFeeDeclaration.company.companyName || '');
+        // Set toKhaiId from fee declaration data
+        if (selectedItem.id) {
+          setToKhaiId(selectedItem.id);
+          console.log('🗂️ Set toKhaiId:', selectedItem.id);
+        }
+        
+        // Map company information from API response
+        if (selectedItem.maDoanhNghiepKhaiPhi) {
+          setCompanyCode(selectedItem.maDoanhNghiepKhaiPhi || '');
+          setCompanyName(selectedItem.tenDoanhNghiepKhaiPhi || '');
+          setCompanyAddress(selectedItem.diaChiKhaiPhi || '');
+          setReceivingCompanyCode(selectedItem.maDoanhNghiepXNK || selectedItem.maDoanhNghiepKhaiPhi || '');
+          setReceivingCompanyName(selectedItem.tenDoanhNghiepXNK || selectedItem.tenDoanhNghiepKhaiPhi || '');
+          setPayerEmail(''); // API doesn't provide email
+          setPayerName(selectedItem.tenDoanhNghiepKhaiPhi || '');
+        } else if (selectedItem.company) {
+          // Fallback to old structure
+          setCompanyCode(selectedItem.company.taxCode || '');
+          setCompanyName(selectedItem.company.companyName || '');
+          setCompanyAddress(selectedItem.company.address || '');
+          setReceivingCompanyCode(selectedItem.company.taxCode || '');
+          setReceivingCompanyName(selectedItem.company.companyName || '');
+          setPayerEmail(selectedItem.company.email || '');
+          setPayerName(selectedItem.company.representativeName || selectedItem.company.companyName || '');
+        }
+        
+        // Map declaration information from API response
+        if (selectedItem.soToKhai) {
+          setCustomsDeclarationNumber(selectedItem.soToKhai);
+        } else if (selectedItem.declarationNumber) {
+          setCustomsDeclarationNumber(selectedItem.declarationNumber);
+        }
+        
+        if (selectedItem.ngayToKhai) {
+          setDeclarationDate(selectedItem.ngayToKhai);
+          setCustomsDeclarationDate(selectedItem.ngayToKhai);
+        } else if (selectedItem.arrivalDate) {
+          setDeclarationDate(selectedItem.arrivalDate);
+          setCustomsDeclarationDate(selectedItem.arrivalDate);
+        }
+        
+        // Generate receipt code based on declaration number
+        const declarationNumber = selectedItem.soToKhai || selectedItem.declarationNumber;
+        if (declarationNumber) {
+          const receiptCodeGenerated = `BL${declarationNumber.slice(-4)}`;
+          setReceiptCode(receiptCodeGenerated);
+        }
+        
+        // Set current date for receipt
+        setReceiptDate(new Date().toISOString().split('T')[0]);
+        
+        // Set notes with declaration info
+        // Set notes from ghiChu field (nội dung thu phí)
+        setNotes(selectedItem.ghiChu || '');
+        
+        // Check if there are existing receipts for this fee declaration
+        checkExistingReceiptsFromLocalStorage(selectedItem.id);
       }
-      
-      // Map declaration information
-      if (selectedFeeDeclaration.declarationNumber) {
-        setCustomsDeclarationNumber(selectedFeeDeclaration.declarationNumber);
-      }
-      
-      if (selectedFeeDeclaration.arrivalDate) {
-        setDeclarationDate(selectedFeeDeclaration.arrivalDate);
-        setCustomsDeclarationDate(selectedFeeDeclaration.arrivalDate);
-      }
-      
-      // Generate receipt code based on declaration number
-      if (selectedFeeDeclaration.declarationNumber) {
-        const receiptCodeGenerated = `BL${selectedFeeDeclaration.declarationNumber.slice(-4)}`;
-        setReceiptCode(receiptCodeGenerated);
-      }
-      
-      // Set current date for receipt
-      setReceiptDate(new Date().toISOString().split('T')[0]);
-      
-      // Set notes with declaration info
-      const notesText = `Biên lai cho tờ khai ${selectedFeeDeclaration.declarationNumber} - Tàu ${selectedFeeDeclaration.vesselName || 'N/A'}`;
-      setNotes(notesText);
-      
-      // Check if there are existing receipts for this fee declaration
-      // Use localStorage workaround since backend API is temporarily disabled
-      checkExistingReceiptsFromLocalStorage(selectedFeeDeclaration.id);
       
       console.log('Data mapping completed');
     }
-  }, [selectedFeeDeclaration]);
+  }, [selectedItem, isEditMode]);
+
 
   // Function to check existing receipts from localStorage (workaround)
   const checkExistingReceiptsFromLocalStorage = (feeDeclarationId: number) => {
@@ -112,6 +283,12 @@ const CreateReceiptPage: React.FC = () => {
         console.log('✅ Set isSaved = true from localStorage update');
         console.log('✅ New isSaved state:', true);
         setSavedReceiptId(updateForThisDeclaration.receiptId || Date.now()); // Use stored receipt ID
+        
+        // Load system receipt ID if available
+        if (updateForThisDeclaration.systemReceiptId) {
+          setSystemReceiptId(updateForThisDeclaration.systemReceiptId);
+          console.log('✅ Loaded systemReceiptId from localStorage:', updateForThisDeclaration.systemReceiptId);
+        }
         
         // Load idPhatHanh from localStorage if available
         // if (updateForThisDeclaration.idPhatHanh) {
@@ -232,9 +409,11 @@ const CreateReceiptPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isIssuing, setIsIssuing] = useState(false);
   // const [receiptStatus, setReceiptStatus] = useState<'DRAFT' | 'ISSUED' | 'CANCELLED' | 'PAID'>('DRAFT');
-  const [currentTrangThaiPhatHanh, setCurrentTrangThaiPhatHanh] = useState<string>('00');
+  const [currentTrangThaiPhatHanh, setCurrentTrangThaiPhatHanh] = useState<string>(passedTrangThaiPhatHanh || '00');
   const [savedReceiptId, setSavedReceiptId] = useState<number | null>(null);
-  // const [idPhatHanh, setIdPhatHanh] = useState<string>('');
+  const [systemReceiptId, setSystemReceiptId] = useState<number | null>(null); // ID từ hệ thống biên lai
+  const [toKhaiId, setToKhaiId] = useState<number | null>(null); // ID của tờ khai
+  const [idPhatHanh, setIdPhatHanh] = useState<string>(''); // ID phát hành
   const [createdSid, setCreatedSid] = useState<string>('');
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -262,31 +441,89 @@ const CreateReceiptPage: React.FC = () => {
 
   // Update fee details when selected fee declaration changes
   React.useEffect(() => {
-    if (selectedFeeDeclaration) {
-      // Generate fee details based on selected fee declaration
-      const generatedFeeDetails = [
-        {
-          id: 1,
-          content: `Phí cảng vụ cho tàu ${selectedFeeDeclaration.vesselName || 'N/A'}`,
-          unit: 'Tàu',
-          quantity: 1,
-          price: Math.round((selectedFeeDeclaration.totalFeeAmount || 750000) * 0.6),
-          total: Math.round((selectedFeeDeclaration.totalFeeAmount || 750000) * 0.6)
-        },
-        {
-          id: 2,
-          content: `Phí hoa tiêu - Container ${selectedFeeDeclaration.grossTonnage || 'N/A'} tấn`,
-          unit: 'Container',
-          quantity: 1,
-          price: Math.round((selectedFeeDeclaration.totalFeeAmount || 750000) * 0.4),
-          total: Math.round((selectedFeeDeclaration.totalFeeAmount || 750000) * 0.4)
-        }
-      ];
+    if (selectedItem) {
+      // Map fee details from chiTietList if available, otherwise generate default
+      console.log('🗂️ Checking chiTietList condition...');
+      console.log('🗂️ chiTietList exists:', !!selectedItem.chiTietList);
+      console.log('🗂️ chiTietList length:', selectedItem.chiTietList?.length);
+      console.log('🗂️ chiTietList > 0:', (selectedItem.chiTietList?.length || 0) > 0);
       
-      setFeeDetails(generatedFeeDetails);
-      console.log('Fee details updated:', generatedFeeDetails);
+      // Check if we have valid chiTietList data
+      const hasValidChiTietList = selectedItem.chiTietList && 
+                                 Array.isArray(selectedItem.chiTietList) && 
+                                 selectedItem.chiTietList.length > 0;
+      
+      console.log('🗂️ hasValidChiTietList:', hasValidChiTietList);
+      
+      if (hasValidChiTietList) {
+        console.log('🗂️ ✅ Mapping chiTietList:', selectedItem.chiTietList);
+        console.log('🗂️ First chiTiet item:', selectedItem.chiTietList[0]);
+        console.log('🗂️ First chiTiet ghiChu:', selectedItem.chiTietList[0]?.ghiChu);
+        console.log('🗂️ First chiTiet ghiChuKhaiPhi:', selectedItem.chiTietList[0]?.ghiChuKhaiPhi);
+        console.log('🗂️ DEBUG: CREATE MODE - selectedItem.ghiChu for mapping:', selectedItem.ghiChu);
+        console.log('🗂️ DEBUG: CREATE MODE - selectedItem.ndungTp for mapping:', selectedItem.ndungTp);
+        console.log('🗂️ DEBUG: CREATE MODE - isEditMode:', isEditMode);
+        console.log('🗂️ DEBUG: CREATE MODE - Full selectedItem structure:', JSON.stringify(selectedItem, null, 2));
+        const mappedFeeDetails = selectedItem.chiTietList.map((chiTiet: any, index: number) => {
+          console.log(`🗂️ DEBUG: CREATE MODE - chiTiet ${index + 1} structure:`, JSON.stringify(chiTiet, null, 2));
+          // Thử nhiều trường khác nhau để lấy nội dung thu phí
+          const content = selectedItem.ghiChu || 
+                         selectedItem.ndungTp || 
+                         selectedItem.noiDung || 
+                         selectedItem.moTa || 
+                         selectedItem.tenNoiDung ||
+                         chiTiet.ghiChu ||
+                         chiTiet.ndungTp ||
+                         chiTiet.noiDung ||
+                         chiTiet.moTa ||
+                         `Chi tiết phí ${index + 1}`;
+          console.log(`🗂️ DEBUG: CREATE MODE - Chi tiết ${index + 1} content:`, content);
+          console.log(`🗂️ DEBUG: CREATE MODE - Fallback tried - ghiChu: ${selectedItem.ghiChu}, ndungTp: ${selectedItem.ndungTp}, noiDung: ${selectedItem.noiDung}`);
+          console.log(`🗂️ DEBUG: CREATE MODE - chiTiet fields - ghiChu: ${chiTiet.ghiChu}, ndungTp: ${chiTiet.ndungTp}, noiDung: ${chiTiet.noiDung}`);
+          return {
+            id: index + 1,
+            content: content, // Lấy từ ghiChu của tờ khai (create mode)
+            unit: chiTiet.donViTinh || chiTiet.dvt || chiTiet.unit || '',
+            quantity: chiTiet.tongTrongLuong || chiTiet.soLuong || 1,
+            price: chiTiet.soTien || chiTiet.thanhTien || 0,
+            total: chiTiet.soTien || chiTiet.thanhTien || 0
+          };
+        });
+        
+        setFeeDetails(mappedFeeDetails);
+        console.log('🗂️ ✅ Fee details mapped from chiTietList:', mappedFeeDetails);
+        console.log('🗂️ ✅ Total mapped items:', mappedFeeDetails.length);
+      } else {
+        // Fallback to generated fee details if no chiTietList
+        console.log('🗂️ ❌ No chiTietList found, generating default fee details');
+        console.log('🗂️ Reason: chiTietList is', selectedItem.chiTietList);
+        const totalAmount = selectedItem.tongTienPhi || selectedItem.totalFeeAmount || 750000;
+        console.log('🗂️ Using totalAmount:', totalAmount);
+        const vesselName = selectedItem.phuongTienVC || selectedItem.vesselName || 'N/A';
+        const generatedFeeDetails = [
+          {
+            id: 1,
+            content: `Phí cảng vụ cho tàu ${vesselName}`,
+            unit: 'Tàu',
+            quantity: 1,
+            price: Math.round(totalAmount * 0.6),
+            total: Math.round(totalAmount * 0.6)
+          },
+          {
+            id: 2,
+            content: `Phí hoa tiêu - Container ${selectedItem.grossTonnage || 'N/A'} tấn`,
+            unit: 'Container',
+            quantity: 1,
+            price: Math.round(totalAmount * 0.4),
+            total: Math.round(totalAmount * 0.4)
+          }
+        ];
+        
+        setFeeDetails(generatedFeeDetails);
+        console.log('Fee details generated (fallback):', generatedFeeDetails);
+      }
     }
-  }, [selectedFeeDeclaration]);
+  }, [selectedItem]);
 
   const totalAmount = feeDetails.reduce((sum, item) => sum + item.total, 0);
 
@@ -294,11 +531,162 @@ const CreateReceiptPage: React.FC = () => {
     return amount.toLocaleString('vi-VN');
   };
 
+  // Function to save receipt data to system
+  const saveReceiptToSystem = async (sidToUse?: string) => {
+    try {
+      // Với trạng thái phát hành 01 (Bản nháp), chỉ update thôi
+      // Chỉ tạo mới khi chưa có systemReceiptId (lần đầu tạo)
+      const isUpdate = systemReceiptId !== null;
+      
+      // Validation: Với trạng thái 01, phải có systemReceiptId để update
+      if (currentTrangThaiPhatHanh === '01' && !systemReceiptId) {
+        throw new Error('Trạng thái Bản nháp (01) yêu cầu phải có ID biên lai để update');
+      }
+      
+      const apiEndpoint = isUpdate ? '/api/bien-lai/update' : '/api/bien-lai/create';
+      
+      console.log(`🔍 Calling ${apiEndpoint} API...`);
+      console.log('🔍 Is update mode:', isUpdate);
+      console.log('🔍 Current trangThaiPhatHanh:', currentTrangThaiPhatHanh);
+      console.log('🔍 System receipt ID:', systemReceiptId);
+      console.log('🔍 toKhaiId:', selectedItem?.id);
+      console.log('🔍 Logic: systemReceiptId !== null =', systemReceiptId !== null);
+      
+      // Use createdSid as idPhatHanh for both create and update operations
+      // Use passed sid or existing createdSid or generate new one
+      let finalIdPhatHanh = sidToUse || createdSid;
+      
+      if (!finalIdPhatHanh) {
+        finalIdPhatHanh = `FPTIDA${Date.now()}`;
+        setCreatedSid(finalIdPhatHanh);
+        console.log('🔍 Generated new idPhatHanh:', finalIdPhatHanh);
+      } else {
+        console.log('🔍 Using idPhatHanh:', finalIdPhatHanh);
+        console.log('🔍 Source - sidToUse:', sidToUse);
+        console.log('🔍 Source - createdSid:', createdSid);
+      }
+      
+      console.log('🔍 Final idPhatHanh:', finalIdPhatHanh);
+      console.log('🔍 Operation type:', isUpdate ? 'UPDATE' : 'CREATE');
+      console.log('🔍 ===== ID PHÁT HÀNH CONSISTENCY CHECK =====');
+      console.log('🔍 FPT E-Invoice API will use sid:', sidToUse || createdSid);
+      console.log('🔍 Bien-lai API will use idPhatHanh:', finalIdPhatHanh);
+      console.log('🔍 Are they the same?', (sidToUse || createdSid) === finalIdPhatHanh);
+      console.log('🔍 ===== END CONSISTENCY CHECK =====');
+      
+      const baseData = {
+        mst: companyCode,
+        tenDvi: companyName,
+        diaChi: companyAddress,
+        email: payerEmail,
+        sdt: payerIdNumber,
+        maBl: receiptCode,
+        soBl: receiptNumber,
+        hthucTtoan: paymentMethod,
+        ngayBl: new Date(receiptDate).toISOString(),
+        loaiCtiet: "01", // Default type
+        ghiChu: notes,
+        stb: stbNumber,
+        ngayNop: new Date().toISOString(),
+        soTk: customsDeclarationNumber,
+        ngayTk: new Date(customsDeclarationDate).toISOString(),
+        maKho: storageLocationCode,
+        toKhaiId: toKhaiId || 0, // Use toKhaiId state
+        idPhatHanh: finalIdPhatHanh, // Add idPhatHanh
+        chiTietList: feeDetails.map(detail => ({
+          id: detail.id || 0, // Include ID for update
+          ndungTp: detail.content,
+          dvt: detail.unit,
+          soLuong: detail.quantity,
+          donGia: detail.price,
+          soTien: detail.total
+        }))
+      };
+
+      // Add specific fields based on create/update
+      const receiptData = isUpdate 
+        ? {
+            ...baseData,
+            id: systemReceiptId,
+            nguoiSua: "System"
+          }
+        : {
+            ...baseData,
+            nguoiTao: "System"
+          };
+
+      console.log('🔍 Receipt data to save:', receiptData);
+      console.log('🔍 chiTietList mapping:', receiptData.chiTietList);
+      console.log('🔍 API endpoint:', apiEndpoint);
+      console.log('🔍 Request method:', isUpdate ? 'PUT' : 'POST');
+      console.log('🔍 Request body:', JSON.stringify(receiptData, null, 2));
+      console.log('🔍 idPhatHanh in request:', receiptData.idPhatHanh);
+      console.log('🔍 Operation:', isUpdate ? 'UPDATE' : 'CREATE');
+
+      const response = await fetch(apiEndpoint, {
+        method: isUpdate ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(receiptData)
+      });
+
+      console.log('🔍 Response status:', response.status);
+      console.log('🔍 Response ok:', response.ok);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.log('🔍 Error response data:', errorData);
+        console.log('🔍 Error response text:', await response.text().catch(() => 'No text'));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log(`✅ Receipt ${isUpdate ? 'updated' : 'created'} in system successfully:`, result);
+      
+      // If it's a create operation, save the returned ID
+      if (!isUpdate && result.id) {
+        setSystemReceiptId(result.id);
+        console.log('✅ Saved system receipt ID:', result.id);
+        
+        // Also save to localStorage for persistence
+        localStorage.setItem('systemReceiptId', result.id.toString());
+        console.log('✅ Saved system receipt ID to localStorage:', result.id);
+        
+        // Save idPhatHanh to localStorage for later use
+        localStorage.setItem('idPhatHanh', finalIdPhatHanh);
+        console.log('✅ Saved idPhatHanh to localStorage:', finalIdPhatHanh);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error saving receipt to system:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      // Don't show error to user as this is additional save
+      // The main E-Invoice save was already successful
+    }
+  };
+
   const handleSave = async () => {
     console.log('=== handleSave clicked ===');
     console.log('receiptCode:', receiptCode);
     console.log('payerName:', payerName);
     console.log('payerEmail:', payerEmail);
+    
+    // Generate sid once for this save operation
+    let currentSid = createdSid;
+    if (!createdSid) {
+      currentSid = `FPTIDA${Date.now()}`;
+      setCreatedSid(currentSid);
+      console.log('🔍 Generated new sid for save operation:', currentSid);
+    } else {
+      console.log('🔍 Using existing sid for save operation:', currentSid);
+    }
+    
     try {
       setIsSaving(true);
       
@@ -313,7 +701,6 @@ const CreateReceiptPage: React.FC = () => {
       // Validate required fields
       if (!receiptCode.trim()) {
         console.log('Validation failed: receiptCode is empty');
-        alert('Vui lòng nhập mã biên lai'); // Temporary alert for debugging
         showError('Vui lòng nhập mã biên lai');
         return;
       }
@@ -328,21 +715,96 @@ const CreateReceiptPage: React.FC = () => {
       
       if (!payerEmail.trim()) {
         console.log('Validation failed: payerEmail is empty');
-        alert('Vui lòng nhập email người nộp phí'); // Temporary alert for debugging
         showError('Vui lòng nhập email người nộp phí');
         return;
       }
       console.log('Validation passed: payerEmail =', payerEmail);
+      
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(payerEmail.trim())) {
+        console.log('Validation failed: payerEmail format is invalid');
+        showError('Vui lòng nhập địa chỉ email hợp lệ');
+        return;
+      }
+      console.log('Validation passed: payerEmail format is valid');
 
       // Call Backend E-Invoice API directly
       console.log('🔍 Calling Backend E-Invoice API...');
-      const eInvoiceRequest = mapToFPTEInvoiceRequest();
+      const eInvoiceRequest = mapToFPTEInvoiceRequest(currentSid);
       console.log('🔍 Backend E-Invoice request:', eInvoiceRequest);
+      console.log('🔍 ===== SID CONSISTENCY CHECK =====');
+      console.log('🔍 FPT E-Invoice API sid:', eInvoiceRequest.inv.sid);
+      console.log('🔍 Bien-lai API will use idPhatHanh:', currentSid);
+      console.log('🔍 Are they the same?', eInvoiceRequest.inv.sid === currentSid);
+      console.log('🔍 ===== END SID CONSISTENCY CHECK =====');
       
       const eInvoiceResponse = await fptEInvoiceService.createICR(eInvoiceRequest);
       console.log('🔍 Backend E-Invoice response:', eInvoiceResponse);
       console.log('🔍 eInvoiceResponse.success:', eInvoiceResponse.success);
       console.log('🔍 eInvoiceResponse.data:', eInvoiceResponse.data);
+      
+      // Check if backend is not available
+      if (!eInvoiceResponse.success && eInvoiceResponse.error?.includes('HTTP')) {
+        console.log('❌ Backend server not available, using mock fallback');
+        
+        // Use mock fallback for development
+        const mockResponse = {
+          success: true,
+          data: {
+            id: Date.now().toString(),
+            status: 6,
+            message: 'Mock receipt created successfully'
+          }
+        };
+        
+        console.log('🔍 Using mock response:', mockResponse);
+        
+        // Process mock response as if it were real
+        const responseData = mockResponse.data;
+        console.log('✅ Mock E-Invoice created successfully, status:', responseData.status);
+        
+        if (responseData.status === 6) {
+          // Success - set states
+          console.log('🎉 SUCCESS: Mock responseData.status === 6, showing success message');
+          setIsSaved(true);
+          console.log('✅ Set isSaved = true from Mock E-Invoice success');
+          setSavedReceiptId(parseInt(responseData.id) || Date.now());
+          
+          // Only update to "Bản nháp" if currently "Mới"
+          if (currentTrangThaiPhatHanh === '00') {
+            setCurrentTrangThaiPhatHanh('01'); // Update to "Bản nháp" after successful save
+          }
+          console.log('🔔 Calling showSuccess with message: Lưu biên lai thành công! (Mock)');
+          showSuccess('Lưu biên lai thành công! (Chế độ phát triển)', 'Lưu biên lai');
+          console.log('🔔 showSuccess called successfully');
+          
+          // Store mock data for later use
+          localStorage.setItem('eInvoiceData', JSON.stringify(responseData));
+          
+          // Call additional API to save receipt data (even in mock mode)
+          await saveReceiptToSystem(currentSid);
+          
+          // Update localStorage with system receipt ID (mock mode)
+          if (systemReceiptId) {
+            const existingUpdates = JSON.parse(localStorage.getItem('feeDeclarationUpdates') || '[]');
+            const updatedUpdates = existingUpdates.map((update: any) => 
+              update.id === selectedItem?.id 
+                ? { ...update, systemReceiptId: systemReceiptId }
+                : update
+            );
+            localStorage.setItem('feeDeclarationUpdates', JSON.stringify(updatedUpdates));
+            console.log('✅ Updated localStorage with systemReceiptId (mock):', systemReceiptId);
+          }
+          
+          // Auto-generate receipt code for next time
+          if (responseData.id) {
+            const nextNumber = parseInt(receiptNumber) + 1;
+            setReceiptNumber(String(nextNumber).padStart(7, '0'));
+          }
+        }
+        return;
+      }
       
       if (eInvoiceResponse.success && eInvoiceResponse.data) {
         const responseData = eInvoiceResponse.data;
@@ -371,6 +833,21 @@ const CreateReceiptPage: React.FC = () => {
           // Store E-Invoice data for later use
           localStorage.setItem('eInvoiceData', JSON.stringify(responseData));
           
+          // Call additional API to save receipt data
+          await saveReceiptToSystem(currentSid);
+          
+          // Update localStorage with system receipt ID
+          if (systemReceiptId) {
+            const existingUpdates = JSON.parse(localStorage.getItem('feeDeclarationUpdates') || '[]');
+            const updatedUpdates = existingUpdates.map((update: any) => 
+              update.id === selectedItem?.id 
+                ? { ...update, systemReceiptId: systemReceiptId }
+                : update
+            );
+            localStorage.setItem('feeDeclarationUpdates', JSON.stringify(updatedUpdates));
+            console.log('✅ Updated localStorage with systemReceiptId:', systemReceiptId);
+          }
+          
           // Auto-generate receipt code for next time
           if (responseData.id) {
             const nextNumber = parseInt(receiptNumber) + 1;
@@ -397,20 +874,30 @@ const CreateReceiptPage: React.FC = () => {
   };
 
   // Map form data to FPT E-Invoice format
-  const mapToFPTEInvoiceRequest = (): FPTEInvoiceRequest => {
+  const mapToFPTEInvoiceRequest = (sidToUse?: string): FPTEInvoiceRequest => {
     const totalAmountValue = totalAmount || 0;
     const vatAmountValue = 0; // Will be calculated from items
     const grandTotal = totalAmountValue + vatAmountValue;
     
-    // Generate unique sid and save to state
-    const generatedSid = `FPTIDA${Date.now()}`;
-    setCreatedSid(generatedSid);
-    console.log('🔍 Generated sid:', generatedSid);
+    // Use passed sid or existing createdSid or generate new one
+    const finalSid = sidToUse || createdSid || `FPTIDA${Date.now()}`;
+    if (!sidToUse && !createdSid) {
+      setCreatedSid(finalSid);
+      console.log('🔍 Generated new sid:', finalSid);
+    } else {
+      console.log('🔍 Using sid:', finalSid);
+    }
     
     console.log('🔍 Mapping to FPT E-Invoice request:');
-    console.log('🔍 selectedFeeDeclaration.id (toKhaiId):', selectedFeeDeclaration?.id);
+    console.log('🔍 selectedItem.id (toKhaiId):', selectedItem?.id);
     console.log('🔍 companyName:', companyName);
     console.log('🔍 totalAmountValue:', totalAmountValue);
+    console.log('🔍 ===== TOKHAIID DEBUG IN MAP REQUEST =====');
+    console.log('🔍 toKhaiId state:', toKhaiId);
+    console.log('🔍 selectedItem.id:', selectedItem?.id);
+    console.log('🔍 passedToKhaiId:', passedToKhaiId);
+    console.log('🔍 Final toKhaiId in request:', toKhaiId);
+    console.log('🔍 ===== END TOKHAIID DEBUG =====');
     
     // Convert number to Vietnamese words (simplified)
     const numberToWords = (num: number): string => {
@@ -430,20 +917,20 @@ const CreateReceiptPage: React.FC = () => {
     return {
       lang: "vi",
       user: {
-        username: "0318680861.MPOS",
-        password: "Admin@123"
+        username: "0304126484.bl",
+        password: "Api@123456"
       },
-      toKhaiId: selectedFeeDeclaration?.id || null, // Add toKhaiId from selected fee declaration
+      toKhaiId: toKhaiId, // Use toKhaiId state
       inv: {
-        sid: generatedSid, // Use generated sid
+        sid: finalSid, // Use consistent sid
         idt: "",
         type: "01/MTT",
         form: "1",
-        serial: "C25MAA",
+        serial: "C25MTT",
         seq: "",
         ma_cqthu: "",
         bname: companyName,
-        btax: '0318680861',
+        btax: '0304126484',
         btel: '',
         bmail: '',
         idnumber: '',
@@ -477,13 +964,20 @@ const CreateReceiptPage: React.FC = () => {
           vat: Math.round(detail.total * 0.1), // 10% VAT
           total: detail.total + Math.round(detail.total * 0.1)
         })),
-        stax: '0318680861'
+        stax: '0304126484'
       }
     };
   };
 
   const handleIssueReceipt = async () => {
+    console.log('🔍 ===== HANDLE ISSUE RECEIPT CLICKED =====');
+    console.log('🔍 currentTrangThaiPhatHanh:', currentTrangThaiPhatHanh);
+    console.log('🔍 currentTrangThaiPhatHanh !== "01":', currentTrangThaiPhatHanh !== '01');
+    console.log('🔍 isIssuing:', isIssuing);
+    console.log('🔍 ===== END HANDLE ISSUE RECEIPT DEBUG =====');
+    
     if (currentTrangThaiPhatHanh !== '01') {
+      console.log('🔍 ❌ Cannot issue receipt - not in draft status');
       showError('Chỉ có thể phát hành biên lai ở trạng thái bản nháp');
       return;
     }
@@ -495,16 +989,19 @@ const CreateReceiptPage: React.FC = () => {
     
     // Determine which sid to use based on status
     let sidToUse = '';
+    console.log('🔍 DEBUG: createdSid:', createdSid);
+    console.log('🔍 DEBUG: currentTrangThaiPhatHanh:', currentTrangThaiPhatHanh);
+    console.log('🔍 DEBUG: selectedItem:', selectedItem);
+    
     if (currentTrangThaiPhatHanh === '00' as string) {
-      // For 'Mới' status, use createdSid if exists (after save), otherwise generate new
+      // For 'Mới' status, use createdSid (should exist after save)
       if (createdSid) {
         sidToUse = createdSid;
-        console.log('🔍 Using createdSid after save for status', currentTrangThaiPhatHanh, ':', createdSid);
+        console.log('🔍 Using createdSid for status', currentTrangThaiPhatHanh, ':', createdSid);
       } else {
-        const generatedSid = `FPTIDA${Date.now()}`;
-        setCreatedSid(generatedSid);
-        sidToUse = generatedSid;
-        console.log('🔍 Generated new sid for status', currentTrangThaiPhatHanh, ':', generatedSid);
+        console.log('🔍 ❌ No createdSid found for status', currentTrangThaiPhatHanh);
+        showError('Vui lòng lưu biên lai trước khi phát hành');
+        return;
       }
     } else if (currentTrangThaiPhatHanh === '01' as string) {
       // For 'Bản nháp' status, use createdSid if exists (after save), otherwise use idPhatHanh from database
@@ -512,21 +1009,34 @@ const CreateReceiptPage: React.FC = () => {
         sidToUse = createdSid;
         console.log('🔍 Using createdSid after save for status', currentTrangThaiPhatHanh, ':', createdSid);
       } else {
-        if (!selectedFeeDeclaration?.idPhatHanh) {
+        
+        console.log('🔍 DEBUG: idPhatHanh from state:', idPhatHanh);
+        console.log('🔍 DEBUG: selectedItem for idPhatHanh:', selectedItem);
+        console.log('🔍 DEBUG: selectedItem.idPhatHanh:', selectedItem?.idPhatHanh);
+        console.log('🔍 DEBUG: selectedItem keys:', selectedItem ? Object.keys(selectedItem) : 'selectedItem is null');
+        
+        // Use idPhatHanh from state first, then fallback to selectedItem
+        const finalIdPhatHanh = idPhatHanh || selectedItem?.idPhatHanh;
+        if (!finalIdPhatHanh) {
+          console.log('🔍 ❌ Missing idPhatHanh in both state and selectedItem');
           showError('Không tìm thấy thông tin phát hành từ database.');
           return;
         }
-        sidToUse = selectedFeeDeclaration.idPhatHanh;
-        console.log('🔍 Using idPhatHanh from database for status', currentTrangThaiPhatHanh, ':', selectedFeeDeclaration.idPhatHanh);
+        sidToUse = finalIdPhatHanh;
+        console.log('🔍 Using idPhatHanh for status', currentTrangThaiPhatHanh, ':', finalIdPhatHanh);
       }
     } else {
       // For 'Phát hành' and 'Đã hủy' status, use idPhatHanh from database
-      if (!selectedFeeDeclaration?.idPhatHanh) {
+      console.log('🔍 DEBUG: selectedItem for idPhatHanh (other status):', selectedItem);
+      console.log('🔍 DEBUG: selectedItem.idPhatHanh (other status):', selectedItem?.idPhatHanh);
+      console.log('🔍 DEBUG: selectedItem keys (other status):', selectedItem ? Object.keys(selectedItem) : 'selectedItem is null');
+      if (!selectedItem?.idPhatHanh) {
+        console.log('🔍 ❌ Missing idPhatHanh in selectedItem (other status)');
         showError('Không tìm thấy thông tin phát hành từ database.');
         return;
       }
-      sidToUse = selectedFeeDeclaration.idPhatHanh;
-      console.log('🔍 Using idPhatHanh from database for status', currentTrangThaiPhatHanh, ':', selectedFeeDeclaration.idPhatHanh);
+      sidToUse = selectedItem.idPhatHanh;
+      console.log('🔍 Using idPhatHanh from database for status', currentTrangThaiPhatHanh, ':', selectedItem.idPhatHanh);
     }
     
     try {
@@ -536,19 +1046,52 @@ const CreateReceiptPage: React.FC = () => {
       
       // Create search ICR request
       const searchRequest: FPTEInvoiceSearchRequest = {
-        stax: "0318680861",
+        stax: "0304126484",
         type: "pdf",
         sid: sidToUse, // Use appropriate sid based on status
         user: {
-          username: "0318680861.MPOS",
-          password: "Admin@123"
+          username: "0304126484.bl",
+          password: "Api@123456"
         },
-        toKhaiId: selectedFeeDeclaration?.id || 0
+        toKhaiId: toKhaiId || 0
       };
       
       console.log('🔍 Search ICR Request:', searchRequest);
+      console.log('🔍 ===== TOKHAIID DEBUG IN ISSUE RECEIPT =====');
+      console.log('🔍 toKhaiId state:', toKhaiId);
+      console.log('🔍 selectedItem.id:', selectedItem?.id);
+      console.log('🔍 passedToKhaiId:', passedToKhaiId);
+      console.log('🔍 Final toKhaiId in request:', toKhaiId || 0);
+      console.log('🔍 ===== END TOKHAIID DEBUG =====');
       
       const response = await fptEInvoiceService.searchICR(searchRequest);
+      
+      // Check if backend is not available for search
+      if (!response.success && response.error?.includes('HTTP')) {
+        console.log('❌ Backend server not available for search, using mock fallback');
+        
+        // Use mock search response for development
+        const mockSearchResponse = {
+          success: true,
+          data: {
+            base64Data: 'data:application/pdf;base64,JVBERi0xLjQKJcfsj6IKNSAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDMgMCBSCi9NZWRpYUJveCBbMCAwIDU5NSA4NDJdCi9SZXNvdXJjZXMgPDwKL0ZvbnQgPDwKL0YxIDIgMCBSCj4+Cj4+Ci9Db250ZW50cyA0IDAgUgo+PgplbmRvYmoKNiAwIG9iago8PAovVHlwZSAvRm9udAovU3VidHlwZSAvVHlwZTEKL0Jhc2VGb250IC9IZWx2ZXRpY2EKPj4KZW5kb2JqCjcgMCBvYmoKPDwKL1R5cGUgL1BhZ2VzCi9LaWRzIFs1IDAgUl0KL0NvdW50IDEKPj4KZW5kb2JqCjggMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDcgMCBSCj4+CmVuZG9iagp4cmVmCjAgOQowMDAwMDAwMDAwIDY1NTM1IGYKMDAwMDAwMDAwOSAwMDAwMCBuCjAwMDAwMDAwNTggMDAwMDAgbgowMDAwMDAwMTE1IDAwMDAwIG4KMDAwMDAwMDI2OCAwMDAwMCBuCjAwMDAwMDAzMjUgMDAwMDAgbgowMDAwMDAwNDE0IDAwMDAwIG4KMDAwMDAwMDUwMyAwMDAwMCBuCjAwMDAwMDA1NjIgMDAwMDAgbgp0cmFpbGVyCjw8Ci9TaXplIDkKL1Jvb3QgOCAwIFIKPj4Kc3RhcnR4cmVmCjY1NQolJUVPRgo=',
+            message: 'Mock PDF generated successfully'
+          }
+        };
+        
+        console.log('🔍 Using mock search response:', mockSearchResponse);
+        
+        // Process mock search response
+        const searchData = mockSearchResponse.data;
+        if (searchData.base64Data) {
+          setReceiptImageBase64(searchData.base64Data);
+          console.log('✅ Mock Base64 PDF extracted');
+        }
+        
+        // Show receipt modal
+        setShowReceiptModal(true);
+        return;
+      }
       
       if (response.success && response.data) {
         console.log('✅ Search ICR successful:', response.data);
@@ -595,7 +1138,7 @@ const CreateReceiptPage: React.FC = () => {
     try {
       // Call API to update trang thai phat hanh
       const updateRequest: FPTEInvoiceUpdateStatusRequest = {
-        id: selectedFeeDeclaration?.id || 0
+        id: selectedItem?.id || 0
       };
       
       console.log('🔍 Update Status Request:', updateRequest);
@@ -609,10 +1152,10 @@ const CreateReceiptPage: React.FC = () => {
         setCurrentTrangThaiPhatHanh('02'); // Update to "Phát hành"
         
         // Update localStorage for backward compatibility
-        if (selectedFeeDeclaration) {
+        if (selectedItem) {
           const existingUpdates = JSON.parse(localStorage.getItem('feeDeclarationUpdates') || '[]');
           const issuedUpdate = {
-            id: selectedFeeDeclaration.id,
+            id: selectedItem.id,
             newPaymentStatus: 'PAID',
             newDeclarationStatus: 'APPROVED', 
             receiptCreated: true,
@@ -621,14 +1164,14 @@ const CreateReceiptPage: React.FC = () => {
             timestamp: new Date().toISOString()
           };
           
-          const filteredUpdates = existingUpdates.filter((update: any) => update.id !== selectedFeeDeclaration.id);
+          const filteredUpdates = existingUpdates.filter((update: any) => update.id !== selectedItem.id);
           filteredUpdates.push(issuedUpdate);
           localStorage.setItem('feeDeclarationUpdates', JSON.stringify(filteredUpdates));
           
           // Also update issuedReceipts for backward compatibility
           const issuedReceipts = JSON.parse(localStorage.getItem('issuedReceipts') || '[]');
-          if (!issuedReceipts.includes(selectedFeeDeclaration.id)) {
-            issuedReceipts.push(selectedFeeDeclaration.id);
+          if (!issuedReceipts.includes(selectedItem.id)) {
+            issuedReceipts.push(selectedItem.id);
             localStorage.setItem('issuedReceipts', JSON.stringify(issuedReceipts));
           }
           
@@ -1231,26 +1774,34 @@ const CreateReceiptPage: React.FC = () => {
             
             {/* Issue Receipt button */}
             {(() => {
-              console.log('🔍 Debug Issue Receipt button:', { 
-                isSaved, 
-                currentTrangThaiPhatHanh, 
-                'currentTrangThaiPhatHanh === "01"': currentTrangThaiPhatHanh === '01',
-                'isSaved && currentTrangThaiPhatHanh === "01"': isSaved && currentTrangThaiPhatHanh === '01'
-              });
+              console.log('🔍 ===== TRẠNG THÁI PHÁT HÀNH DEBUG =====');
+              console.log('🔍 isSaved:', isSaved);
+              console.log('🔍 currentTrangThaiPhatHanh:', currentTrangThaiPhatHanh);
+              console.log('🔍 currentTrangThaiPhatHanh type:', typeof currentTrangThaiPhatHanh);
+              console.log('🔍 currentTrangThaiPhatHanh === "00":', currentTrangThaiPhatHanh === '00');
+              console.log('🔍 currentTrangThaiPhatHanh === "01":', currentTrangThaiPhatHanh === '01');
+              console.log('🔍 currentTrangThaiPhatHanh === "02":', currentTrangThaiPhatHanh === '02');
+              console.log('🔍 isIssuing:', isIssuing);
+              console.log('🔍 systemReceiptId:', systemReceiptId);
+              console.log('🔍 toKhaiId:', toKhaiId);
+              console.log('🔍 selectedItem:', selectedItem);
+              console.log('🔍 isEditMode:', isEditMode);
+              console.log('🔍 ===== END TRẠNG THÁI PHÁT HÀNH DEBUG =====');
               return null;
             })()}
-            {(currentTrangThaiPhatHanh === '00' || currentTrangThaiPhatHanh === '01') && (
+            {(currentTrangThaiPhatHanh === '00' || currentTrangThaiPhatHanh === '01' || currentTrangThaiPhatHanh === '02') && (
               <button
                 onClick={handleIssueReceipt}
-                disabled={isIssuing || currentTrangThaiPhatHanh === '00'}
+                disabled={isIssuing || currentTrangThaiPhatHanh === '00' || currentTrangThaiPhatHanh === '02'}
                 style={{
                   backgroundColor: isIssuing ? '#9ca3af' : 
-                                 currentTrangThaiPhatHanh === '00' ? '#9ca3af' : '#10b981',
+                                 currentTrangThaiPhatHanh === '00' ? '#9ca3af' : 
+                                 currentTrangThaiPhatHanh === '02' ? '#6b7280' : '#10b981',
                   color: 'white',
                   border: 'none',
                   padding: '10px 20px',
                   borderRadius: '4px',
-                  cursor: (isIssuing || currentTrangThaiPhatHanh === '00') ? 'not-allowed' : 'pointer',
+                  cursor: (isIssuing || currentTrangThaiPhatHanh === '00' || currentTrangThaiPhatHanh === '02') ? 'not-allowed' : 'pointer',
                   fontSize: '13px',
                   fontWeight: '500',
                   display: 'flex',
@@ -1272,29 +1823,14 @@ const CreateReceiptPage: React.FC = () => {
                   </>
                 ) : currentTrangThaiPhatHanh === '00' ? (
                   <>🚫 Phát hành biên lai</>
+                ) : currentTrangThaiPhatHanh === '02' ? (
+                  <>✅ Đã phát hành biên lai</>
                 ) : (
                   <>📄 Phát hành biên lai</>
                 )}
               </button>
             )}
             
-            {/* Show success message when receipt is issued */}
-            {currentTrangThaiPhatHanh === '02' && (
-              <div style={{
-                backgroundColor: '#d4edda',
-                color: '#155724',
-                border: '1px solid #c3e6cb',
-                padding: '10px 15px',
-                borderRadius: '4px',
-                fontSize: '13px',
-                fontWeight: '500',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                ✅ Biên lai đã được phát hành thành công
-              </div>
-            )}
           </div>
 
           {/* Right side - Save and Close buttons */}

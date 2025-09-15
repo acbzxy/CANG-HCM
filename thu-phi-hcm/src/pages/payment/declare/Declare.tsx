@@ -700,7 +700,7 @@ const Declare: React.FC = () => {
                   }
                 </span>
                 <span className="text-xs text-gray-500">
-                  (10.14.122.24:8081)
+                  (localhost:8081)
                 </span>
                 {connectionDetails && (
                   <span className="text-xs text-blue-600 cursor-help" 
@@ -762,7 +762,7 @@ const Declare: React.FC = () => {
                 <div><strong>Khắc phục:</strong></div>
                 <div>1. Kiểm tra server CRM có đang chạy không</div>
                 <div>2. Kiểm tra network và firewall</div>
-                <div>3. Xem Swagger: http://10.14.122.24:8081/PHT_BE/swagger-ui/index.html</div>
+                <div>3. Xem Swagger: http://localhost:8081/PHT_BE/swagger-ui/index.html</div>
               </div>
             </div>
           )}

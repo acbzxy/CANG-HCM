@@ -12,3 +12,5 @@ ADD COLUMN MA_TC_CONT VARCHAR(100);
 -- Add comments to describe the column purposes
 COMMENT ON COLUMN SBIEU_CUOC.MA_LOAI_CONT IS 'Mã loại container - Container type code for direct mapping';
 COMMENT ON COLUMN SBIEU_CUOC.MA_TC_CONT IS 'Mã tính chất container - Container characteristic code for direct mapping';
+
+

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useNotification } from '../context/NotificationContext'
 
 interface QROrder {
   id: number
@@ -15,6 +16,7 @@ interface QROrder {
 }
 
 const QROrderPage: React.FC = () => {
+  const { showError, showSuccess } = useNotification()
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
   
@@ -30,9 +32,17 @@ const QROrderPage: React.FC = () => {
   // Modal states
   const [showCreateOrderModal, setShowCreateOrderModal] = useState(false)
   const [showSelectFeeModal, setShowSelectFeeModal] = useState(false)
+  const [showOrderDetailsModal, setShowOrderDetailsModal] = useState(false)
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState<any>(null)
   const [formData, setFormData] = useState({
-    nganHang: 'Ngân hàng TMCP Ngoại Thương Việt Nam',
-    hinhThucThanhToan: 'Thông qua liên kết Ecom',
+    nganHang: 'VCB', // Value thay vì tên
+    hinhThucThanhToan: 'EC', // Value thay vì tên
+    diaChi: '',
+    email: '',
+    sdt: '',
+    soDonHang: '',
+    ngayDonHang: '',
+    moTa: '',
     ghiChu: ''
   })
   const [selectedFeeNotifications, setSelectedFeeNotifications] = useState<typeof feeNotifications>([])
@@ -43,6 +53,8 @@ const QROrderPage: React.FC = () => {
   const [countdown, setCountdown] = useState(3)
   const [showPaymentLink, setShowPaymentLink] = useState(false)
   const [showQRCode, setShowQRCode] = useState(false)
+  const [donHangId, setDonHangId] = useState<number | null>(null)
+  const [isOrderSigned, setIsOrderSigned] = useState(false)
   
   // Fee selection states
   const [feeFromDate, setFeeFromDate] = useState('2022-02-13')
@@ -51,151 +63,15 @@ const QROrderPage: React.FC = () => {
   const [selectedFees, setSelectedFees] = useState<number[]>([])
   const [filteredFeeNotifications, setFilteredFeeNotifications] = useState<typeof feeNotifications>([])
   
-  // Sample fee data
-  const [feeNotifications] = useState([
-    { id: 1, soToKhai: '232132243243', ngayToKhai: '19/02/2022', soThongBao: '225278988390', ngayThongBao: '15/03/2022', thanhTien: 1000000 },
-    { id: 2, soToKhai: '213214324354', ngayToKhai: '15/03/2022', soThongBao: '223142964638', ngayThongBao: '15/03/2022', thanhTien: 2200000 },
-    { id: 3, soToKhai: '678421432131', ngayToKhai: '15/03/2022', soThongBao: '223142705242', ngayThongBao: '15/03/2022', thanhTien: 500000 },
-    { id: 4, soToKhai: '768790904343', ngayToKhai: '14/03/2022', soThongBao: '223120198667', ngayThongBao: '15/03/2022', thanhTien: 250000 },
-    { id: 5, soToKhai: '121321321321', ngayToKhai: '14/03/2022', soThongBao: '223119929969', ngayThongBao: '15/03/2022', thanhTien: 250000 },
-    { id: 6, soToKhai: '121321321321', ngayToKhai: '14/03/2022', soThongBao: '223119629970', ngayThongBao: '15/03/2022', thanhTien: 250000 },
-    { id: 7, soToKhai: '654676765767', ngayToKhai: '15/03/2022', soThongBao: '223119268933', ngayThongBao: '15/03/2022', thanhTien: 250000 },
-    { id: 8, soToKhai: '576576576575', ngayToKhai: '08/03/2022', soThongBao: '225173486023', ngayThongBao: '08/03/2022', thanhTien: 250000 }
-  ])
+  // Order data states
+  const [orderData, setOrderData] = useState<any>(null)
+  const [orderLoading, setOrderLoading] = useState(false)
+  
+  // Fee notifications data (loaded from API)
+  const [feeNotifications, setFeeNotifications] = useState<any[]>([])
 
-  // Sample data based on the image
-  const [orders] = useState<QROrder[]>([
-    {
-      id: 1,
-      stt: 1,
-      soThuTu: "✓",
-      doanhNghiep: "Công ty TNHH đầu tư và phát triển Hải Sơn",
-      soDonHang: "0003304117",
-      ngayDonHang: "31/10/2001",
-      loaiThanhToan: "EC",
-      tongTien: 180000,
-      nganHang: "01203001\nNgân hàng TMCP Ngoại Thương Việt Nam",
-      trangThai: "Tạo Link EcomPay thành công",
-      moTa: ""
-    },
-    {
-      id: 2,
-      stt: 2,
-      soThuTu: "✓",
-      doanhNghiep: "Công ty TNHH đầu tư và phát triển Hải Sơn",
-      soDonHang: "0003304117",
-      ngayDonHang: "31/10/2001",
-      loaiThanhToan: "EC",
-      tongTien: 246000,
-      nganHang: "01203001\nNgân hàng TMCP Ngoại Thương Việt Nam",
-      trangThai: "Tạo Link EcomPay thành công",
-      moTa: ""
-    },
-    {
-      id: 3,
-      stt: 3,
-      soThuTu: "✓",
-      doanhNghiep: "Công ty TNHH đầu tư và phát triển Hải Sơn",
-      soDonHang: "0003304117",
-      ngayDonHang: "31/10/2001",
-      loaiThanhToan: "EC",
-      tongTien: 600000,
-      nganHang: "01203001\nNgân hàng TMCP Ngoại Thương Việt Nam",
-      trangThai: "Tạo Link EcomPay thành công",
-      moTa: ""
-    },
-    {
-      id: 4,
-      stt: 4,
-      soThuTu: "✓",
-      doanhNghiep: "Công ty TNHH đầu tư và phát triển Hải Sơn",
-      soDonHang: "0003304117",
-      ngayDonHang: "31/10/2001",
-      loaiThanhToan: "EC",
-      tongTien: 150000,
-      nganHang: "Ngân hàng TMCP Ngoại Thương Việt Nam",
-      trangThai: "✓ THANH TOÁN THÀNH CÔNG",
-      moTa: ""
-    },
-    {
-      id: 5,
-      stt: 5,
-      soThuTu: "✓",
-      doanhNghiep: "Công ty TNHH đầu tư và phát triển Hải Sơn",
-      soDonHang: "0003304117",
-      ngayDonHang: "31/10/2001",
-      loaiThanhToan: "EC",
-      tongTien: 246000,
-      nganHang: "01203001\nNgân hàng TMCP Ngoại Thương Việt Nam",
-      trangThai: "Tạo Link EcomPay thành công",
-      moTa: ""
-    },
-    {
-      id: 6,
-      stt: 6,
-      soThuTu: "✓",
-      doanhNghiep: "Công ty TNHH đầu tư và phát triển Hải Sơn",
-      soDonHang: "0003304117",
-      ngayDonHang: "31/10/2001",
-      loaiThanhToan: "EC",
-      tongTien: 180000,
-      nganHang: "01203001\nNgân hàng TMCP Ngoại Thương Việt Nam",
-      trangThai: "Tạo Link EcomPay thành công",
-      moTa: ""
-    },
-    {
-      id: 7,
-      stt: 7,
-      soThuTu: "✓",
-      doanhNghiep: "Công ty TNHH đầu tư và phát triển Hải Sơn",
-      soDonHang: "0003304117",
-      ngayDonHang: "31/10/2001",
-      loaiThanhToan: "EC",
-      tongTien: 250000,
-      nganHang: "01203001\nNgân hàng TMCP Ngoại Thương Việt Nam",
-      trangThai: "Tạo Link EcomPay thành công",
-      moTa: ""
-    },
-    {
-      id: 8,
-      stt: 8,
-      soThuTu: "✓",
-      doanhNghiep: "Công ty TNHH đầu tư và phát triển Hải Sơn",
-      soDonHang: "0003304117",
-      ngayDonHang: "31/10/2001",
-      loaiThanhToan: "EC",
-      tongTien: 250000,
-      nganHang: "01203001\nNgân hàng TMCP Ngoại Thương Việt Nam",
-      trangThai: "Tạo Link EcomPay thành công",
-      moTa: ""
-    },
-    {
-      id: 9,
-      stt: 9,
-      soThuTu: "✓",
-      doanhNghiep: "Công ty TNHH đầu tư và phát triển Hải Sơn",
-      soDonHang: "0003304117",
-      ngayDonHang: "31/10/2001",
-      loaiThanhToan: "EC",
-      tongTien: 250000,
-      nganHang: "01203001\nNgân hàng TMCP Ngoại Thương Việt Nam",
-      trangThai: "Tạo Link EcomPay thành công",
-      moTa: ""
-    },
-    {
-      id: 10,
-      stt: 10,
-      soThuTu: "✓",
-      doanhNghiep: "Công ty TNHH đầu tư và phát triển Hải Sơn",
-      soDonHang: "0003304117",
-      ngayDonHang: "31/10/2001",
-      loaiThanhToan: "EC",
-      tongTien: 192000,
-      nganHang: "01203001\nNgân hàng TMCP Ngoại Thương Việt Nam",
-      trangThai: "Tạo Link EcomPay thành công",
-      moTa: ""
-    }
-  ])
+  // Orders data (loaded from API)
+  const [orders] = useState<QROrder[]>([])
 
   // Initialize filtered orders
   useEffect(() => {
@@ -223,9 +99,9 @@ const QROrderPage: React.FC = () => {
       setCountdown(3) // Reset for next time
       
       // Check payment method and show appropriate result
-      if (formData.hinhThucThanhToan === 'Thông qua liên kết Ecom') {
+      if (formData.hinhThucThanhToan === 'EC') {
         setShowPaymentLink(true)
-      } else if (formData.hinhThucThanhToan === 'Quét Mã QR') {
+      } else if (formData.hinhThucThanhToan === 'QR') {
         setShowQRCode(true)
       } else {
         alert('Đơn hàng đã được xử lý thành công!')
@@ -259,26 +135,98 @@ const QROrderPage: React.FC = () => {
     setCurrentPage(1) // Reset to first page
   }
 
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage)
+  const totalPages = Math.ceil((orderData?.content || filteredOrders).length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentOrders = filteredOrders.slice(startIndex, endIndex)
+  // Use API data if available, otherwise use filteredOrders
+  const ordersToShow = orderData?.content || filteredOrders
+  const currentOrders = ordersToShow.slice(startIndex, endIndex)
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN').format(amount)
   }
 
-  const getStatusStyle = (status: string) => {
-    if (status.includes('✓ THANH TOÁN THÀNH CÔNG')) {
-      return {
-        color: '#28a745',
-        fontWeight: 'bold'
+  const formatDate = (dateString: string) => {
+    try {
+      if (!dateString) return '';
+      
+      // Handle both ISO format (2025-09-15T04:21:07.92136) and DD/MM/YYYY format
+      let date: Date;
+      
+      if (dateString.includes('T')) {
+        // ISO format from API
+        date = new Date(dateString);
+      } else {
+        // DD/MM/YYYY format
+        const [day, month, year] = dateString.split('/');
+        date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
       }
-    }
-    return {
-      color: '#000000'
+      
+      // Format to DD/MM/YYYY
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear();
+      
+      return `${day}/${month}/${year}`;
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return dateString; // Return original string if formatting fails
     }
   }
+
+  // Helper function to get status text
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case '00':
+        return 'Tạo link EcomPay thành công';
+      case '01':
+        return 'Thanh toán thành công';
+      default:
+        return status;
+    }
+  }
+
+  // Helper function to get status style
+  const getStatusStyle = (status: string) => {
+    switch (status) {
+      case '00':
+        return {
+          backgroundColor: '#e3f2fd',
+          color: '#1976d2',
+          fontWeight: 'bold',
+          borderRadius: '4px',
+          padding: '4px 8px'
+        };
+      case '01':
+        return {
+          backgroundColor: '#e8f5e8',
+          color: '#2e7d32',
+          fontWeight: 'bold',
+          borderRadius: '4px',
+          padding: '4px 8px'
+        };
+      default:
+        return {
+          backgroundColor: '#f5f5f5',
+          color: '#666',
+          fontWeight: 'normal'
+        };
+    }
+  }
+
+  // Helper function to view order details
+  const handleViewOrderDetails = (order: any) => {
+    console.log('🔍 Viewing order details:', order);
+    setSelectedOrderDetails(order);
+    setShowOrderDetailsModal(true);
+  }
+
+  // Helper function to close order details modal
+  const handleCloseOrderDetailsModal = () => {
+    setShowOrderDetailsModal(false);
+    setSelectedOrderDetails(null);
+  }
+
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -295,8 +243,14 @@ const QROrderPage: React.FC = () => {
   const handleCloseModal = () => {
     setShowCreateOrderModal(false)
     setFormData({
-      nganHang: 'Ngân hàng TMCP Ngoại Thương Việt Nam',
-      hinhThucThanhToan: 'Thông qua liên kết Ecom',
+      nganHang: 'VCB', // Value thay vì tên
+      hinhThucThanhToan: 'EC', // Value thay vì tên
+      diaChi: '',
+      email: '',
+      sdt: '',
+      soDonHang: '',
+      ngayDonHang: '',
+      moTa: '',
       ghiChu: ''
     })
     setSelectedFeeNotifications([])
@@ -306,16 +260,87 @@ const QROrderPage: React.FC = () => {
     setCountdown(3)
     setShowPaymentLink(false)
     setShowQRCode(false)
+    setDonHangId(null)
+    setIsOrderSigned(false)
   }
 
-  const handleFormSubmit = () => {
-    // Show total when save button is clicked
-    setShowTotal(true)
-    
-    // Handle form submission logic here
-    alert('Đơn hàng đã được tạo thành công!')
-    // Don't close modal immediately to show the total
-    // handleCloseModal()
+  const handleFormSubmit = async () => {
+    try {
+      console.log('🔍 Creating order...');
+      
+      // Validate required data
+      if (selectedFeeNotifications.length === 0) {
+        throw new Error('Vui lòng chọn ít nhất một thông báo phí');
+      }
+      
+      // Prepare request body with validation
+      const requestBody = {
+        mst: "0304126484",
+        tenDn: "Công ty TNHH Vận Tải Biển Đông",
+        diaChi: String(formData.diaChi || ""),
+        email: String(formData.email || ""),
+        sdt: String(formData.sdt || ""),
+        soDonHang: String(formData.soDonHang || ""),
+        ngayDonHang: String(formData.ngayDonHang || ""),
+        loaiThanhToan: String(formData.hinhThucThanhToan || "EC"),
+        tongTien: Number(selectedFeeNotifications.reduce((sum, fee) => sum + (fee.thanhTien || 0), 0)),
+        nganHang: String(formData.nganHang || "VCB"),
+        trangThai: "00",
+        moTa: String(formData.moTa || ""),
+        nguoiTao: "System",
+        xmlKy: "",
+        chiTietList: selectedFeeNotifications.map(fee => ({
+          idTokhai: Number(fee.id || 0),
+          soThongBao: String(fee.soThongBao || ""),
+          ngayThongBao: String(fee.ngayThongBao || ""),
+          thanhTien: Number(fee.thanhTien || 0)
+        }))
+      };
+      
+      console.log('🔍 Order request body:', requestBody);
+      console.log('🔍 Selected fee notifications:', selectedFeeNotifications);
+      console.log('🔍 ChiTietList with idTokhai:', requestBody.chiTietList);
+      
+      // Validate request body before sending
+      const jsonBody = JSON.stringify(requestBody);
+      console.log('🔍 JSON string:', jsonBody);
+      console.log('🔍 JSON length:', jsonBody.length);
+      
+      const response = await fetch('/api/don-hang/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: jsonBody
+      });
+      
+      if (!response.ok) {
+        // Log detailed error response
+        const errorText = await response.text();
+        console.error('❌ API Error Response:', errorText);
+        console.error('❌ Response Status:', response.status);
+        console.error('❌ Response Headers:', Object.fromEntries(response.headers.entries()));
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Order created successfully:', result);
+      
+      // Save donHangId from response
+      if (result.status === 200 && result.data && result.data.id) {
+        setDonHangId(result.data.id);
+        console.log('🔍 Saved donHangId:', result.data.id);
+      }
+      
+      // Show total when save button is clicked
+      setShowTotal(true);
+      showSuccess('Đơn hàng đã được tạo thành công!');
+      
+    } catch (error) {
+      console.error('❌ Error creating order:', error);
+      showError('Có lỗi xảy ra khi tạo đơn hàng: ' + (error as Error).message);
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -326,8 +351,100 @@ const QROrderPage: React.FC = () => {
   }
 
   // Fee selection handlers
-  const handleSelectFee = () => {
-    setShowSelectFeeModal(true)
+  const handleSelectFee = async () => {
+    try {
+      console.log('🔍 Loading fee notifications...');
+      
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 seconds timeout
+      
+      const response = await fetch('/api/tokhai-thongtin/ds-nphi', {
+        signal: controller.signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const result = await response.json();
+      console.log('🔍 Fee notifications response:', result);
+      
+      if (result.status === 200 && result.data) {
+        // Map API data to fee notifications format
+        const feeNotifications = result.data.map((item: any) => ({
+          id: item.id,
+          soToKhai: item.soToKhai,
+          ngayToKhai: item.ngayToKhai,
+          soThongBao: item.soThongBaoNopPhi,
+          ngayThongBao: item.ngayKhaiPhi,
+          thanhTien: item.tongTienPhi,
+          trangThai: item.trangThaiNganHang === 'DA_THANH_TOAN' ? 'Đã thanh toán' : 'Chưa thanh toán',
+          // Additional fields from API
+          maDoanhNghiepKhaiPhi: item.maDoanhNghiepKhaiPhi,
+          tenDoanhNghiepKhaiPhi: item.tenDoanhNghiepKhaiPhi,
+          diaChiKhaiPhi: item.diaChiKhaiPhi,
+          maDoanhNghiepXNK: item.maDoanhNghiepXNK,
+          tenDoanhNghiepXNK: item.tenDoanhNghiepXNK,
+          diaChiXNK: item.diaChiXNK,
+          maHaiQuan: item.maHaiQuan,
+          maLoaiHinh: item.maLoaiHinh,
+          maLuuKho: item.maLuuKho,
+          nuocXuatKhau: item.nuocXuatKhau,
+          maPhuongThucVC: item.maPhuongThucVC,
+          phuongTienVC: item.phuongTienVC,
+          maDiaDiemXepHang: item.maDiaDiemXepHang,
+          maDiaDiemDoHang: item.maDiaDiemDoHang,
+          maPhanLoaiHangHoa: item.maPhanLoaiHangHoa,
+          mucDichVC: item.mucDichVC,
+          soTiepNhanKhaiPhi: item.soTiepNhanKhaiPhi,
+          nhomLoaiPhi: item.nhomLoaiPhi,
+          loaiThanhToan: item.loaiThanhToan,
+          ghiChuKhaiPhi: item.ghiChuKhaiPhi,
+          soThongBaoNopPhi: item.soThongBaoNopPhi,
+          msgId: item.msgId,
+          idPhatHanh: item.idPhatHanh,
+          soBienLai: item.soBienLai,
+          ngayBienLai: item.ngayBienLai,
+          kyHieuBienLai: item.kyHieuBienLai,
+          mauBienLai: item.mauBienLai,
+          maTraCuuBienLai: item.maTraCuuBienLai,
+          xemBienLai: item.xemBienLai,
+          idBienLai: item.idBienLai,
+          loaiHangMienPhi: item.loaiHangMienPhi,
+          loaiHang: item.loaiHang,
+          trangThaiPhatHanh: item.trangThaiPhatHanh,
+          chiTietList: item.chiTietList || []
+        }));
+        
+        setFeeNotifications(feeNotifications);
+        console.log('✅ Fee notifications loaded:', feeNotifications.length, 'items');
+        showSuccess(`Đã tải ${feeNotifications.length} thông báo phí`);
+        
+        // Open the fee selection modal
+        setShowSelectFeeModal(true);
+      } else {
+        console.log('❌ No fee notifications data');
+        setFeeNotifications([]);
+      }
+    } catch (error) {
+      console.error('❌ Error loading fee notifications:', error);
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          showError('Request timeout - Vui lòng thử lại');
+        } else {
+          showError('Có lỗi xảy ra khi tải danh sách thông báo phí: ' + error.message);
+        }
+      } else {
+        showError('Có lỗi xảy ra khi tải danh sách thông báo phí');
+      }
+      setFeeNotifications([]);
+    }
   }
 
   const handleCloseFeeModal = () => {
@@ -338,9 +455,15 @@ const QROrderPage: React.FC = () => {
   const handleFeeCheckboxChange = (feeId: number) => {
     setSelectedFees(prev => {
       if (prev.includes(feeId)) {
-        return prev.filter(id => id !== feeId)
+        const newSelectedFees = prev.filter(id => id !== feeId);
+        console.log('🔍 Unchecked fee ID (idtokhai):', feeId);
+        console.log('🔍 Updated selectedFees:', newSelectedFees);
+        return newSelectedFees;
       } else {
-        return [...prev, feeId]
+        const newSelectedFees = [...prev, feeId];
+        console.log('🔍 Checked fee ID (idtokhai):', feeId);
+        console.log('🔍 Updated selectedFees:', newSelectedFees);
+        return newSelectedFees;
       }
     })
   }
@@ -357,9 +480,16 @@ const QROrderPage: React.FC = () => {
     // Get the selected fee notifications
     const selectedFeesToAdd = filteredFeeNotifications.filter(fee => selectedFees.includes(fee.id))
     
+    console.log('🔍 Selected fees IDs:', selectedFees);
+    console.log('🔍 Selected fees to add:', selectedFeesToAdd);
+    console.log('🔍 Selected fees to add IDs (idtokhai):', selectedFeesToAdd.map(fee => fee.id));
+    
     // Add to selectedFeeNotifications, avoiding duplicates
     const existingIds = selectedFeeNotifications.map(fee => fee.id)
     const newFees = selectedFeesToAdd.filter(fee => !existingIds.includes(fee.id))
+    
+    console.log('🔍 New fees to add (after duplicate check):', newFees);
+    console.log('🔍 New fees IDs (idtokhai):', newFees.map(fee => fee.id));
     
     setSelectedFeeNotifications(prev => [...prev, ...newFees])
     setFeeTableCurrentPage(1) // Reset to first page
@@ -384,10 +514,150 @@ const QROrderPage: React.FC = () => {
   }
 
   // Handle digital signature
-  const handleDigitalSignature = () => {
-    setIsProcessing(true)
-    setCountdown(3)
+  const handleDigitalSignature = async () => {
+    try {
+      if (!donHangId) {
+        showError('Không tìm thấy ID đơn hàng. Vui lòng tạo đơn hàng trước.');
+        return;
+      }
+
+      console.log('🔍 Signing order with ID:', donHangId);
+      
+      const requestBody = {
+        idDonHang: donHangId,
+        serialNumber: "97CC8605BB55E734"
+      };
+      
+      console.log('🔍 Ky-so request body:', requestBody);
+      
+      const response = await fetch('/api/don-hang/ky-so', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Ky-so API Error Response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Order signed successfully:', result);
+      
+      // Update status for each selected fee notification
+      console.log('🔍 Updating status for fee notifications...');
+      const updatePromises = selectedFeeNotifications.map(async (fee) => {
+        try {
+          const updateRequestBody = {
+            id: fee.id, // idTokhai
+            trangThai: "03"
+          };
+          
+          console.log('🔍 Updating fee notification:', fee.id, 'to status 03');
+          
+          const updateResponse = await fetch('/api/tokhai-thongtin/update-status', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(updateRequestBody)
+          });
+          
+          if (!updateResponse.ok) {
+            const errorText = await updateResponse.text();
+            console.error(`❌ Error updating fee ${fee.id}:`, errorText);
+            throw new Error(`Failed to update fee ${fee.id}: ${errorText}`);
+          }
+          
+          const updateResult = await updateResponse.json();
+          console.log(`✅ Fee notification ${fee.id} updated successfully:`, updateResult);
+          
+        } catch (error) {
+          console.error(`❌ Error updating fee notification ${fee.id}:`, error);
+          throw error;
+        }
+      });
+      
+      // Wait for all updates to complete
+      await Promise.all(updatePromises);
+      console.log('✅ All fee notifications updated successfully');
+      
+      // Mark order as signed
+      setIsOrderSigned(true);
+      
+      // Start processing animation
+      setIsProcessing(true);
+      setCountdown(3);
+      
+      showSuccess('Ký số đơn hàng và cập nhật trạng thái thành công!');
+      
+    } catch (error) {
+      console.error('❌ Error signing order:', error);
+      showError('Có lỗi xảy ra khi ký số đơn hàng: ' + (error as Error).message);
+    }
   }
+
+  // Load order data from API with timeout
+  const loadOrderData = async () => {
+    try {
+      setOrderLoading(true);
+      console.log('🔍 Loading order data...');
+      
+      // Add timeout to prevent hanging requests
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds timeout
+      
+      const response = await fetch('/api/don-hang/all?page=0&size=10&sortBy=ngayTao&sortDir=desc', {
+        signal: controller.signal,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('🔍 Order data response:', result);
+      
+      if (result.status === 200 && result.data) {
+        setOrderData(result.data);
+        console.log('✅ Order data loaded:', result.data.content.length, 'orders');
+        showSuccess(`Đã tải ${result.data.content.length} đơn hàng`);
+      } else {
+        console.log('❌ No order data');
+        setOrderData(null);
+      }
+    } catch (error) {
+      console.error('❌ Error loading order data:', error);
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          showError('Request timeout - Vui lòng thử lại');
+        } else {
+          showError('Có lỗi xảy ra khi tải danh sách đơn hàng: ' + error.message);
+        }
+      } else {
+        showError('Có lỗi xảy ra khi tải danh sách đơn hàng');
+      }
+      setOrderData(null);
+    } finally {
+      setOrderLoading(false);
+    }
+  };
+
+  // Load order data on component mount
+  useEffect(() => {
+    loadOrderData();
+  }, []);
 
   // Fee search function
   const handleFeeSearch = () => {
@@ -434,7 +704,7 @@ const QROrderPage: React.FC = () => {
           alignItems: 'center'
         }}>
           {/* Left side - Tạo đơn hàng button */}
-          <div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
             <button
               onClick={handleCreateOrder}
               style={{
@@ -459,6 +729,38 @@ const QROrderPage: React.FC = () => {
             >
               <i className="fas fa-plus"></i>
               Tạo đơn hàng
+            </button>
+            
+            <button
+              onClick={loadOrderData}
+              disabled={orderLoading}
+              style={{
+                backgroundColor: orderLoading ? '#9ca3af' : '#28a745',
+                color: 'white',
+                border: 'none',
+                padding: '8px 15px',
+                borderRadius: '4px',
+                fontSize: '14px',
+                cursor: orderLoading ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                fontWeight: '500',
+                opacity: orderLoading ? 0.6 : 1
+              }}
+              onMouseEnter={(e) => {
+                if (!orderLoading) {
+                  e.currentTarget.style.backgroundColor = '#218838'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!orderLoading) {
+                  e.currentTarget.style.backgroundColor = '#28a745'
+                }
+              }}
+            >
+              <i className={`fas fa-sync-alt ${orderLoading ? 'fa-spin' : ''}`}></i>
+              {orderLoading ? 'Đang tải...' : 'Làm mới'}
             </button>
           </div>
 
@@ -715,18 +1017,41 @@ const QROrderPage: React.FC = () => {
                   padding: '8px', 
                   textAlign: 'center',
                   borderRight: '1px solid #dee2e6'
-                }}>{order.stt}</td>
+                }}>{index + 1}</td>
                 <td style={{ 
                   padding: '8px', 
                   textAlign: 'center',
-                  borderRight: '1px solid #dee2e6',
-                  color: '#28a745',
-                  fontWeight: 'bold'
-                }}>{order.soThuTu}</td>
+                  borderRight: '1px solid #dee2e6'
+                }}>
+                  <button
+                    onClick={() => handleViewOrderDetails(order)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#007bff',
+                      cursor: 'pointer',
+                      fontSize: '16px',
+                      padding: '4px',
+                      borderRadius: '3px',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#e3f2fd';
+                      e.currentTarget.style.transform = 'scale(1.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                    title="Xem thông tin đơn hàng"
+                  >
+                    <i className="fas fa-eye"></i>
+                  </button>
+                </td>
                 <td style={{ 
                   padding: '8px',
                   borderRight: '1px solid #dee2e6'
-                }}>{order.doanhNghiep}</td>
+                }}>{order.tenDn || order.doanhNghiep}</td>
                 <td style={{ 
                   padding: '8px', 
                   textAlign: 'center',
@@ -736,7 +1061,7 @@ const QROrderPage: React.FC = () => {
                   padding: '8px', 
                   textAlign: 'center',
                   borderRight: '1px solid #dee2e6'
-                }}>{order.ngayDonHang}</td>
+                }}>{formatDate(order.ngayDonHang)}</td>
                 <td style={{ 
                   padding: '8px', 
                   textAlign: 'center',
@@ -749,6 +1074,7 @@ const QROrderPage: React.FC = () => {
                 }}>{formatCurrency(order.tongTien)}</td>
                 <td style={{ 
                   padding: '8px',
+                  textAlign: 'center',
                   borderRight: '1px solid #dee2e6',
                   whiteSpace: 'pre-line'
                 }}>{order.nganHang}</td>
@@ -757,7 +1083,7 @@ const QROrderPage: React.FC = () => {
                   textAlign: 'center',
                   borderRight: '1px solid #dee2e6',
                   ...getStatusStyle(order.trangThai)
-                }}>{order.trangThai}</td>
+                }}>{getStatusText(order.trangThai)}</td>
                 <td style={{ 
                   padding: '8px', 
                   textAlign: 'center'
@@ -768,21 +1094,6 @@ const QROrderPage: React.FC = () => {
         </table>
       </div>
 
-      {/* Data Info */}
-      <div style={{ 
-        backgroundColor: '#fff', 
-        padding: '15px 20px', 
-        marginTop: '20px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <span style={{ fontSize: '14px', color: '#666' }}>
-          Có {filteredOrders.length} bản ghi - Trang: {currentPage}/{totalPages}
-        </span>
-      </div>
 
       {/* Pagination */}
       <div style={{ 
@@ -933,9 +1244,9 @@ const QROrderPage: React.FC = () => {
                         backgroundColor: 'white'
                       }}
                     >
-                      <option value="Ngân hàng TMCP Ngoại Thương Việt Nam">Ngân hàng TMCP Ngoại Thương Việt Nam</option>
-                      <option value="Ngân hàng TMCP Đầu tư và Phát triển Việt Nam">Ngân hàng TMCP Đầu tư và Phát triển Việt Nam</option>
-                      <option value="Ngân hàng TMCP Công Thương Việt Nam">Ngân hàng TMCP Công Thương Việt Nam</option>
+                      <option value="VCB">Ngân hàng TMCP Ngoại Thương Việt Nam</option>
+                      <option value="BIDV">Ngân hàng TMCP Đầu tư và Phát triển Việt Nam</option>
+                      <option value="Vietinbank">Ngân hàng TMCP Công Thương Việt Nam</option>
                     </select>
                   </div>
 
@@ -962,8 +1273,8 @@ const QROrderPage: React.FC = () => {
                         backgroundColor: 'white'
                       }}
                     >
-                      <option value="Thông qua liên kết Ecom">Thông qua liên kết Ecom</option>
-                      <option value="Quét Mã QR">Quét Mã QR</option>
+                      <option value="EC">Thông qua liên kết Ecom</option>
+                      <option value="QR">Quét Mã QR</option>
                     </select>
                   </div>
 
@@ -1554,24 +1865,30 @@ const QROrderPage: React.FC = () => {
                   </h5>
                   <button
                     onClick={handleSelectFee}
+                    disabled={donHangId !== null}
                     style={{
-                      backgroundColor: '#007bff',
+                      backgroundColor: donHangId !== null ? '#9ca3af' : '#007bff',
                       color: 'white',
                       border: 'none',
                       padding: '6px 12px',
                       borderRadius: '4px',
                       fontSize: '13px',
-                      cursor: 'pointer',
+                      cursor: donHangId !== null ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '5px',
-                      fontWeight: '500'
+                      fontWeight: '500',
+                      opacity: donHangId !== null ? 0.6 : 1
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = '#0056b3'
+                      if (donHangId === null) {
+                        e.currentTarget.style.backgroundColor = '#0056b3'
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#007bff'
+                      if (donHangId === null) {
+                        e.currentTarget.style.backgroundColor = '#007bff'
+                      }
                     }}
                   >
                     <i className="fas fa-plus" style={{ fontSize: '12px' }}></i>
@@ -1762,7 +2079,7 @@ const QROrderPage: React.FC = () => {
                       gap: '20px'
                     }}>
                       {/* Digital signature button - Hide when processing */}
-                      {!isProcessing && (
+                      {!isProcessing && !isOrderSigned && (
                         <button
                           style={{
                             backgroundColor: '#007bff',
@@ -1820,7 +2137,7 @@ const QROrderPage: React.FC = () => {
               borderTop: '1px solid #dee2e6',
               backgroundColor: '#f8f9fa'
             }}>
-              {!isProcessing && (
+              {!isProcessing && !isOrderSigned && (
                 <button
                   onClick={handleFormSubmit}
                   style={{
@@ -2229,6 +2546,422 @@ const QROrderPage: React.FC = () => {
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = 'white'
                   e.currentTarget.style.borderColor = '#ddd'
+                }}
+              >
+                <i className="fas fa-times"></i>
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Order Details Modal */}
+      {showOrderDetailsModal && selectedOrderDetails && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '24px',
+            maxWidth: '800px',
+            width: '90%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '20px',
+              paddingBottom: '12px',
+              borderBottom: '2px solid #e3f2fd'
+            }}>
+              <h2 style={{
+                margin: 0,
+                color: '#1976d2',
+                fontSize: '20px',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <i className="fas fa-eye" style={{ color: '#1976d2' }}></i>
+                Thông tin chi tiết đơn hàng
+              </h2>
+              <button
+                onClick={handleCloseOrderDetailsModal}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '18px',
+                  color: '#666',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  borderRadius: '4px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#f5f5f5';
+                  e.currentTarget.style.color = '#333';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#666';
+                }}
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr 1fr',
+              gap: '20px',
+              marginBottom: '20px'
+            }}>
+              {/* Column 1 */}
+              <div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>ID Đơn hàng:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#495057',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {selectedOrderDetails.id}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>Số đơn hàng:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#495057',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {selectedOrderDetails.soDonHang}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>Ngày đơn hàng:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#495057',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {formatDate(selectedOrderDetails.ngayDonHang)}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>Loại thanh toán:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#495057',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {selectedOrderDetails.loaiThanhToan}
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 2 */}
+              <div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>Doanh nghiệp:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#495057',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {selectedOrderDetails.tenDn || selectedOrderDetails.doanhNghiep}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>Ngân hàng:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#495057',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {selectedOrderDetails.nganHang}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>Người tạo:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#495057',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {selectedOrderDetails.nguoiTao || 'System'}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>Ngày tạo:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#495057',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {formatDate(selectedOrderDetails.ngayTao)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 3 */}
+              <div>
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>Tổng tiền:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#e8f5e8',
+                    border: '1px solid #c8e6c9',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#2e7d32',
+                    fontWeight: 'bold',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {formatCurrency(selectedOrderDetails.tongTien)}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>Trạng thái:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    ...getStatusStyle(selectedOrderDetails.trangThai)
+                  }}>
+                    {getStatusText(selectedOrderDetails.trangThai)}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>Ngày sửa:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#495057',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {selectedOrderDetails.ngaySua ? formatDate(selectedOrderDetails.ngaySua) : 'Chưa sửa'}
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{
+                    display: 'block',
+                    fontSize: '13px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    marginBottom: '6px',
+                    minHeight: '20px'
+                  }}>Mô tả:</label>
+                  <div style={{
+                    padding: '10px 12px',
+                    backgroundColor: '#f8f9fa',
+                    border: '1px solid #dee2e6',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    color: '#495057',
+                    minHeight: '42px',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}>
+                    {selectedOrderDetails.moTa || 'Không có'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '12px',
+              paddingTop: '16px',
+              borderTop: '1px solid #e3f2fd'
+            }}>
+              <button
+                onClick={handleCloseOrderDetailsModal}
+                style={{
+                  backgroundColor: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#5a6268';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#6c757d';
+                  e.currentTarget.style.transform = 'translateY(0)';
                 }}
               >
                 <i className="fas fa-times"></i>

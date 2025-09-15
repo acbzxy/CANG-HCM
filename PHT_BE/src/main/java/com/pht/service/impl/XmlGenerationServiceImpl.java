@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.pht.service.DatabaseCertificateService;
+import com.pht.service.PfxCertificateService;
 import com.pht.entity.StoKhai;
 import com.pht.entity.StoKhaiCt;
 import com.pht.exception.BusinessException;
@@ -24,6 +25,7 @@ public class XmlGenerationServiceImpl implements XmlGenerationService {
 
     private final ToKhaiThongTinRepository toKhaiThongTinRepository;
     private final DatabaseCertificateService databaseCertificateService;
+    private final PfxCertificateService pfxCertificateService;
 
     @Override
     @Transactional
@@ -43,14 +45,10 @@ public class XmlGenerationServiceImpl implements XmlGenerationService {
             // Tạo XML
             String xmlContent = generateXml(toKhai);
             
-            // Ký XML với chữ ký số nếu có
-            if (serialNumber != null && !serialNumber.trim().isEmpty()) {
-                log.info("Ký XML với chữ ký số từ database, serial number: {}", serialNumber);
-                xmlContent = databaseCertificateService.signXmlWithDatabaseCertificate(xmlContent, serialNumber);
-                log.info("Hoàn thành ký XML với chữ ký số từ database");
-            } else {
-                log.info("Không có chữ ký số, sử dụng XML không ký");
-            }
+            // Ký XML với chữ ký số từ file PFX
+            log.info("Ký XML với chữ ký số từ file PFX");
+            xmlContent = pfxCertificateService.signXmlWithPfxCertificate(xmlContent, null, null);
+            log.info("Hoàn thành ký XML với chữ ký số từ file PFX");
             
             // Log nội dung XML để kiểm tra
             log.info("=== XML CONTENT GENERATED ===");

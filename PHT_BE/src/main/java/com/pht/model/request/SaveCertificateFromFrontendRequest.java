@@ -58,3 +58,5 @@ public class SaveCertificateFromFrontendRequest {
     @Schema(description = "Ghi chú")
     private String ghiChu;
 }
+
+

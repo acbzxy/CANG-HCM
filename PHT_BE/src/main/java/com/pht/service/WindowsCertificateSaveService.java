@@ -17,3 +17,5 @@ public interface WindowsCertificateSaveService {
      */
     ChuKySoResponse saveWindowsCertificateToDatabase(SaveWindowsCertificateRequest request) throws BusinessException;
 }
+
+

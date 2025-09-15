@@ -9,6 +9,9 @@ import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.List;
+import javax.crypto.EncryptedPrivateKeyInfo;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +68,7 @@ public class DatabaseCertificateServiceImpl implements DatabaseCertificateServic
             
             // Parse certificate và private key từ database
             X509Certificate certificate = parseCertificateFromDatabase(chukySo.getCertificateData());
-            PrivateKey privateKey = parsePrivateKeyFromDatabase(chukySo.getPrivateKey(), chukySo.getPassword());
+            PrivateKey privateKey = parsePrivateKeyFromDatabaseWithFallback(chukySo.getPrivateKey(), chukySo.getPassword(), chukySo.getSerialNumber());
             
             // Sử dụng thông tin thuật toán từ database
             String hashAlgorithm = getHashAlgorithmFromDatabase(chukySo);
@@ -85,12 +88,17 @@ public class DatabaseCertificateServiceImpl implements DatabaseCertificateServic
      */
     private X509Certificate parseCertificateFromDatabase(String certificateData) throws Exception {
         try {
+            // Clean certificate data trước khi decode
+            String cleanedCertificateData = cleanBase64Data(certificateData);
+            
             // Data trong database đã được clean (không có header/footer)
-            byte[] certBytes = Base64.getDecoder().decode(certificateData);
+            byte[] certBytes = Base64.getDecoder().decode(cleanedCertificateData);
             CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
             return (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(certBytes));
             
         } catch (Exception e) {
+            log.error("Lỗi khi parse certificate từ database: {}", e.getMessage());
+            log.error("Certificate data: {}", certificateData);
             throw new RuntimeException("Không thể parse certificate từ database: " + e.getMessage());
         }
     }
@@ -100,15 +108,404 @@ public class DatabaseCertificateServiceImpl implements DatabaseCertificateServic
      */
     private PrivateKey parsePrivateKeyFromDatabase(String privateKeyData, String password) throws Exception {
         try {
+            log.info("Bắt đầu parse private key từ database, data length: {}", privateKeyData != null ? privateKeyData.length() : 0);
+            
+            // Clean private key data trước khi decode
+            String cleanedPrivateKeyData = cleanBase64Data(privateKeyData);
+            log.info("Đã clean private key data, cleaned length: {}", cleanedPrivateKeyData.length());
+            
             // Data trong database đã được clean (không có header/footer)
-            byte[] keyBytes = Base64.getDecoder().decode(privateKeyData);
+            byte[] keyBytes = decodeBase64WithFallback(cleanedPrivateKeyData);
+            log.info("Đã decode private key thành công, key bytes length: {}", keyBytes.length);
+            
+            // Thử parse private key với nhiều cách khác nhau
+            PrivateKey privateKey = parsePrivateKeyWithMultipleMethods(keyBytes, password);
+            log.info("Đã tạo private key thành công");
+            
+            return privateKey;
+            
+        } catch (Exception e) {
+            log.error("Lỗi khi parse private key từ database: {}", e.getMessage());
+            log.error("Private key data: {}", privateKeyData);
+            throw new RuntimeException("Không thể parse private key từ database: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Clean base64 data để loại bỏ các ký tự không hợp lệ
+     */
+    private String cleanBase64Data(String base64Data) {
+        if (base64Data == null || base64Data.trim().isEmpty()) {
+            return base64Data;
+        }
+        
+        try {
+            log.debug("Cleaning base64 data, original length: {}", base64Data.length());
+            
+            // Loại bỏ whitespace và newlines
+            String cleaned = base64Data.replaceAll("\\s+", "");
+            log.debug("After removing whitespace, length: {}", cleaned.length());
+            
+            // Thay thế các ký tự URL-safe base64 sang standard base64 trước khi loại bỏ ký tự không hợp lệ
+            cleaned = cleaned.replace("-", "+").replace("_", "/");
+            log.debug("After URL-safe conversion, length: {}", cleaned.length());
+            
+            // Loại bỏ các ký tự không hợp lệ trong base64
+            // Chỉ giữ lại các ký tự hợp lệ: A-Z, a-z, 0-9, +, /, =
+            String beforeClean = cleaned;
+            cleaned = cleaned.replaceAll("[^A-Za-z0-9+/=]", "");
+            log.debug("After removing invalid chars, length: {} (removed {} chars)", cleaned.length(), beforeClean.length() - cleaned.length());
+            
+            // Thêm padding nếu cần thiết
+            int remainder = cleaned.length() % 4;
+            if (remainder > 0) {
+                cleaned += "=".repeat(4 - remainder);
+                log.debug("Added padding, final length: {}", cleaned.length());
+            }
+            
+            log.debug("Cleaned base64 data: original length={}, cleaned length={}", base64Data.length(), cleaned.length());
+            log.debug("Original data preview: {}...", base64Data.length() > 50 ? base64Data.substring(0, 50) : base64Data);
+            log.debug("Cleaned data preview: {}...", cleaned.length() > 50 ? cleaned.substring(0, 50) : cleaned);
+            
+            return cleaned;
+            
+        } catch (Exception e) {
+            log.error("Không thể clean base64 data: {}", e.getMessage());
+            log.error("Original data: {}", base64Data);
+            
+            // Fallback: trả về data gốc đã loại bỏ whitespace
+            String fallback = base64Data.replaceAll("\\s+", "");
+            log.warn("Sử dụng fallback data, length: {}", fallback.length());
+            return fallback;
+        }
+    }
+    
+    /**
+     * Decode base64 với fallback mechanism
+     */
+    private byte[] decodeBase64WithFallback(String base64Data) throws Exception {
+        try {
+            // Thử với standard decoder trước
+            return Base64.getDecoder().decode(base64Data);
+        } catch (Exception e) {
+            log.warn("Standard base64 decoder thất bại: {}, thử URL-safe decoder", e.getMessage());
+            
+            try {
+                // Thử với URL-safe decoder
+                return Base64.getUrlDecoder().decode(base64Data);
+            } catch (Exception urlE) {
+                log.error("URL-safe decoder cũng thất bại: {}", urlE.getMessage());
+                
+                // Thử với MIME decoder
+                try {
+                    return Base64.getMimeDecoder().decode(base64Data);
+                } catch (Exception mimeE) {
+                    log.error("MIME decoder cũng thất bại: {}", mimeE.getMessage());
+                    throw new RuntimeException("Tất cả các decoder đều thất bại: " + e.getMessage(), e);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Parse private key từ database với fallback sang Windows Certificate Store
+     */
+    private PrivateKey parsePrivateKeyFromDatabaseWithFallback(String privateKeyData, String password, String serialNumber) throws Exception {
+        try {
+            // Thử parse từ database trước
+            return parsePrivateKeyFromDatabase(privateKeyData, password);
+        } catch (Exception e) {
+            log.warn("Không thể parse private key từ database: {}, thử Windows Certificate Store", e.getMessage());
+            
+            // Fallback: thử lấy từ Windows Certificate Store
+            try {
+                PrivateKey privateKey = findPrivateKeyInWindowsStore(serialNumber);
+                if (privateKey != null) {
+                    log.info("Thành công lấy private key từ Windows Certificate Store");
+                    return privateKey;
+                }
+            } catch (Exception windowsE) {
+                log.error("Windows Certificate Store cũng thất bại: {}", windowsE.getMessage());
+            }
+            
+            // Nếu cả hai đều thất bại, throw exception gốc
+            throw e;
+        }
+    }
+    
+    /**
+     * Tìm private key trong Windows Certificate Store
+     */
+    private PrivateKey findPrivateKeyInWindowsStore(String serialNumber) throws Exception {
+        try {
+            java.security.KeyStore keyStore = java.security.KeyStore.getInstance("Windows-MY");
+            keyStore.load(null, null);
+            
+            java.util.Enumeration<String> aliases = keyStore.aliases();
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                
+                if (keyStore.isKeyEntry(alias)) {
+                    java.security.cert.X509Certificate cert = (java.security.cert.X509Certificate) keyStore.getCertificate(alias);
+                    if (cert != null) {
+                        String certSerialNumber = cert.getSerialNumber().toString(16).toUpperCase();
+                        if (certSerialNumber.equals(serialNumber)) {
+                            log.info("Tìm thấy certificate trong Windows Store với serial: {} và alias: {}", serialNumber, alias);
+                            
+                            // Lấy private key
+                            PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, null);
+                            if (privateKey != null) {
+                                log.info("Lấy private key thành công từ Windows Store");
+                                return privateKey;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            log.warn("Không tìm thấy certificate với serial number: {} trong Windows Store", serialNumber);
+            return null;
+            
+        } catch (Exception e) {
+            log.error("Lỗi khi tìm certificate trong Windows Store: ", e);
+            throw e;
+        }
+    }
+    
+    /**
+     * Parse private key với nhiều phương pháp khác nhau
+     */
+    private PrivateKey parsePrivateKeyWithMultipleMethods(byte[] keyBytes, String password) throws Exception {
+        // Log thông tin về key bytes để debug
+        log.debug("Private key bytes length: {}", keyBytes.length);
+        log.debug("Private key bytes preview: {}", bytesToHex(keyBytes, 32));
+        
+        // Detect format của private key
+        String keyFormat = detectPrivateKeyFormat(keyBytes);
+        log.info("Detected private key format: {}", keyFormat);
+        // Method 1: Thử PKCS#8 format (không mã hóa)
+        try {
+            log.info("Thử parse private key với PKCS#8 format (không mã hóa)");
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+            log.info("Thành công với PKCS#8 format (không mã hóa)");
+            return privateKey;
+        } catch (Exception e) {
+            log.warn("PKCS#8 format (không mã hóa) thất bại: {}", e.getMessage());
+            log.warn("Exception type: {}", e.getClass().getSimpleName());
+        }
+        
+        // Method 2: Thử PKCS#8 format (có mã hóa) nếu có password
+        if (password != null && !password.trim().isEmpty()) {
+            try {
+                log.info("Thử parse private key với PKCS#8 format (có mã hóa), password length: {}", password.length());
+                PrivateKey privateKey = parseEncryptedPrivateKey(keyBytes, password);
+                log.info("Thành công với PKCS#8 format (có mã hóa)");
+                return privateKey;
+            } catch (Exception e) {
+                log.warn("PKCS#8 format (có mã hóa) thất bại: {}", e.getMessage());
+                log.warn("Exception type: {}", e.getClass().getSimpleName());
+            }
+        } else {
+            log.info("Không có password, bỏ qua encrypted private key parsing");
+        }
+        
+        // Method 3: Thử PKCS#1 format (RSA private key)
+        try {
+            log.debug("Thử parse private key với PKCS#1 format");
+            java.security.spec.RSAPrivateCrtKeySpec keySpec = parsePKCS1PrivateKey(keyBytes);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+            log.info("Thành công với PKCS#1 format");
+            return privateKey;
+        } catch (Exception e) {
+            log.debug("PKCS#1 format thất bại: {}", e.getMessage());
+        }
+        
+        // Method 4: Thử với các thuật toán khác
+        String[] algorithms = {"RSA", "DSA", "EC"};
+        for (String algorithm : algorithms) {
+            try {
+                log.info("Thử parse private key với thuật toán: {}", algorithm);
+                PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+                KeyFactory keyFactory = KeyFactory.getInstance(algorithm);
+                PrivateKey privateKey = keyFactory.generatePrivate(keySpec);
+                log.info("Thành công với thuật toán: {}", algorithm);
+                return privateKey;
+            } catch (Exception e) {
+                log.warn("Thuật toán {} thất bại: {}", algorithm, e.getMessage());
+                log.warn("Exception type: {}", e.getClass().getSimpleName());
+            }
+        }
+        
+        // Method 5: Thử với raw bytes và các format khác
+        try {
+            log.info("Thử parse private key với raw bytes");
+            PrivateKey privateKey = parseRawPrivateKey(keyBytes);
+            log.info("Thành công với raw bytes parsing");
+            return privateKey;
+        } catch (Exception e) {
+            log.warn("Raw bytes parsing thất bại: {}", e.getMessage());
+            log.warn("Exception type: {}", e.getClass().getSimpleName());
+        }
+        
+        // Log thông tin chi tiết về key bytes để debug
+        log.error("Tất cả phương pháp parse private key đều thất bại");
+        log.error("Key bytes length: {}", keyBytes.length);
+        log.error("Key bytes hex (first 64 bytes): {}", bytesToHex(keyBytes, 64));
+        log.error("Key format detected: {}", keyFormat);
+        
+        throw new RuntimeException("Không thể parse private key với bất kỳ phương pháp nào. Key length: " + keyBytes.length + ", Format: " + keyFormat);
+    }
+    
+    /**
+     * Parse encrypted private key
+     */
+    private PrivateKey parseEncryptedPrivateKey(byte[] keyBytes, String password) throws Exception {
+        try {
+            // Tạo EncryptedPrivateKeyInfo từ keyBytes
+            EncryptedPrivateKeyInfo encryptedPrivateKeyInfo = new EncryptedPrivateKeyInfo(keyBytes);
+            
+            // Lấy thuật toán mã hóa
+            String algorithm = encryptedPrivateKeyInfo.getAlgName();
+            log.debug("Thuật toán mã hóa private key: {}", algorithm);
+            
+            // Tạo SecretKeyFactory để giải mã
+            SecretKeyFactory secretKeyFactory = SecretKeyFactory.getInstance(algorithm);
+            
+            // Tạo PBEKeySpec từ password
+            PBEKeySpec pbeKeySpec = new PBEKeySpec(password.toCharArray());
+            
+            // Tạo secret key từ password
+            javax.crypto.SecretKey secretKey = secretKeyFactory.generateSecret(pbeKeySpec);
+            
+            // Giải mã private key
+            PKCS8EncodedKeySpec keySpec = encryptedPrivateKeyInfo.getKeySpec(secretKey);
+            
+            // Tạo private key từ keySpec
             KeyFactory keyFactory = KeyFactory.getInstance("RSA");
             return keyFactory.generatePrivate(keySpec);
             
         } catch (Exception e) {
-            throw new RuntimeException("Không thể parse private key từ database: " + e.getMessage());
+            log.error("Lỗi khi parse encrypted private key: {}", e.getMessage());
+            throw e;
         }
+    }
+    
+    /**
+     * Detect format của private key
+     */
+    private String detectPrivateKeyFormat(byte[] keyBytes) {
+        if (keyBytes == null || keyBytes.length < 4) {
+            return "UNKNOWN";
+        }
+        
+        // Kiểm tra PEM format (text format)
+        try {
+            String pemString = new String(keyBytes, "UTF-8");
+            if (pemString.contains("-----BEGIN") && pemString.contains("-----END")) {
+                if (pemString.contains("PRIVATE KEY")) {
+                    return "PEM_PKCS#8";
+                } else if (pemString.contains("RSA PRIVATE KEY")) {
+                    return "PEM_PKCS#1";
+                } else if (pemString.contains("ENCRYPTED")) {
+                    return "PEM_ENCRYPTED";
+                }
+                return "PEM_UNKNOWN";
+            }
+        } catch (Exception e) {
+            // Không phải text format
+        }
+        
+        // Kiểm tra PKCS#8 format (bắt đầu với 0x30)
+        if (keyBytes[0] == 0x30) {
+            return "DER_PKCS#8";
+        }
+        
+        // Kiểm tra PKCS#1 format (bắt đầu với 0x30 0x82)
+        if (keyBytes.length >= 2 && keyBytes[0] == 0x30 && keyBytes[1] == (byte)0x82) {
+            return "DER_PKCS#1";
+        }
+        
+        // Kiểm tra encrypted format
+        try {
+            new EncryptedPrivateKeyInfo(keyBytes);
+            return "DER_ENCRYPTED_PKCS#8";
+        } catch (Exception e) {
+            // Không phải encrypted format
+        }
+        
+        // Kiểm tra các format khác
+        if (keyBytes.length >= 4) {
+            String hex = bytesToHex(keyBytes, 8);
+            log.debug("Key bytes hex preview: {}", hex);
+        }
+        
+        return "UNKNOWN";
+    }
+    
+    /**
+     * Convert bytes to hex string for debugging
+     */
+    private String bytesToHex(byte[] bytes, int maxLength) {
+        if (bytes == null) return "null";
+        
+        int length = Math.min(bytes.length, maxLength);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            sb.append(String.format("%02x", bytes[i]));
+        }
+        if (bytes.length > maxLength) {
+            sb.append("...");
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * Parse raw private key với các format khác nhau
+     */
+    private PrivateKey parseRawPrivateKey(byte[] keyBytes) throws Exception {
+        // Thử với DER format
+        try {
+            log.debug("Thử parse với DER format");
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            return keyFactory.generatePrivate(keySpec);
+        } catch (Exception e) {
+            log.debug("DER format thất bại: {}", e.getMessage());
+        }
+        
+        // Thử với PEM format (nếu có header/footer)
+        try {
+            log.debug("Thử parse với PEM format");
+            String pemString = new String(keyBytes, "UTF-8");
+            if (pemString.contains("-----BEGIN") && pemString.contains("-----END")) {
+                // Đây là PEM format, cần extract base64 content
+                String base64Content = pemString
+                    .replaceAll("-----BEGIN.*-----", "")
+                    .replaceAll("-----END.*-----", "")
+                    .replaceAll("\\s", "");
+                
+                byte[] pemBytes = Base64.getDecoder().decode(base64Content);
+                PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(pemBytes);
+                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                return keyFactory.generatePrivate(keySpec);
+            }
+        } catch (Exception e) {
+            log.debug("PEM format thất bại: {}", e.getMessage());
+        }
+        
+        throw new UnsupportedOperationException("Raw private key parsing không thành công");
+    }
+    
+    /**
+     * Parse PKCS#1 RSA private key
+     */
+    private java.security.spec.RSAPrivateCrtKeySpec parsePKCS1PrivateKey(byte[] keyBytes) throws Exception {
+        // Đây là implementation đơn giản, có thể cần cải thiện tùy thuộc vào format cụ thể
+        // Thường PKCS#1 private key có format khác với PKCS#8
+        throw new UnsupportedOperationException("PKCS#1 parsing chưa được implement");
     }
     
     /**

@@ -83,6 +83,7 @@ public class SdvtServiceImpl extends BaseServiceImpl<Sdvt, Long> implements Sdvt
         entity.setLoaiDvt(request.getLoaiDvt());
         entity.setDienGiai(request.getDienGiai());
         entity.setTrangThai(request.getTrangThai());
+        entity.setCvTon(request.getCvTon());
         
         // Set audit fields
         LocalDateTime now = LocalDateTime.now();
@@ -104,6 +105,7 @@ public class SdvtServiceImpl extends BaseServiceImpl<Sdvt, Long> implements Sdvt
         existingEntity.setLoaiDvt(request.getLoaiDvt());
         existingEntity.setDienGiai(request.getDienGiai());
         existingEntity.setTrangThai(request.getTrangThai());
+        existingEntity.setCvTon(request.getCvTon());
         
         // Set audit fields for update
         existingEntity.setNgayCapNhat(LocalDateTime.now());
@@ -123,8 +125,8 @@ public class SdvtServiceImpl extends BaseServiceImpl<Sdvt, Long> implements Sdvt
     @Override
     public CatalogSearchResponse<Sdvt> searchDvt(SdvtSearchRequest request) {
         long startTime = System.currentTimeMillis();
-        log.info("Tìm kiếm đơn vị tính với maDvt: {}, tenDvt: {}, loaiDvt: {}, trangThai: {}",
-                request.getMaDvt(), request.getTenDvt(), request.getLoaiDvt(), request.getTrangThai());
+        log.info("Tìm kiếm đơn vị tính với maDvt: {}, tenDvt: {}, loaiDvt: {}, trangThai: {}, cvTon: {}",
+                request.getMaDvt(), request.getTenDvt(), request.getLoaiDvt(), request.getTrangThai(), request.getCvTon());
 
         int pageNumber = 0;
         int pageSize = 10;
@@ -139,8 +141,9 @@ public class SdvtServiceImpl extends BaseServiceImpl<Sdvt, Long> implements Sdvt
                 QueryUtils.createLikeValue(request.getLoaiDvt()) : null;
         String trangThai = StringUtils.hasText(request.getTrangThai()) ?
                 request.getTrangThai() : null;
+        java.math.BigDecimal cvTon = request.getCvTon();
 
-        Page<Sdvt> page = sdvtRepository.findBySearchCriteria(maDvt, tenDvt, loaiDvt, trangThai, pageable);
+        Page<Sdvt> page = sdvtRepository.findBySearchCriteria(maDvt, tenDvt, loaiDvt, trangThai, cvTon, pageable);
 
         long endTime = System.currentTimeMillis();
 
@@ -151,16 +154,16 @@ public class SdvtServiceImpl extends BaseServiceImpl<Sdvt, Long> implements Sdvt
                 .totalPages(page.getTotalPages())
                 .numberOfElements(page.getNumberOfElements())
                 .totalElements(page.getTotalElements())
-                .searchKeyword(String.format("maDvt=%s, tenDvt=%s, loaiDvt=%s, trangThai=%s",
-                        request.getMaDvt(), request.getTenDvt(), request.getLoaiDvt(), request.getTrangThai()))
+                .searchKeyword(String.format("maDvt=%s, tenDvt=%s, loaiDvt=%s, trangThai=%s, cvTon=%s",
+                        request.getMaDvt(), request.getTenDvt(), request.getLoaiDvt(), request.getTrangThai(), request.getCvTon()))
                 .searchTime(endTime - startTime)
                 .build();
     }
 
     @Override
     public List<Sdvt> exportDvt(SdvtSearchRequest request) {
-        log.info("Xuất dữ liệu đơn vị tính với maDvt: {}, tenDvt: {}, loaiDvt: {}, trangThai: {}",
-                request.getMaDvt(), request.getTenDvt(), request.getLoaiDvt(), request.getTrangThai());
+        log.info("Xuất dữ liệu đơn vị tính với maDvt: {}, tenDvt: {}, loaiDvt: {}, trangThai: {}, cvTon: {}",
+                request.getMaDvt(), request.getTenDvt(), request.getLoaiDvt(), request.getTrangThai(), request.getCvTon());
 
         String maDvt = StringUtils.hasText(request.getMaDvt()) ?
                 QueryUtils.createLikeValue(request.getMaDvt()) : null;
@@ -170,7 +173,8 @@ public class SdvtServiceImpl extends BaseServiceImpl<Sdvt, Long> implements Sdvt
                 QueryUtils.createLikeValue(request.getLoaiDvt()) : null;
         String trangThai = StringUtils.hasText(request.getTrangThai()) ?
                 request.getTrangThai() : null;
+        java.math.BigDecimal cvTon = request.getCvTon();
 
-        return sdvtRepository.findBySearchCriteria(maDvt, tenDvt, loaiDvt, trangThai);
+        return sdvtRepository.findBySearchCriteria(maDvt, tenDvt, loaiDvt, trangThai, cvTon);
     }
 }

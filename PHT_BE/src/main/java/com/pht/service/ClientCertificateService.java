@@ -26,3 +26,5 @@ public interface ClientCertificateService {
      */
     ChuKySoResponse saveClientCertificate(ClientCertificateListRequest.ClientCertificateInfo certInfo) throws BusinessException;
 }
+
+

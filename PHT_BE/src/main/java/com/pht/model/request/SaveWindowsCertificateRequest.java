@@ -31,3 +31,5 @@ public class SaveWindowsCertificateRequest {
     @Schema(description = "Trạng thái", example = "ACTIVE", allowableValues = {"ACTIVE", "INACTIVE", "EXPIRED", "REVOKED"})
     private String trangThai = "ACTIVE";
 }
+
+

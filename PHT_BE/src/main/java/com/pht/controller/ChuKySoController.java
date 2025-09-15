@@ -20,6 +20,7 @@ import com.pht.model.request.SaveCertificateBySerialRequest;
 import com.pht.model.request.ClientCertificateListRequest;
 import com.pht.model.request.SaveCertificateFromFrontendRequest;
 import com.pht.model.request.XmlGenerationRequest;
+import com.pht.model.request.PfxSignRequest;
 import com.pht.model.response.ChuKySoResponse;
 import com.pht.model.response.ImportCertificateResponse;
 import com.pht.entity.ChukySo;
@@ -32,6 +33,7 @@ import com.pht.service.WindowsCertificateSaveService;
 import com.pht.service.SimpleCertificateSaveService;
 import com.pht.service.ClientCertificateService;
 import com.pht.service.FrontendCertificateSaveService;
+import com.pht.service.PfxCertificateService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -58,6 +60,7 @@ public class ChuKySoController {
     private final SimpleCertificateSaveService simpleCertificateSaveService;
     private final ClientCertificateService clientCertificateService;
     private final FrontendCertificateSaveService frontendCertificateSaveService;
+    private final PfxCertificateService pfxCertificateService;
 
     @Operation(summary = "Lấy danh sách chữ ký số từ database")
     @ApiResponses({
@@ -355,6 +358,7 @@ public class ChuKySoController {
             log.info("Nhận yêu cầu tạo XML cho tờ khai ID: {}, lần ký: {}, serial number: {}", 
                     request.getToKhaiId(), request.getLanKy(), request.getSerialNumber());
             
+            // Tạo XML từ thông tin tờ khai (không ký)
             String xmlContent = xmlGenerationService.generateAndSaveXml(
                     request.getToKhaiId(), 
                     request.getLanKy(), 
@@ -364,11 +368,49 @@ public class ChuKySoController {
             log.info("Tạo XML thành công cho tờ khai ID: {}, lần ký: {}, serial number: {}", 
                     request.getToKhaiId(), request.getLanKy(), request.getSerialNumber());
             
-            return ResponseHelper.ok(xmlContent);
+            // Ký XML với PFX service
+            String signedXml = pfxCertificateService.signXmlWithPfxCertificate(xmlContent, null, null);
+            
+            log.info("Ký XML thành công với PFX cho tờ khai ID: {}", request.getToKhaiId());
+            
+            return ResponseHelper.ok(signedXml);
             
         } catch (Exception ex) {
-            log.error("Lỗi khi tạo XML cho tờ khai ID {} lần ký {} serial number {}: ", 
+            log.error("Lỗi khi tạo và ký XML cho tờ khai ID {} lần ký {} serial number {}: ", 
                     request.getToKhaiId(), request.getLanKy(), request.getSerialNumber(), ex);
+            return ResponseHelper.error(ex);
+        }
+    }
+
+    @Operation(summary = "Ký XML với chữ ký số từ file PFX")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Ký thành công", content = {
+                    @Content(schema = @Schema(implementation = ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "400", description = "Dữ liệu không hợp lệ", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi hệ thống", content = {
+                    @Content(schema = @Schema(implementation = OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @PostMapping("/ky-so-pfx")
+    public ResponseEntity<?> kySoVoiPfx(@RequestBody PfxSignRequest request) {
+        try {
+            log.info("Nhận yêu cầu ký XML với file PFX: {}", request.getPfxFilePath());
+            
+            String signedXml = pfxCertificateService.signXmlWithPfxCertificate(
+                    request.getXmlContent(), 
+                    request.getPfxFilePath(), 
+                    request.getPassword()
+            );
+            
+            log.info("Ký XML thành công với file PFX: {}", request.getPfxFilePath());
+            
+            return ResponseHelper.ok(signedXml);
+            
+        } catch (Exception ex) {
+            log.error("Lỗi khi ký XML với file PFX {}: ", request.getPfxFilePath(), ex);
             return ResponseHelper.error(ex);
         }
     }

@@ -498,8 +498,8 @@ const FeeDeclarationManagePage: React.FC = () => {
       const htmlContent = createPDFHTML();
       console.log('HTML content created, length:', htmlContent.length);
       
-      // Create a new window for printing
-      const printWindow = window.open('', '_blank', 'width=800,height=600');
+      // Create a new window for printing (A4 landscape size)
+      const printWindow = window.open('', '_blank', 'width=1200,height=800');
       if (!printWindow) {
         alert('Không thể mở cửa sổ in. Vui lòng kiểm tra popup blocker.');
         return;
@@ -553,8 +553,8 @@ const FeeDeclarationManagePage: React.FC = () => {
     <title>Thông báo tờ khai nộp phí</title>
     <style>
         @page {
-            size: A4;
-            margin: 20mm;
+            size: A4 landscape;
+            margin: 15mm;
         }
         
         * {
@@ -569,11 +569,21 @@ const FeeDeclarationManagePage: React.FC = () => {
             margin: 0;
             padding: 0;
             background: white;
+            width: 100%;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 100%;
+            padding: 0;
+            margin: 0;
         }
         
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
         
         .title {
@@ -729,7 +739,8 @@ const FeeDeclarationManagePage: React.FC = () => {
     </style>
 </head>
 <body>
-    <div class="header">
+    <div class="container">
+        <div class="header">
         <div class="title">Thông báo tờ khai nộp phí</div>
         <div class="blue-line"></div>
     </div>
@@ -824,6 +835,7 @@ const FeeDeclarationManagePage: React.FC = () => {
     <div class="amount-in-words">
         <strong>Số tiền bằng chữ:</strong> ${numberToVietnameseText(notificationDetail.tongTienPhi || 0)}
     </div>
+    </div>
 </body>
 </html>`;
   };
@@ -832,11 +844,64 @@ const FeeDeclarationManagePage: React.FC = () => {
     setShowDownloadSuccessModal(false);
   };
 
-  const handleCreateReceipt = (item: FeeDeclaration) => {
-    console.log('Tạo biên lai cho:', item.id);
-    console.log('FeeDeclaration data:', item);
-    // Navigate to create receipt page with selectedItem
-    navigate('/receipt-management/create', { state: { selectedItem: item } });
+  const handleCreateReceipt = async (item: FeeDeclaration) => {
+    console.log('🗂️ ===== CREATE RECEIPT DEBUG =====');
+    console.log('🗂️ Tạo biên lai cho:', item.id);
+    console.log('🗂️ Item idBienLai:', item.idBienLai);
+    console.log('🗂️ Item trangThaiPhatHanh:', item.trangThaiPhatHanh);
+    console.log('🗂️ Item declarationStatus:', item.declarationStatus);
+    console.log('🗂️ Item paymentStatus:', item.paymentStatus);
+    
+    try {
+      // Check if item has idBienLai (not null and not empty)
+      if (item.idBienLai && item.idBienLai !== 0) {
+        console.log('🗂️ Item has idBienLai, loading existing receipt data...');
+        
+        // Call API to get existing receipt data
+        const receiptResponse = await fetch(`/api/bien-lai/${item.idBienLai}`);
+        if (!receiptResponse.ok) {
+          throw new Error(`HTTP error! status: ${receiptResponse.status}`);
+        }
+        const receiptResponseData = await receiptResponse.json();
+        console.log('🗂️ Existing receipt response:', receiptResponseData);
+        
+        // Extract data from response wrapper
+        const receiptData = receiptResponseData.data;
+        console.log('🗂️ Existing receipt data:', receiptData);
+        console.log('🗂️ DEBUG: receiptData.idPhatHanh:', receiptData.idPhatHanh);
+        console.log('🗂️ DEBUG: receiptData keys:', Object.keys(receiptData));
+        console.log('🗂️ DEBUG: Has idPhatHanh?', 'idPhatHanh' in receiptData);
+        
+        // Navigate with receipt data and toKhaiId
+        navigate('/receipt-management/create', { 
+          state: { 
+            selectedItem: receiptData,
+            isEditMode: true,
+            toKhaiId: item.id, // Pass the fee declaration ID as toKhaiId
+            trangThaiPhatHanh: item.trangThaiPhatHanh // Pass trangThaiPhatHanh from fee declaration
+          } 
+        });
+      } else {
+        console.log('🗂️ Item has no idBienLai (null or empty), loading fee declaration data...');
+        
+        // Call API to get fee declaration data
+        console.log('🗂️ Calling API /api/tokhai-thongtin/' + item.id);
+        const detailedData = await FeeDeclarationService.getFeeDeclarationById(item.id);
+        console.log('🗂️ Fee declaration data:', detailedData);
+        
+        // Navigate to create receipt page with fee declaration data
+        navigate('/receipt-management/create', { 
+          state: { 
+            selectedItem: detailedData,
+            isEditMode: false,
+            trangThaiPhatHanh: item.trangThaiPhatHanh // Pass trangThaiPhatHanh from fee declaration
+          } 
+        });
+      }
+    } catch (error) {
+      console.error('🗂️ Error fetching data:', error);
+      showError('Không thể lấy dữ liệu: ' + (error as Error).message);
+    }
   };
 
 
