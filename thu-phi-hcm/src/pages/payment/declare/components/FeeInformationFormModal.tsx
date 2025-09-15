@@ -1362,7 +1362,7 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
                  checked:after:flex checked:after:items-center checked:after:justify-center 
                  checked:after:w-full checked:after:h-full bg-white"
               />
-              <span className="ml-2 uppercase font-bold">Lấy thông tin từ Hải quan</span>
+              <span className="ml-2 uppercase font-bold">Truy vấn thông tin từ Hải quan</span>
             </label>
             {!isManualDeclaration && (
               <div className="flex items-center mx-2">
@@ -1389,7 +1389,7 @@ export default function FeeInformationFormModal({ onClose, onSave }: FeeInformat
                   disabled={loading}
                 >
                   <MagnifyingGlassIcon className="w-3  h-3" />
-                  &nbsp;{loading ? 'Đang lấy...' : 'Lấy thông tin'}
+                  &nbsp;{loading ? 'Đang lấy...' : 'Truy vấn'}
                 </button>
                 
                 

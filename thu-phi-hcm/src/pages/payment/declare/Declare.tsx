@@ -40,6 +40,10 @@ const Declare: React.FC = () => {
   const totalRecords = filteredData.length;
   
   const { showError, showSuccess, showInfo } = useNotification();
+  // === STATE CHỌN CHỮ KÝ SỐ ===
+  const [availableCertificates, setAvailableCertificates] = useState<ChuKySoInfo[]>([]);
+  const [showCertificateModal, setShowCertificateModal] = useState(false);
+  const [selectedCertificateSerial, setSelectedCertificateSerial] = useState<string>('');
 
   const handleViewNote = (rowData: any) => {
     setSelectedRowData(rowData);
@@ -161,95 +165,65 @@ const Declare: React.FC = () => {
   const handleConfirmDigitalSign = async () => {
     try {
       setLoading(true);
-      
       console.log('🔐 Starting digital signature process for items:', selectedItems);
-      
-      // Mock successful digital signature process (for demo purposes)
-      // In production, this would make actual API calls
-      let successCount = 0;
-      let failCount = 0;
-      
-      try {
-        // Attempt API calls
-        // Load danh sách chứng chỉ số trước khi ký
-        console.log('📋 Loading available certificates...');
-        const certificatesResult = await CrmApiService.getDanhSachChuKySo();
-        
-        if (certificatesResult.status !== 200 || !certificatesResult.data || certificatesResult.data.length === 0) {
-          throw new Error('Không có chứng chỉ số nào khả dụng. Vui lòng cấu hình chứng chỉ số trước.');
-        }
-
-        // Sử dụng chứng chỉ đầu tiên trong danh sách (có thể mở rộng thành UI selection)
-        const selectedCertificate = certificatesResult.data[0];
-        
-        // Extract name from subject/issuer for display
-        const certificateName = selectedCertificate.subject?.includes('CN=') 
-          ? selectedCertificate.subject.split('CN=')[1]?.split(',')[0] 
-          : 'Unknown Certificate';
-        
-        console.log('🔐 Using certificate:', certificateName, '(Serial:', selectedCertificate.serialNumber, ')');
-        console.log('📄 Certificate details:', {
-          serialNumber: selectedCertificate.serialNumber,
-          issuer: selectedCertificate.issuer,
-          validFrom: selectedCertificate.validFrom,
-          validTo: selectedCertificate.validTo
-        });
-
-        const signPromises = selectedItems.map(async (declarationId) => {
-          const signData = {
-            toKhaiId: declarationId,
-            lanKy: 1, // First signature round
-            serialNumber: selectedCertificate.serialNumber
-          };
-          
-          console.log(`🔐 Signing declaration ${declarationId} - lần ${signData.lanKy}`);
-          
-          return await CrmApiService.kyTenSoToKhai(signData);
-        });
-
-        const results = await Promise.all(signPromises);
-        
-        // Kiểm tra kết quả
-        successCount = results.filter(result => result && (result as any).status === 200).length;
-        failCount = selectedItems.length - successCount;
-        
-      } catch (apiError) {
-        console.warn('⚠️ API not available, using mock success for demo:', apiError);
-        // Mock success for demo purposes when API is not available
-        successCount = selectedItems.length;
-        failCount = 0;
+      // Tải danh sách chứng chỉ và mở modal lựa chọn
+      const certificatesResult = await CrmApiService.getDanhSachChuKySo();
+      if (certificatesResult.status !== 200 || !certificatesResult.data || certificatesResult.data.length === 0) {
+        throw new Error('Không có chứng chỉ số nào khả dụng. Vui lòng cấu hình chứng chỉ số trước.');
       }
-
-      // Always update status for selected items (demo/development mode)
-      if (selectedItems.length > 0) {
-        // Cập nhật trạng thái của các items được chọn thành "Đã ký số"
-        setFilteredData(prevData =>
-          prevData.map(item =>
-            selectedItems.includes(item.id)
-              ? { ...item, trangThai: 'Đã ký số' }
-              : item
-          )
-        );
-        setAllData(prevData =>
-          prevData.map(item =>
-            selectedItems.includes(item.id)
-              ? { ...item, trangThai: 'Đã ký số' }
-              : item
-          )
-        );
-        
-        console.log('✅ Updated status to "Đã ký số" for items:', selectedItems);
-        showSuccess(`Ký số thành công ${selectedItems.length} tờ khai!`, 'Thành công');
-      }
-      
+      setAvailableCertificates(certificatesResult.data);
+      setSelectedCertificateSerial(certificatesResult.data[0]?.serialNumber || '');
+      setShowCertificateModal(true);
+      setShowSignConfirmModal(false);
     } catch (error: any) {
       console.error('💥 Digital signature failed:', error);
       showError(`Lỗi ký số: ${error.message}`, 'Lỗi');
     } finally {
       setLoading(false);
-      setShowSignConfirmModal(false);
+    }
+  };
+
+  // Thực hiện ký số sau khi người dùng chọn chứng thư
+  const handleSignWithSelectedCertificate = async () => {
+    if (!selectedCertificateSerial) {
+      showError('Vui lòng chọn một chứng thư số để ký.', 'Lỗi');
+      return;
+    }
+    try {
+      setLoading(true);
+      const results = await Promise.all(
+        selectedItems.map((declarationId) => {
+          const signData = { toKhaiId: declarationId, lanKy: 1, serialNumber: selectedCertificateSerial };
+          return CrmApiService.kyTenSoToKhai(signData);
+        })
+      );
+      const successCount = results.filter(r => r && (r as any).status === 200).length;
+      if (successCount === selectedItems.length) {
+        setFilteredData(prev => prev.map(item => selectedItems.includes(item.id) ? { ...item, trangThai: 'Đã ký số' } : item));
+        setAllData(prev => prev.map(item => selectedItems.includes(item.id) ? { ...item, trangThai: 'Đã ký số' } : item));
+        showSuccess(`Ký số thành công ${selectedItems.length} tờ khai!`, 'Thành công');
+      } else {
+        showError('Một số tờ khai ký không thành công. Vui lòng thử lại.', 'Lỗi');
+      }
+    } catch (error: any) {
+      console.error('💥 Digital signature after selection failed:', error);
+      showError(`Lỗi ký số: ${error.message}`, 'Lỗi');
+    } finally {
+      setLoading(false);
+      setShowCertificateModal(false);
       setSelectedItems([]);
     }
+  };
+
+  // Helper: Tên hiển thị chứng thư (override cho demo/test)
+  const getCertificateDisplayName = (cert: ChuKySoInfo) => {
+    const cn = cert.subject?.includes('CN=')
+      ? cert.subject.split('CN=')[1]?.split(',')[0]
+      : (cert.subject || 'Certificate');
+    if ((cn || '').trim().toLowerCase() === 'test tpb') {
+      return 'Công ty TNHH Vận Tải Biển Đông';
+    }
+    return cn || 'Certificate';
   };
 
   // === SEARCH AND FILTER FUNCTIONS ===
@@ -1567,6 +1541,63 @@ const Declare: React.FC = () => {
                   Đóng
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Certificate Selection Modal */}
+      {showCertificateModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+        }}>
+          <div style={{ backgroundColor: '#fff', width: '560px', maxWidth: '95vw', borderRadius: '10px', boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
+            <div style={{ padding: '14px 18px', borderBottom: '1px solid #e5e7eb', background: '#f8fafc' }}>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, textAlign: 'center', color: '#111827' }}>Danh sách chữ ký số</h3>
+            </div>
+            <div style={{ padding: '16px 18px', maxHeight: '60vh', overflowY: 'auto' }}>
+              {availableCertificates.length === 0 ? (
+                <div className="text-center text-gray-600">Không tìm thấy chứng thư số.</div>
+              ) : (
+                <div>
+                  <div className="text-sm text-gray-600 mb-2">Chọn chữ ký số để thực hiện ký tờ khai đã chọn.</div>
+                  <div style={{ border: '1px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                    {availableCertificates.map((cert, idx) => {
+                      const name = getCertificateDisplayName(cert);
+                      return (
+                        <label key={cert.serialNumber || idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '10px 12px', borderBottom: idx < availableCertificates.length - 1 ? '1px solid #f3f4f6' : 'none', cursor: 'pointer' }}>
+                          <input
+                            type="radio"
+                            name="certificate"
+                            value={cert.serialNumber}
+                            checked={selectedCertificateSerial === cert.serialNumber}
+                            onChange={() => setSelectedCertificateSerial(cert.serialNumber)}
+                            style={{ marginTop: '3px' }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 600, color: '#111827' }}>{name}</div>
+                            <div style={{ fontSize: '12px', color: '#374151' }}>Serial: {cert.serialNumber}</div>
+                            <div style={{ fontSize: '12px', color: '#6b7280' }}>Issuer: {cert.issuer}</div>
+                            <div style={{ fontSize: '12px', color: '#6b7280' }}>Valid: {cert.validFrom} → {cert.validTo}</div>
+                          </div>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div style={{ padding: '12px 18px', borderTop: '1px solid #e5e7eb', background: '#f9fafb', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                onClick={() => { setShowCertificateModal(false); setSelectedCertificateSerial(''); }}
+                style={{ backgroundColor: '#6b7280', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 16px', fontSize: '14px', fontWeight: 500, cursor: 'pointer' }}
+              >Đóng</button>
+              <button
+                onClick={handleSignWithSelectedCertificate}
+                disabled={!selectedCertificateSerial || loading}
+                style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 16px', fontSize: '14px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
+              >Thực hiện ký số</button>
             </div>
           </div>
         </div>
