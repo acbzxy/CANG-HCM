@@ -1,6 +1,43 @@
 import React, { useState, useEffect } from 'react'
 import { useNotification } from '../context/NotificationContext'
 
+// Backend API response interface
+interface BienLaiApiResponse {
+  id: number
+  mst: string
+  tenDvi: string
+  diaChi: string
+  email: string
+  sdt: string
+  maBl: string
+  soBl: string
+  hthucTtoan: string
+  ngayBl: string
+  loaiCtiet: string
+  ghiChu: string
+  stb: string
+  ngayNop: string
+  soTk: string
+  ngayTk: string
+  maKho: string
+  ngayTao: string
+  nguoiTao: string
+  ngaySua: string
+  nguoiSua: string | null
+  idPhatHanh: string
+  imageBl: string
+  chiTietList: {
+    id: number
+    blId: number
+    ndungTp: string
+    dvt: string
+    soLuong: number
+    donGia: number
+    soTien: number
+  }[]
+}
+
+// Frontend display interface (keep existing for compatibility)
 interface BienLai {
   id: number
   stt: number
@@ -39,6 +76,84 @@ interface PageResponse<T> {
   first: boolean
   last: boolean
 }
+
+// Helper function to safely format date
+const formatDate = (dateString: string): string => {
+  try {
+    // Handle null/undefined/empty values
+    if (!dateString || dateString === 'null' || dateString === 'undefined' || dateString.trim() === '') {
+      return ''; // Trả về chuỗi rỗng để hiển thị trống
+    }
+    
+    console.log('Formatting date:', dateString);
+    
+    // Simple regex to extract date parts from various formats
+    const dateRegex = /(\d{4})-(\d{2})-(\d{2})/;
+    const match = dateString.match(dateRegex);
+    
+    if (match) {
+      const year = parseInt(match[1]);
+      const month = parseInt(match[2]) - 1; // JavaScript months are 0-based
+      const day = parseInt(match[3]);
+      
+      // Validate date parts
+      if (year >= 1900 && year <= 2100 && month >= 0 && month <= 11 && day >= 1 && day <= 31) {
+        const date = new Date(year, month, day);
+        
+        // Double-check the date is valid
+        if (date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
+          const formattedDate = `${day.toString().padStart(2, '0')}/${(month + 1).toString().padStart(2, '0')}/${year}`;
+          console.log('Successfully formatted date:', dateString, '→', formattedDate);
+          return formattedDate;
+        }
+      }
+    }
+    
+    console.warn('Could not parse date:', dateString);
+    return '';
+  } catch (error) {
+    console.warn('Error formatting date:', dateString, error);
+    return '';
+  }
+};
+
+// Helper function to map API response to display format
+const mapApiResponseToDisplay = (apiData: BienLaiApiResponse[], startIndex = 0): BienLai[] => {
+  return apiData.map((item, index) => {
+    console.log(`Mapping item ${index}:`, {
+      id: item.id,
+      ngayNop: item.ngayNop,
+      ngayTao: item.ngayTao,
+      ngayBl: item.ngayBl,
+      ngayTk: item.ngayTk
+    });
+    
+    // Calculate total amount from chiTietList
+    const totalAmount = item.chiTietList.reduce((sum, chiTiet) => sum + chiTiet.soTien, 0);
+    
+    return {
+      id: item.id,
+      stt: startIndex + index + 1,
+      yeuCau: "", // Để trống nếu chưa có thông tin
+      ngayYeuCau: formatDate(item.ngayNop),
+      ngayXuLy: formatDate(item.ngayTao),
+      ttLienQuan: item.stb || "", // Để trống nếu chưa có thông tin
+      loaiBienLai: "Biên lai phí", // Default value
+      noiDung: item.chiTietList.map(ct => ct.ndungTp).join(', '),
+      mauKyHieu: item.maBl,
+      soBienLai: item.soBl,
+      ngayBienLai: formatDate(item.ngayBl),
+      tongTien: totalAmount,
+      maTraCuu: item.maBl,
+      soToKhai: item.soTk,
+      ngayToKhai: formatDate(item.ngayTk),
+      loaiHinh: "Xuất nhập khẩu", // Default value
+      trangThai: "Đã xử lý", // Default value
+      createdAt: item.ngayTao,
+      updatedAt: item.ngaySua
+    };
+  });
+};
 
 const DataTablePage: React.FC = () => {
   const { showError, showSuccess } = useNotification()
@@ -79,18 +194,24 @@ const DataTablePage: React.FC = () => {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       
-      const result: ApiResponse<PageResponse<BienLai>> = await response.json()
+      const result: ApiResponse<PageResponse<BienLaiApiResponse>> = await response.json()
       console.log('🔍 API Response:', result)
       
       if (result.status === 200 && result.data) {
         const apiData = result.data.content || []
-        setData(apiData)
-        setFilteredData(apiData)
+        console.log('🔍 Raw API data:', apiData)
+        
+        // Map API response to display format
+        const mappedData = mapApiResponseToDisplay(apiData, page * size)
+        console.log('🔍 Mapped data:', mappedData)
+        
+        setData(mappedData)
+        setFilteredData(mappedData)
         setTotalElements(result.data.totalElements)
         setTotalPages(result.data.totalPages)
         setCurrentPage(result.data.number)
-        console.log('✅ Data loaded successfully:', apiData.length, 'records')
-        showSuccess(`Đã tải ${apiData.length} biên lai`)
+        console.log('✅ Data loaded successfully:', mappedData.length, 'records')
+        showSuccess(`Đã tải ${mappedData.length} biên lai`)
       } else {
         console.log('❌ No data received')
         setData([])
@@ -237,14 +358,6 @@ const DataTablePage: React.FC = () => {
     return new Intl.NumberFormat('vi-VN').format(amount)
   }
 
-  // Format date
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString('vi-VN')
-    } catch {
-      return dateString
-    }
-  }
 
   // Get status badge color
   const getStatusBadgeColor = (status?: string) => {
@@ -443,58 +556,55 @@ const DataTablePage: React.FC = () => {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 table-fixed">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-16 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   STT
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  #
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Loại yêu cầu
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ngày yêu cầu
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ngày xử lý
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   TT liên quan
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Loại biên lai
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-64 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Nội dung
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Mẫu/Ký hiệu
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Số biên lai
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ngày biên lai
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Tổng tiền
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Mã tra cứu
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Số tờ khai
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Ngày tờ khai
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Loại hình
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-24 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Trạng thái
                 </th>
               </tr>
@@ -502,7 +612,7 @@ const DataTablePage: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={17} className="px-4 py-8 text-center">
+                  <td colSpan={16} className="px-4 py-8 text-center">
                     <div className="flex items-center justify-center">
                       <i className="fas fa-spinner fa-spin text-blue-600 text-xl mr-3"></i>
                       <span className="text-gray-600">Đang tải dữ liệu...</span>
@@ -511,7 +621,7 @@ const DataTablePage: React.FC = () => {
                 </tr>
               ) : filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={17} className="px-4 py-8 text-center">
+                  <td colSpan={16} className="px-4 py-8 text-center">
                     <div className="text-gray-500">
                       <i className="fas fa-inbox text-4xl mb-4"></i>
                       <p>Không có dữ liệu biên lai</p>
@@ -521,23 +631,20 @@ const DataTablePage: React.FC = () => {
               ) : (
                 filteredData.map((row, index) => (
                   <tr key={row.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-3 py-3 text-sm text-gray-900 text-center">
                       {row.stt}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {index + 1}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      <div className="flex gap-2">
+                    <td className="px-3 py-3 text-sm text-gray-900">
+                      <div className="flex flex-col gap-1">
                         <button
-                          className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors"
                           onClick={() => handleAction('huy', row)}
                         >
                           <i className="fas fa-times mr-1"></i>
                           Hủy
                         </button>
                         <button
-                          className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
                           onClick={() => handleAction('dieu-chinh', row)}
                         >
                           <i className="fas fa-edit mr-1"></i>
@@ -545,48 +652,48 @@ const DataTablePage: React.FC = () => {
                         </button>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {formatDate(row.ngayYeuCau)}
+                    <td className="px-3 py-3 text-sm text-gray-900">
+                      {row.ngayYeuCau}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {formatDate(row.ngayXuLy)}
+                    <td className="px-3 py-3 text-sm text-gray-900">
+                      {row.ngayXuLy}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-3 py-3 text-sm text-gray-900 truncate">
                       {row.ttLienQuan}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-3 py-3 text-sm text-gray-900 truncate">
                       {row.loaiBienLai}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">
+                    <td className="px-3 py-3 text-sm text-gray-900 truncate">
                       {row.noiDung}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-3 py-3 text-sm text-gray-900 truncate">
                       {row.mauKyHieu}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                    <td className="px-3 py-3 text-sm text-gray-900 font-medium truncate">
                       {row.soBienLai}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {formatDate(row.ngayBienLai)}
+                    <td className="px-3 py-3 text-sm text-gray-900">
+                      {row.ngayBienLai}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right font-semibold">
-                      {formatCurrency(row.tongTien)} VNĐ
+                    <td className="px-3 py-3 text-sm text-gray-900 text-right font-semibold">
+                      {formatCurrency(row.tongTien)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-3 py-3 text-sm text-gray-900 truncate">
                       {row.maTraCuu}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-3 py-3 text-sm text-gray-900 truncate">
                       {row.soToKhai}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
-                      {formatDate(row.ngayToKhai)}
+                    <td className="px-3 py-3 text-sm text-gray-900">
+                      {row.ngayToKhai}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900">
+                    <td className="px-3 py-3 text-sm text-gray-900 truncate">
                       {row.loaiHinh}
                     </td>
-                    <td className="px-4 py-3 text-sm">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeColor(row.trangThai)}`}>
-                        {row.trangThai || 'Chưa xác định'}
+                    <td className="px-3 py-3 text-center">
+                      <span className={`inline-flex items-center justify-center px-2 py-1 rounded text-xs font-medium w-full ${getStatusBadgeColor(row.trangThai)}`}>
+                        {row.trangThai || 'Đã xử lý'}
                       </span>
                     </td>
                   </tr>

@@ -909,8 +909,6 @@ public class FptEInvoiceController {
             log.info("Tìm thấy biên lai ID: {}, email: {}, có imageBl (độ dài: {})", 
                     bienLai.getId(), bienLai.getEmail(), bienLai.getImageBl().length());
             
-            // Test cấu hình email trước khi gửi
-            testEmailConfiguration();
             
             // Xử lý base64 data - có thể là image hoặc PDF
             byte[] pdfBytes;
@@ -983,26 +981,6 @@ public class FptEInvoiceController {
         return data[0] == 0x25 && data[1] == 0x50 && data[2] == 0x44 && data[3] == 0x46;
     }
 
-    /**
-     * Test gửi email đơn giản để kiểm tra cấu hình
-     */
-    private void testEmailConfiguration() {
-        try {
-            log.info("🧪 Test cấu hình email...");
-            
-            String testSubject = "Test Email Configuration";
-            String testContent = "<html><body><h2>Test Email</h2><p>Đây là email test để kiểm tra cấu hình.</p></body></html>";
-            
-            // Test với email giả định
-            java.util.List<String> testEmails = java.util.Arrays.asList("test@example.com");
-            
-            boolean result = emailService.sendSimpleEmail(testEmails, testSubject, testContent);
-            log.info("🧪 Kết quả test email: {}", result ? "THÀNH CÔNG" : "THẤT BẠI");
-            
-        } catch (Exception e) {
-            log.error("🧪 Lỗi khi test email: ", e);
-        }
-    }
 
     /**
      * Tạo nội dung HTML cho email
