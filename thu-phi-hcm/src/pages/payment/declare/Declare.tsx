@@ -54,33 +54,36 @@ const Declare: React.FC = () => {
       
       console.log('📄 Getting notification for declaration:', row.id);
       
-      // Mock API call for getting notification
-      // In production, this would call actual notification API
-      setTimeout(() => {
+      // Call actual API for getting notification
+      const response = await CrmApiService.layThongBaoToKhai(row.id);
+      
+      if (response.status === 200) {
         // Update the notification status
         setFilteredData(prevData =>
           prevData.map(item =>
             item.id === row.id
-              ? { ...item, thongBao: 'Đã lấy' }
+              ? { ...item, thongBao: 'Đã lấy', trangThai: 'Đã lấy thông báo' }
               : item
           )
         );
         setAllData(prevData =>
           prevData.map(item =>
             item.id === row.id
-              ? { ...item, thongBao: 'Đã lấy' }
+              ? { ...item, thongBao: 'Đã lấy', trangThai: 'Đã lấy thông báo' }
               : item
           )
         );
         
         showSuccess('Đã lấy thông báo thành công!', 'Thành công');
         console.log('✅ Notification retrieved successfully for item:', row.id);
-        setLoading(false);
-      }, 1500);
+      } else {
+        throw new Error(response.message || 'Lỗi khi lấy thông báo');
+      }
       
     } catch (error: any) {
       console.error('💥 Get notification failed:', error);
       showError(`Lỗi lấy thông báo: ${error.message}`, 'Lỗi');
+    } finally {
       setLoading(false);
     }
   };
@@ -1081,21 +1084,17 @@ const Declare: React.FC = () => {
                     <td>{row.ngayPhi}</td>
                     <td>{row.loai}</td>
                     <td className="text-center">
-                      {row.trangThai === 'Đã ký số' ? (
+                      {row.thongBao !== 'Đã lấy' ? (
                         <button
                           onClick={() => handleGetNotification(row)}
-                          disabled={loading || row.thongBao === 'Đã lấy'}
-                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                            row.thongBao === 'Đã lấy'
-                              ? 'bg-green-100 text-green-800 border border-green-300 cursor-not-allowed'
-                              : 'bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer'
-                          }`}
+                          disabled={loading}
+                          className="px-3 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {row.thongBao === 'Đã lấy' ? 'Đã lấy' : 'Lấy thông báo'}
+                          {loading ? 'Đang xử lý...' : 'Lấy thông báo'}
                         </button>
                       ) : (
-                        <span className="text-gray-500 text-xs">
-                          {row.thongBao}
+                        <span className="px-3 py-1 text-xs rounded border bg-green-100 text-green-800 border border-green-300">
+                          Đã lấy
                         </span>
                       )}
                     </td>
