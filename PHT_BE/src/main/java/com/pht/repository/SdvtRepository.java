@@ -17,22 +17,26 @@ public interface SdvtRepository extends BaseRepository<Sdvt, Long> {
            "(:maDvt IS NULL OR LOWER(s.maDvt) LIKE LOWER(:maDvt)) AND " +
            "(:tenDvt IS NULL OR LOWER(s.tenDvt) LIKE LOWER(:tenDvt)) AND " +
            "(:loaiDvt IS NULL OR LOWER(s.loaiDvt) LIKE LOWER(:loaiDvt)) AND " +
-           "(:trangThai IS NULL OR s.trangThai = :trangThai)")
+           "(:trangThai IS NULL OR s.trangThai = :trangThai) AND " +
+           "(:cvTon IS NULL OR s.cvTon = :cvTon)")
     Page<Sdvt> findBySearchCriteria(@Param("maDvt") String maDvt,
                                   @Param("tenDvt") String tenDvt,
                                   @Param("loaiDvt") String loaiDvt,
                                   @Param("trangThai") String trangThai,
+                                  @Param("cvTon") java.math.BigDecimal cvTon,
                                   Pageable pageable);
 
     @Query("SELECT s FROM Sdvt s WHERE " +
            "(:maDvt IS NULL OR LOWER(s.maDvt) LIKE LOWER(:maDvt)) AND " +
            "(:tenDvt IS NULL OR LOWER(s.tenDvt) LIKE LOWER(:tenDvt)) AND " +
            "(:loaiDvt IS NULL OR LOWER(s.loaiDvt) LIKE LOWER(:loaiDvt)) AND " +
-           "(:trangThai IS NULL OR s.trangThai = :trangThai)")
+           "(:trangThai IS NULL OR s.trangThai = :trangThai) AND " +
+           "(:cvTon IS NULL OR s.cvTon = :cvTon)")
     List<Sdvt> findBySearchCriteria(@Param("maDvt") String maDvt,
                                   @Param("tenDvt") String tenDvt,
                                   @Param("loaiDvt") String loaiDvt,
-                                  @Param("trangThai") String trangThai);
+                                  @Param("trangThai") String trangThai,
+                                  @Param("cvTon") java.math.BigDecimal cvTon);
 
     boolean existsByMaDvt(String maDvt);
 }

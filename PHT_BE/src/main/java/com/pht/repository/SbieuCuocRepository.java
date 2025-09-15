@@ -66,4 +66,11 @@ public interface SbieuCuocRepository extends BaseRepository<SbieuCuoc, Long> {
      */
     @Query("SELECT s FROM SbieuCuoc s WHERE s.maBieuCuoc = :maBieuCuoc AND s.trangThai = '1'")
     List<com.pht.entity.SbieuCuoc> findByMaBieuCuoc(@Param("maBieuCuoc") String maBieuCuoc);
+    
+    /**
+     * Tìm biểu cước theo đơn vị tính và loại biểu cước
+     */
+    @Query("SELECT s FROM SbieuCuoc s WHERE s.dvt = :dvt AND s.loaiBc = :loaiBc")
+    List<com.pht.entity.SbieuCuoc> findByDvtAndLoaiBc(@Param("dvt") String dvt, 
+                                                     @Param("loaiBc") String loaiBc);
 }

@@ -1,5 +1,7 @@
 package com.pht.model.request;
 
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.AllArgsConstructor;
@@ -17,4 +19,5 @@ public class SdvtCreateRequest {
     private String loaiDvt;
     private String dienGiai;
     private String trangThai;
+    private BigDecimal cvTon;
 }

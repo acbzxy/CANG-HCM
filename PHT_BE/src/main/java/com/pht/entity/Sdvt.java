@@ -44,4 +44,7 @@ public class Sdvt {
 
     @Column(name = "NGAY_CAP_NHAT")
     private LocalDateTime ngayCapNhat;
+
+    @Column(name = "CV_TON", precision = 10, scale = 6)
+    private java.math.BigDecimal cvTon;
 }

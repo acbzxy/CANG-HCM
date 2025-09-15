@@ -168,6 +168,7 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<StoKhai, Long> im
             // Cập nhật trạng thái sang "02" và lưu số thông báo + msgId
             toKhaiThongTin.setTrangThai("02");
             toKhaiThongTin.setSoThongBao(soThongBao);
+            toKhaiThongTin.setSoThongBaoNopPhi(soThongBao); // Cập nhật soThongBaoNopPhi = soThongBao
             toKhaiThongTin.setMsgId(msgId);
             
             // Xử lý tính phí và tổng tiền
@@ -185,7 +186,7 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<StoKhai, Long> im
                     xuLyTinhPhi(toKhaiThongTin.getId());
                 } else {
                     log.info("Tờ khai có loai_HH != 'LBC001', tính tổng tiền từ các row hiện có");
-                    tinhTongTienPhi(toKhaiThongTin.getId());
+                    tinhTongTienPhi(toKhaiThongTin.getId(), toKhaiThongTin.getLoaiHang());
                 }
             }
             
@@ -358,10 +359,11 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<StoKhai, Long> im
     
     /**
      * Tính tổng tiền phí từ các row hiện có (khi loai_HH != 'LBC001')
+     * Map với bảng bieucuoc để lấy đơn giá dựa trên ma_dvt
      */
-    private void tinhTongTienPhi(Long toKhaiId) {
+    private void tinhTongTienPhi(Long toKhaiId, String loaiHang) {
         try {
-            log.info("Bắt đầu tính tổng tiền phí cho tờ khai ID: {}", toKhaiId);
+            log.info("Bắt đầu tính tổng tiền phí cho tờ khai ID: {}, loaiHang: {}", toKhaiId, loaiHang);
             
             // Lấy danh sách chi tiết tờ khai
             List<StoKhaiCt> chiTietList = toKhaiThongTinChiTietRepository.findByToKhaiThongTinID(toKhaiId);
@@ -371,11 +373,54 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<StoKhai, Long> im
                 return;
             }
             
-            // Tính tổng tiền phí từ tất cả chi tiết
-            java.math.BigDecimal tongTienPhi = chiTietList.stream()
-                .filter(chiTiet -> chiTiet.getSoTien() != null)
-                .map(StoKhaiCt::getSoTien)
-                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+            int soLuongCapNhat = 0;
+            java.math.BigDecimal tongTienPhi = java.math.BigDecimal.ZERO;
+            
+            for (StoKhaiCt chiTiet : chiTietList) {
+                try {
+                    // Lấy ma_dvt từ donViTinh (giả sử donViTinh chứa mã đơn vị tính)
+                    String maDvt = chiTiet.getDonViTinh();
+                    
+                    if (maDvt != null && !maDvt.trim().isEmpty() && 
+                        chiTiet.getTongTrongLuong() != null && chiTiet.getTongTrongLuong().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                        
+                        log.info("Xử lý chi tiết ID: {}, maDvt: {}, trongLuong: {}", 
+                                chiTiet.getId(), maDvt, chiTiet.getTongTrongLuong());
+                        
+                        // Tìm đơn giá từ bảng bieucuoc dựa trên ma_dvt và loaiHang
+                        java.math.BigDecimal donGia = timDonGiaTuBieuCuoc(maDvt, loaiHang);
+                        
+                        if (donGia != null && donGia.compareTo(java.math.BigDecimal.ZERO) > 0) {
+                            // Tính số tiền = đơn giá * trọng lượng
+                            java.math.BigDecimal soTien = donGia.multiply(chiTiet.getTongTrongLuong());
+                            
+                            // Cập nhật thông tin vào chi tiết tờ khai
+                            chiTiet.setDonGia(donGia);
+                            chiTiet.setSoTien(soTien);
+                            
+                            // Cộng vào tổng tiền phí
+                            tongTienPhi = tongTienPhi.add(soTien);
+                            soLuongCapNhat++;
+                            
+                            log.info("Cập nhật chi tiết ID: {}, donGia: {}, soTien: {}", 
+                                    chiTiet.getId(), donGia, soTien);
+                        } else {
+                            log.warn("Không tìm thấy đơn giá cho maDvt: '{}', loaiHang: '{}'", maDvt, loaiHang);
+                        }
+                    } else {
+                        log.debug("Chi tiết ID: {} không có đủ thông tin maDvt hoặc trọng lượng để tính phí", 
+                                 chiTiet.getId());
+                    }
+                } catch (Exception e) {
+                    log.error("Lỗi khi xử lý chi tiết ID: {}", chiTiet.getId(), e);
+                }
+            }
+            
+            // Lưu các chi tiết đã cập nhật
+            if (soLuongCapNhat > 0) {
+                toKhaiThongTinChiTietRepository.saveAll(chiTietList);
+                log.info("Đã lưu {} chi tiết tờ khai", soLuongCapNhat);
+            }
             
             // Cập nhật TONG_TIEN_PHI vào tờ khai chính
             StoKhai toKhai = toKhaiThongTinRepository.findById(toKhaiId).orElse(null);
@@ -386,11 +431,50 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<StoKhai, Long> im
                 log.info("Cập nhật TONG_TIEN_PHI cho tờ khai ID: {}, tổng tiền: {}", toKhaiId, tongTienPhi);
             }
             
-            log.info("Hoàn thành tính tổng tiền phí cho tờ khai ID: {}, tổng tiền: {}", toKhaiId, tongTienPhi);
+            log.info("Hoàn thành tính tổng tiền phí cho tờ khai ID: {}, đã cập nhật {} chi tiết, tổng tiền: {}", 
+                    toKhaiId, soLuongCapNhat, tongTienPhi);
                     
         } catch (Exception e) {
             log.error("Lỗi khi tính tổng tiền phí cho tờ khai ID: {}", toKhaiId, e);
             // Không throw exception để không ảnh hưởng đến việc tạo thông báo
+        }
+    }
+    
+    /**
+     * Tìm đơn giá từ bảng bieucuoc dựa trên ma_dvt và loaiHang
+     */
+    private java.math.BigDecimal timDonGiaTuBieuCuoc(String maDvt, String loaiHang) {
+        try {
+            log.info("Tìm đơn giá cho maDvt: {}, loaiHang: {}", maDvt, loaiHang);
+            
+            // Tìm trong bảng bieucuoc với điều kiện:
+            // - dvt = maDvt (đơn vị tính)
+            // - loaiBc = loaiHang (loại biểu cước)
+            List<com.pht.entity.SbieuCuoc> bieuCuocList = sbieuCuocRepository.findByDvtAndLoaiBc(maDvt, loaiHang);
+            
+            if (bieuCuocList != null && !bieuCuocList.isEmpty()) {
+                com.pht.entity.SbieuCuoc bieuCuoc = bieuCuocList.get(0); // Lấy record đầu tiên
+                java.math.BigDecimal donGia = bieuCuoc.getDonGia();
+                
+                log.info("Tìm thấy đơn giá: {} cho maDvt: {}, loaiHang: {}", donGia, maDvt, loaiHang);
+                return donGia;
+            } else {
+                log.warn("Không tìm thấy biểu cước cho maDvt: {}, loaiHang: {}", maDvt, loaiHang);
+                
+                // Debug: Query tất cả biểu cước để xem có gì
+                log.info("Debug: Kiểm tra tất cả biểu cước trong database...");
+                List<com.pht.entity.SbieuCuoc> allBieuCuoc = sbieuCuocRepository.findAllActive();
+                log.info("Debug: Tìm thấy {} biểu cước với trạng thái = '1'", allBieuCuoc.size());
+                for (com.pht.entity.SbieuCuoc bc : allBieuCuoc) {
+                    log.info("Debug: dvt='{}', loaiBc='{}', donGia={}, trangThai='{}'", 
+                            bc.getDvt(), bc.getLoaiBc(), bc.getDonGia(), bc.getTrangThai());
+                }
+                
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi tìm đơn giá cho maDvt: {}, loaiHang: {}", maDvt, loaiHang, e);
+            return null;
         }
     }
 }
