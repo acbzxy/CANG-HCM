@@ -139,7 +139,7 @@ const AccountPage: React.FC = () => {
       id: 1,
       serial: '540113505151C65B4D4609FC9C2F647A',
       issuer: 'CN=HILO-CA SHA-256, O=T-VAN HILO, C=VN',
-      subject: 'OID.0.9.2342.19200300.100.1.1=MST:0109844160, CN=CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV, OU=CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV, O=CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV, L=44 đường Lê Quang Đạo - Phường Phú Đô - Quận Nam Từ Liêm - Hà Nội, S=Hà Nội, C=VN',
+      subject: 'OID.0.9.2342.19200300.100.1.1=MST:0304126484, CN=Công ty TNHH Vận Tải Biển Đông, OU=Công ty TNHH Vận Tải Biển Đông, O=Công ty TNHH Vận Tải Biển Đông, L=167 Lưu Hữu Phước, Phường Phú Định, Thành phố Hồ Chí Minh, Việt Nam, S=Hồ Chí Minh, C=VN',
       cert: 'MIIFVDCCBDygAwIBAgIQVAETUFFRxltNRgn8nC9kejANBgkqhkiG9w0BAQsFADA8MQsWCQYDVQQGEWJWTJETMBEGA1UECgwKVC1WQU4gSEIMTZEYMBYGA1UEAwwPSEIMTY1DQSBTSEEtMjU2MB4XDTIzMTAyMzE2MDczM10XDTI3MDEwNDA4MT',
       validFrom: '23/10/2023',
       validTo: '04/01/2027',
@@ -187,13 +187,13 @@ const AccountPage: React.FC = () => {
 
   // Get company data based on user type
   const getCompanyData = () => {
-    if (user?.userType === 'mst_custom' || user?.taxCode === '368745291047') {
+    if (user?.userType === 'mst_custom' || user?.taxCode === '0304126484') {
       return {
-        companyCode: '0109844160',
-        companyName: 'CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV',
+        companyCode: '0304126484',
+        companyName: 'Công ty TNHH Vận Tải Biển Đông',
         phone: '0916926829',
         email: 'tuannt6829@gmail.com',
-        address: '44 đường Lê Quang Đạo, Phường Tự Liêm, TP Hà Nội, Việt Nam'
+        address: '167 Lưu Hữu Phước, Phường Phú Định, Thành phố Hồ Chí Minh, Việt Nam'
       }
     }
     

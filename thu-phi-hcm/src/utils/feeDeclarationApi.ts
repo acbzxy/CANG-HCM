@@ -57,14 +57,13 @@ export interface TokhaiThongtinResponse {
   chiTietList: any[]
 }
 
-// API Base URL - Updated to use the new backend API with proxy
-const API_BASE_URL = '/api'
-// For new CRM API, use crmApi.ts
+// API Base URL - Updated to use PHT_BE backend
+const API_BASE_URL = 'http://10.14.122.24:8081/PHT_BE/api'
 
-// Fee Declaration API endpoints
+// Fee Declaration API endpoints - Updated for PHT_BE
 const ENDPOINTS = {
-  FEE_DECLARATIONS: `${API_BASE_URL}/tokhai-thongtin/ds-nphi`,
-  SEARCH: `${API_BASE_URL}/tokhai-thongtin/ds-nphi`,
+  FEE_DECLARATIONS: `${API_BASE_URL}/tokhai-thongtin/all`,
+  SEARCH: `${API_BASE_URL}/tokhai-thongtin/all`,
   STATISTICS: `${API_BASE_URL}/tokhai-thongtin/statistics`,
   NEEDING_NOTIFICATION: `${API_BASE_URL}/tokhai-thongtin/needing-notification`,
 }
@@ -304,8 +303,8 @@ export class FeeDeclarationApiService {
     size = 10
   ): Promise<PageResponse<FeeDeclaration>> {
     try {
-      // Use the new API endpoint directly
-      const url = `${API_BASE_URL}/tokhai-thongtin/ds-nphi`
+      // Use the PHT_BE API endpoint
+      const url = `${API_BASE_URL}/tokhai-thongtin/all`
       console.log('Fetching data from:', url)
       
       const response = await fetch(url, {
@@ -367,9 +366,8 @@ export class FeeDeclarationApiService {
     searchParams: FeeDeclarationSearchParams
   ): Promise<PageResponse<FeeDeclaration>> {
     try {
-      // For now, use the same endpoint as getAllFeeDeclarations
-      // In the future, you can implement search parameters if the API supports them
-      const url = `${API_BASE_URL}/tokhai-thongtin/ds-nphi`
+      // Use PHT_BE API endpoint for search
+      const url = `${API_BASE_URL}/tokhai-thongtin/all`
       console.log('Searching with params:', searchParams)
       console.log('Fetching data from:', url)
       

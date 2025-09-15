@@ -55,7 +55,7 @@ const LoginPage: React.FC = () => {
   const handleUsernameDblClick = () => {
     setFormData(prev => ({
       ...prev,
-      username: '368745291047',
+      username: '0304126484',
       password: '123456',
       captcha: captchaCode
     }))
@@ -87,8 +87,8 @@ const LoginPage: React.FC = () => {
     
     if (!formData.username.trim()) {
       newErrors.username = 'Vui lòng nhập mã số thuế'
-    } else if (!/^\d{12}$/.test(formData.username.trim())) {
-      newErrors.username = 'Mã số thuế phải là 12 chữ số'
+    } else if (!/^\d{10}$/.test(formData.username.trim())) {
+      newErrors.username = 'Mã số thuế phải là 10 chữ số'
     }
     
     if (!formData.password.trim()) {
@@ -632,7 +632,7 @@ const LoginPage: React.FC = () => {
               <form onSubmit={handleSubmit}>
                 {/* Tax Code */}
                 <div style={{ marginBottom: '5px', fontSize: '14px', color: '#2c3e50' }}>
-                  Mã số thuế<span style={{ fontStyle: 'italic' }}>(12 số)</span>
+                  Mã số thuế<span style={{ fontStyle: 'italic' }}>(10 số)</span>
                 </div>
                 <div style={{ position: 'relative', marginBottom: '10px' }}>
                   <i className="fas fa-user" style={{
@@ -648,7 +648,7 @@ const LoginPage: React.FC = () => {
                     value={formData.username}
                     onChange={handleInputChange}
                     onDoubleClick={handleUsernameDblClick}
-                    placeholder="Mã số thuế (12 số)..."
+                    placeholder="Mã số thuế..."
                     style={{
                       width: '100%',
                       height: '40px',
@@ -660,8 +660,8 @@ const LoginPage: React.FC = () => {
                       outline: 'none'
                     }}
                     title="Double-click để auto-fill dev credentials"
-                    maxLength={12}
-                    pattern="[0-9]{12}"
+                    maxLength={10}
+                    pattern="[0-9]{10}"
                     inputMode="numeric"
                   />
                 </div>
@@ -979,7 +979,7 @@ const LoginPage: React.FC = () => {
               <div className="cards-stack" style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '20px'
+                gap: '14px'
               }}>
 
                 {/* Notifications Card */}
@@ -1187,7 +1187,7 @@ const LoginPage: React.FC = () => {
           zIndex: 100,
           background: 'linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.2) 100%)',
           backdropFilter: 'blur(10px)',
-          padding: '18px',
+          padding: '10px',
           position: 'absolute',
           bottom: '0px',
           left: '0',
@@ -1270,7 +1270,6 @@ const LoginPage: React.FC = () => {
                 <i className="fas fa-times"></i>
               </button>
             </div>
-
             {/* Modal Content */}
             <div style={{ padding: '20px' }}>
               {/* Dropdown */}
