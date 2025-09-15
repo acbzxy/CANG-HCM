@@ -176,6 +176,9 @@ const FeeDeclarationManagePage: React.FC = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
+  // Prevent duplicate API calls
+  const isLoadingRef = React.useRef(false);
+
   // Load fee declarations on component mount and when filters change
   useEffect(() => {
     debugLog('Component mounted, loading fee declarations');
@@ -251,7 +254,14 @@ const FeeDeclarationManagePage: React.FC = () => {
 
   // Load fee declarations from API
   const loadFeeDeclarations = async () => {
+    // Prevent duplicate calls
+    if (isLoadingRef.current) {
+      console.log('🔄 Fee declarations are already loading, skipping duplicate call');
+      return;
+    }
+    
     try {
+      isLoadingRef.current = true;
       setLoading(true);
       console.log('Loading fee declarations...');
       
@@ -377,6 +387,7 @@ const FeeDeclarationManagePage: React.FC = () => {
       setTotalElements(0);
       setTotalPages(0);
     } finally {
+      isLoadingRef.current = false;
       setLoading(false);
       console.log('🔄 Loading finished, loading state set to false');
     }
@@ -894,6 +905,7 @@ const FeeDeclarationManagePage: React.FC = () => {
           state: { 
             selectedItem: detailedData,
             isEditMode: false,
+            toKhaiId: item.id, // Pass the fee declaration ID as toKhaiId
             trangThaiPhatHanh: item.trangThaiPhatHanh // Pass trangThaiPhatHanh from fee declaration
           } 
         });

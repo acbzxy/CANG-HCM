@@ -1138,10 +1138,15 @@ const CreateReceiptPage: React.FC = () => {
     try {
       // Call API to update trang thai phat hanh
       const updateRequest: FPTEInvoiceUpdateStatusRequest = {
-        id: selectedItem?.id || 0
+        id: toKhaiId || selectedItem?.id || 0
       };
       
       console.log('🔍 Update Status Request:', updateRequest);
+      console.log('🔍 Debug - toKhaiId:', toKhaiId);
+      console.log('🔍 Debug - selectedItem.id:', selectedItem?.id);
+      console.log('🔍 Debug - passedToKhaiId:', passedToKhaiId);
+      console.log('🔍 Debug - Final id:', toKhaiId || selectedItem?.id || 0);
+      console.log('🔍 Debug - selectedItem keys:', selectedItem ? Object.keys(selectedItem) : 'selectedItem is null');
       
       const response = await fptEInvoiceService.updateTrangThaiPhatHanh(updateRequest);
       
