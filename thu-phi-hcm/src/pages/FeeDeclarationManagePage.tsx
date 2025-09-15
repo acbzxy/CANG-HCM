@@ -1186,7 +1186,7 @@ const FeeDeclarationManagePage: React.FC = () => {
                     </span>
                   )}
                 </td>
-                <td style={{ padding: '8px', textAlign: 'center', fontSize: '12px' }}>
+                <td style={{ padding: '8px', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>
                   <button
                     style={{
                       backgroundColor: '#007bff',
