@@ -198,16 +198,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Check for MST user credentials (mst/123456)
-      if (credentials.username === '368745291047' && credentials.password === '123456') {
+      if (credentials.username === '0304126484' && credentials.password === '123456') {
         const mstUser: User = {
           id: 'mst-001',
-          username: '368745291047',
-          email: 'mst@example.com',
-          fullName: 'Người dùng MST',
-          companyName: 'Công ty MST',
-          taxCode: '368745291047',
+          username: '0304126484',
+          email: 'info@biendongtrans.com',
+          fullName: 'Công ty TNHH Vận Tải Biển Đông',
+          companyName: 'Công ty TNHH Vận Tải Biển Đông',
+          taxCode: '0304126484',
           phone: '1900 1286',
-          address: 'TP. Hồ Chí Minh',
+          address: '167 Lưu Hữu Phước, Phường Phú Định, Thành phố Hồ Chí Minh, Việt Nam',
           userType: 'mst_custom',
           status: 'active',
           createdAt: new Date().toISOString(),

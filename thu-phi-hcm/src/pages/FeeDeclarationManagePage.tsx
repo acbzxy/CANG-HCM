@@ -333,7 +333,7 @@ const FeeDeclarationManagePage: React.FC = () => {
         console.error('💥 API call failed:', apiError);
         console.error('💥 Error message:', (apiError as Error).message);
         console.error('💥 Error stack:', (apiError as Error).stack);
-        showError('Không thể kết nối đến server. Sử dụng dữ liệu demo.');
+        console.log('🔄 API không kết nối được, sử dụng dữ liệu demo.');
       }
 
       // Fallback to mock data
