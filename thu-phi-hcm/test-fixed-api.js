@@ -85,7 +85,7 @@ const testEndpoints = [
     data: {
       "nguonTK": 0,
       "maDoanhNghiepKhaiPhi": "MST123456789",
-      "tenDoanhNghiepKhaiPhi": "Công ty TNHH Test",
+      "tenDoanhNghiepKhaiPhi": "Công ty TNHH Vận Tải Biển Đông",
       "diaChiKhaiPhi": "123 Đường Test, Q1, TP.HCM",
       "maDoanhNghiepXNK": "XNK123456789",
       "tenDoanhNghiepXNK": "Công ty XNK Test",
