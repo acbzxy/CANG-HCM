@@ -19,3 +19,4 @@ public interface FrontendCertificateSaveService {
     ChuKySoResponse saveCertificateFromFrontend(SaveCertificateFromFrontendRequest request) throws BusinessException;
 }
 
+

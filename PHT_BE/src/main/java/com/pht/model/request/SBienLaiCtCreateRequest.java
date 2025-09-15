@@ -20,3 +20,4 @@ public class SBienLaiCtCreateRequest {
     private BigDecimal donGia;
     private BigDecimal soTien;
 }
+

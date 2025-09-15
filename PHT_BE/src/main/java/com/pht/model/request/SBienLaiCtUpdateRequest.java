@@ -21,3 +21,4 @@ public class SBienLaiCtUpdateRequest {
     private BigDecimal donGia;
     private BigDecimal soTien;
 }
+

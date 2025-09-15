@@ -19,3 +19,4 @@ public class SBienLaiSearchRequest {
     private String soTk;
     private String maKho;
 }
+

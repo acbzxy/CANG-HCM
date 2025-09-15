@@ -12,3 +12,4 @@ public class DonHangKySoRequest {
     private Long idDonHang;
     private String serialNumber;
 }
+

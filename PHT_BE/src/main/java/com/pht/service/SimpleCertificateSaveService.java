@@ -19,3 +19,4 @@ public interface SimpleCertificateSaveService {
     ChuKySoResponse saveCertificateBySerialNumber(SaveCertificateBySerialRequest request) throws BusinessException;
 }
 
+

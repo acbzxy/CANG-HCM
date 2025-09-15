@@ -10,6 +10,7 @@ import com.pht.exception.BusinessException;
 import com.pht.repository.ChukySoRepository;
 import com.pht.service.DatabaseCertificateService;
 import com.pht.service.DonHangKySoService;
+import com.pht.service.PfxCertificateService;
 import com.pht.service.SDonHangService;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class DonHangKySoServiceImpl implements DonHangKySoService {
     private final SDonHangService sDonHangService;
     private final ChukySoRepository chukySoRepository;
     private final DatabaseCertificateService databaseCertificateService;
+    private final PfxCertificateService pfxCertificateService;
 
     @Override
     @Transactional
@@ -52,10 +54,10 @@ public class DonHangKySoServiceImpl implements DonHangKySoService {
             // Tạo XML cho đơn hàng
             String xmlContent = generateXmlForDonHang(donHang);
             
-            // Ký XML với chữ ký số từ database
-            log.info("Ký XML với chữ ký số từ database, serial number: {}", serialNumber);
-            xmlContent = databaseCertificateService.signXmlWithDatabaseCertificate(xmlContent, serialNumber);
-            log.info("Hoàn thành ký XML với chữ ký số từ database");
+            // Ký XML với chữ ký số từ file PFX
+            log.info("Ký XML với chữ ký số từ file PFX");
+            xmlContent = pfxCertificateService.signXmlWithPfxCertificate(xmlContent, null, null);
+            log.info("Hoàn thành ký XML với chữ ký số từ file PFX");
             
             // Log nội dung XML để kiểm tra
             log.info("=== XML CONTENT GENERATED ===");

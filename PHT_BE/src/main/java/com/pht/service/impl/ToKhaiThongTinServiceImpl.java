@@ -174,7 +174,7 @@ public class ToKhaiThongTinServiceImpl extends BaseServiceImpl<StoKhai, Long> im
             String maPtVc = toKhaiThongTin.getMaPhuongThucVC();
             
             // Kiểm tra điều kiện ma_pt_vc
-            if (maPtVc == null || (!maPtVc.equals("2") && !maPtVc.equals("3") && !maPtVc.equals("4"))) {
+            if (maPtVc == null || (!maPtVc.equals("2") && !maPtVc.equals("3"))) {
                 log.info("Tờ khai có ma_pt_vc = {} (khác 2,3,4), đặt TONG_TIEN_PHI = 0", maPtVc);
                 toKhaiThongTin.setTongTienPhi(java.math.BigDecimal.ZERO);
             } else {
