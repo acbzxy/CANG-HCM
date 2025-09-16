@@ -133,7 +133,8 @@ const ReceiptApprovalPage: React.FC = () => {
         />
         <button
           type="button"
-          className="bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-1 rounded hover:opacity-80"
+          style={{ backgroundColor: '#2563eb', color: 'white' }}
+          className="px-4 py-1 rounded hover:bg-blue-700 transition-colors duration-200"
           onClick={handleSearch}
         >
           Tìm kiếm

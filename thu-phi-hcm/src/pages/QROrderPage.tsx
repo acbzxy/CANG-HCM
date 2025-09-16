@@ -1103,6 +1103,7 @@ const QROrderPage: React.FC = () => {
                   padding: '8px', 
                   textAlign: 'center',
                   borderRight: '1px solid #dee2e6',
+                  whiteSpace: 'nowrap',
                   ...getStatusStyle(order.trangThai)
                 }}>{getStatusText(order.trangThai)}</td>
                 <td style={{ 
@@ -2896,6 +2897,7 @@ const QROrderPage: React.FC = () => {
                     minHeight: '42px',
                     display: 'flex',
                     alignItems: 'center',
+                    whiteSpace: 'nowrap',
                     ...getStatusStyle(selectedOrderDetails.trangThai)
                   }}>
                     {getStatusText(selectedOrderDetails.trangThai)}

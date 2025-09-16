@@ -382,12 +382,12 @@ const ReceiptManagePage: React.FC = () => {
         }}>
           {/* First Row */}
           <div style={{
-            display: 'flex',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(6, minmax(160px, 1fr))',
             justifyContent: 'flex-end',
             gap: '15px',
             alignItems: 'end',
-            marginBottom: '15px',
-            flexWrap: 'wrap'
+            marginBottom: '15px'
           }}>
             <div style={{ minWidth: '140px' }}>
               <label style={{ 
@@ -546,11 +546,11 @@ const ReceiptManagePage: React.FC = () => {
 
           {/* Second Row */}
           <div style={{
-            display: 'flex',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(6, minmax(160px, 1fr))',
             justifyContent: 'flex-end',
             gap: '15px',
-            alignItems: 'end',
-            flexWrap: 'wrap'
+            alignItems: 'end'
           }}>
             <div style={{ 
               minWidth: '200px',

@@ -559,52 +559,52 @@ const DataTablePage: React.FC = () => {
           <table className="min-w-full divide-y divide-gray-200 table-fixed">
             <thead className="bg-gray-50">
               <tr>
-                <th className="w-16 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-16 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   STT
                 </th>
-                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Loại yêu cầu
                 </th>
-                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Ngày yêu cầu
                 </th>
-                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Ngày xử lý
                 </th>
-                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   TT liên quan
                 </th>
-                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Loại biên lai
                 </th>
-                <th className="w-64 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-64 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Nội dung
                 </th>
-                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Mẫu/Ký hiệu
                 </th>
-                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Số biên lai
                 </th>
-                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Ngày biên lai
                 </th>
-                <th className="w-32 px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Tổng tiền
                 </th>
-                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Mã tra cứu
                 </th>
-                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Số tờ khai
                 </th>
-                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Ngày tờ khai
                 </th>
-                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Loại hình
                 </th>
-                <th className="w-24 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="w-24 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Trạng thái
                 </th>
               </tr>
@@ -637,14 +637,14 @@ const DataTablePage: React.FC = () => {
                     <td className="px-3 py-3 text-sm text-gray-900">
                       <div className="flex flex-col gap-1">
                         <button
-                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors"
+                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors whitespace-nowrap"
                           onClick={() => handleAction('huy', row)}
                         >
                           <i className="fas fa-times mr-1"></i>
                           Hủy
                         </button>
                         <button
-                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors"
+                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors whitespace-nowrap"
                           onClick={() => handleAction('dieu-chinh', row)}
                         >
                           <i className="fas fa-edit mr-1"></i>
@@ -692,7 +692,7 @@ const DataTablePage: React.FC = () => {
                       {row.loaiHinh}
                     </td>
                     <td className="px-3 py-3 text-center">
-                      <span className={`inline-flex items-center justify-center px-2 py-1 rounded text-xs font-medium w-full ${getStatusBadgeColor(row.trangThai)}`}>
+                      <span className={`inline-flex items-center justify-center px-2 py-1 rounded text-xs font-medium w-full whitespace-nowrap ${getStatusBadgeColor(row.trangThai)}`}>
                         {row.trangThai || 'Đã xử lý'}
                       </span>
                     </td>

@@ -1060,7 +1060,7 @@ const Declare: React.FC = () => {
                         className="text-blue-600 hover:text-blue-800 cursor-pointer p-1 rounded hover:bg-blue-50"
                         title="Xem chi tiết"
                       >
-                        <i className="fas fa-sticky-note"></i>
+                        <i className="fas fa-eye"></i>
                       </button>
                     </td>
                     <td>{row.doanhNghiepKB || row.doanhNghiepXNK || 'Công ty TNHH Vận Tải Biển Đông'}</td>
@@ -1139,7 +1139,7 @@ const Declare: React.FC = () => {
         selectedRowData ? (
           // View mode -> hiển thị dưới dạng popup overlay
           <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.45)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <div style={{ width: '95vw', height: '90vh', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 20px 60px rgba(0,0,0,0.35)', overflow: 'hidden' }}>
+            <div style={{ width: '95vw', height: '90vh', backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 20px 60px rgba(0,0,0,0.35)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
               <FeeInformationFormModal 
                 onClose={() => { setShowFeeInfoModal(false); setSelectedRowData(null); }} 
                 onSave={handleSaveNewDeclaration}
