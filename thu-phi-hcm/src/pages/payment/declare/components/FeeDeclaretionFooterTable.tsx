@@ -408,7 +408,7 @@ export default function CargoTabs() {
                   setContainers(prev => [...prev, testContainer]);
                   console.log('📦 Added test container with combo box values:', testContainer);
                 }}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-1 rounded-full flex items-center gap-1 transition-colors"
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full flex items-center gap-1 transition-colors"
               >
                 <i className="fa fa-flask"></i> Test Combo
               </button>
