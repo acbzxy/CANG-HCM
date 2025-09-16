@@ -1106,15 +1106,15 @@ export class CrmApiService {
    * Lấy thông báo tờ khai
    * POST /api/tokhai-thongtin/notification
    * @param toKhaiId ID của tờ khai
-   * @returns ApiDataResponse<{}> | ApiErrorResponse
+   * @returns ApiDataResponse<{soThongBao: string}> | ApiErrorResponse
    */
   static async layThongBaoToKhai(
     toKhaiId: string
-  ): Promise<ApiDataResponse<any> | ApiErrorResponse> {
+  ): Promise<ApiDataResponse<{soThongBao: string, notificationNumber?: string}> | ApiErrorResponse> {
     try {
       console.log(`📄 Getting notification for tokhai: ${toKhaiId}`)
       
-      const response = await makeApiRequest<ApiDataResponse<any>>(CRM_ENDPOINTS.TOKHAI_THONGTIN_NOTIFICATION, {
+      const response = await makeApiRequest<ApiDataResponse<{soThongBao: string, notificationNumber?: string}>>(CRM_ENDPOINTS.TOKHAI_THONGTIN_NOTIFICATION, {
         method: 'POST',
         body: JSON.stringify({ toKhaiId })
       })
@@ -1124,7 +1124,9 @@ export class CrmApiService {
         message: response.message,
         requestId: response.requestId,
         executionTime: response.executionTime + 'ms',
-        toKhaiId: toKhaiId
+        toKhaiId: toKhaiId,
+        soThongBao: response.data?.soThongBao || response.data?.notificationNumber,
+        fullResponseData: response.data
       })
       
       return response

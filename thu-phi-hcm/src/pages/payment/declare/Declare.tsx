@@ -58,24 +58,40 @@ const Declare: React.FC = () => {
       const response = await CrmApiService.layThongBaoToKhai(row.id);
       
       if (response.status === 200) {
-        // Update the notification status
+        // Extract notification number from response - lấy từ database thật
+        const notificationNumber = response.data?.soThongBao || response.data?.notificationNumber;
+        
+        console.log('📄 Response data:', response.data);
+        console.log('📄 Notification number from DB:', notificationNumber);
+        
+        // Update the notification status and number
         setFilteredData(prevData =>
           prevData.map(item =>
             item.id === row.id
-              ? { ...item, thongBao: 'Đã lấy', trangThai: 'Đã lấy thông báo' }
+              ? { 
+                  ...item, 
+                  thongBao: 'Đã lấy', 
+                  trangThai: 'Đã lấy thông báo',
+                  soTB: notificationNumber || item.soTB // Giữ nguyên nếu không có từ API
+                }
               : item
           )
         );
         setAllData(prevData =>
           prevData.map(item =>
             item.id === row.id
-              ? { ...item, thongBao: 'Đã lấy', trangThai: 'Đã lấy thông báo' }
+              ? { 
+                  ...item, 
+                  thongBao: 'Đã lấy', 
+                  trangThai: 'Đã lấy thông báo',
+                  soTB: notificationNumber || item.soTB // Giữ nguyên nếu không có từ API
+                }
               : item
           )
         );
         
-        showSuccess('Đã lấy thông báo thành công!', 'Thành công');
-        console.log('✅ Notification retrieved successfully for item:', row.id);
+        showSuccess(`Đã lấy thông báo thành công! Số TB: ${notificationNumber || 'N/A'}`, 'Thành công');
+        console.log('✅ Notification retrieved successfully for item:', row.id, 'Notification number:', notificationNumber);
       } else {
         throw new Error(response.message || 'Lỗi khi lấy thông báo');
       }
@@ -413,9 +429,9 @@ const Declare: React.FC = () => {
             ngayPhi: "08/09/2025",
             loai: "Lấy thông báo",
             loaiHinhKinhDoanh: "Container", 
-            thongBao: "TB25",
-            soTB: "TB25",
-            trangThai: "Mới tạo",
+            thongBao: "Chưa lấy",
+            soTB: "",
+            trangThai: "Đã ký số",
             thanhTien: 12500000,
             ghiChu: "Tờ khai phí container xuất khẩu",
             createdAt: "2025-09-08T08:00:00.000Z"
@@ -433,9 +449,9 @@ const Declare: React.FC = () => {
             ngayPhi: "08/09/2025",
             loai: "Chưa ký",
             loaiHinhKinhDoanh: "Container",
-            thongBao: "TB26",
-            soTB: "TB26",
-            trangThai: "Đã ký", 
+            thongBao: "Chưa lấy",
+            soTB: "",
+            trangThai: "Mới tạo", 
             thanhTien: 500000,
             ghiChu: "Tờ khai phí container nhập khẩu",
             createdAt: "2025-09-08T09:00:00.000Z"
@@ -453,9 +469,9 @@ const Declare: React.FC = () => {
             ngayPhi: "08/09/2025", 
             loai: "Chưa ký",
             loaiHinhKinhDoanh: "Container",
-            thongBao: "TB25",
-            soTB: "TB25", 
-            trangThai: "Mới tạo",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
             thanhTien: 500000,
             ghiChu: "Tờ khai phí container",
             createdAt: "2025-09-08T10:00:00.000Z"
@@ -473,9 +489,9 @@ const Declare: React.FC = () => {
             ngayPhi: "08/09/2025", 
             loai: "Chưa ký",
             loaiHinhKinhDoanh: "Container",
-            thongBao: "TB16",
-            soTB: "TB16", 
-            trangThai: "Mới tạo",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
             thanhTien: 0,
             ghiChu: "Tờ khai phí container",
             createdAt: "2025-09-08T11:00:00.000Z"
@@ -493,9 +509,9 @@ const Declare: React.FC = () => {
             ngayPhi: "08/09/2025", 
             loai: "Chưa ký",
             loaiHinhKinhDoanh: "Container",
-            thongBao: "TB34",
-            soTB: "TB34", 
-            trangThai: "Mới tạo",
+            thongBao: "Đã lấy",
+            soTB: "TB001", 
+            trangThai: "Đã lấy thông báo",
             thanhTien: 500000,
             ghiChu: "Tờ khai phí container",
             createdAt: "2025-09-08T12:00:00.000Z"
@@ -513,9 +529,9 @@ const Declare: React.FC = () => {
             ngayPhi: "08/09/2025", 
             loai: "Chưa ký",
             loaiHinhKinhDoanh: "Container",
-            thongBao: "TB29",
-            soTB: "TB29", 
-            trangThai: "Mới tạo",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
             thanhTien: 500000,
             ghiChu: "Tờ khai phí container",
             createdAt: "2025-09-08T13:00:00.000Z"
@@ -533,9 +549,9 @@ const Declare: React.FC = () => {
             ngayPhi: "08/09/2025", 
             loai: "Chưa ký",
             loaiHinhKinhDoanh: "Container",
-            thongBao: "TB32",
-            soTB: "TB32", 
-            trangThai: "Mới tạo",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
             thanhTien: 500000,
             ghiChu: "Tờ khai phí container",
             createdAt: "2025-09-08T14:00:00.000Z"
@@ -553,9 +569,9 @@ const Declare: React.FC = () => {
             ngayPhi: "08/09/2025", 
             loai: "Chưa ký",
             loaiHinhKinhDoanh: "Container",
-            thongBao: "TB1",
-            soTB: "TB1", 
-            trangThai: "Đã ký",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Mới tạo",
             thanhTien: 2500000,
             ghiChu: "Tờ khai phí container xuất khẩu",
             createdAt: "2025-09-08T15:00:00.000Z"
@@ -573,9 +589,9 @@ const Declare: React.FC = () => {
             ngayPhi: "08/09/2025", 
             loai: "Chưa ký",
             loaiHinhKinhDoanh: "Container",
-            thongBao: "TB36",
-            soTB: "TB36", 
-            trangThai: "Mới tạo",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
             thanhTien: 500000,
             ghiChu: "Tờ khai phí container",
             createdAt: "2025-09-08T16:00:00.000Z"
@@ -593,9 +609,9 @@ const Declare: React.FC = () => {
             ngayPhi: "08/09/2025", 
             loai: "Chưa ký",
             loaiHinhKinhDoanh: "Container",
-            thongBao: "TB30",
-            soTB: "TB30", 
-            trangThai: "Mới tạo",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
             thanhTien: 500000,
             ghiChu: "Tờ khai phí container",
             createdAt: "2025-09-08T17:00:00.000Z"
@@ -642,8 +658,8 @@ const Declare: React.FC = () => {
           ngayPhi: "08/09/2025",
           loai: "Chưa ký",
           loaiHinhKinhDoanh: "Container", 
-          thongBao: "TB26",
-          soTB: "TB26",
+            thongBao: "Chưa lấy",
+            soTB: "",
           trangThai: "Đã ký",
           thanhTien: 500000,
           ghiChu: "Dữ liệu mẫu khi có lỗi API",
@@ -1084,17 +1100,21 @@ const Declare: React.FC = () => {
                     <td>{row.ngayPhi}</td>
                     <td>{row.loai}</td>
                     <td className="text-center">
-                      {row.thongBao !== 'Đã lấy' ? (
+                      {row.trangThai === 'Đã ký số' ? (
                         <button
                           onClick={() => handleGetNotification(row)}
-                          disabled={loading}
-                          className="px-3 py-1 rounded text-xs font-medium transition-colors bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={loading || row.thongBao === 'Đã lấy'}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            row.thongBao === 'Đã lấy'
+                              ? 'bg-green-100 text-green-800 border border-green-300 cursor-not-allowed'
+                              : 'bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
                         >
-                          {loading ? 'Đang xử lý...' : 'Lấy thông báo'}
+                          {loading ? 'Đang xử lý...' : (row.thongBao === 'Đã lấy' ? 'Đã lấy' : 'Lấy thông báo')}
                         </button>
                       ) : (
-                        <span className="px-3 py-1 text-xs rounded border bg-green-100 text-green-800 border border-green-300">
-                          Đã lấy
+                        <span className="text-gray-500 text-xs">
+                          Chưa ký số
                         </span>
                       )}
                     </td>
