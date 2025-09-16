@@ -15,3 +15,4 @@ public interface SDonHangCtRepository extends BaseRepository<SDonHangCt, Long> {
 }
 
 
+

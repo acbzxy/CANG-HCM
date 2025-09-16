@@ -15,3 +15,4 @@ COMMENT ON COLUMN STO_KHAI_CT.MA_TC_CONT IS 'Mã tính chất container - Contai
 
 
 
+

@@ -158,8 +158,8 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
       
       try {
         data = await FeeDeclarationApiService.getHaiQuanThongTin({
-          companyCode: companyCode.trim() || undefined,
-          customsDeclarationNumber: customsDeclarationNumber.trim() || undefined
+          soToKhaiHaiQuan: customsDeclarationNumber.trim() || undefined,
+          maDoanhNghiep: companyCode.trim() || undefined
         });
         console.log('✅ Successfully called new API /hai-quan/lay-thong-tin');
       } catch (apiError) {
@@ -220,6 +220,17 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
       if (normalizedData.length === 0) {
         console.warn('⚠️ API returned empty data');
         showInfo('Không có dữ liệu tờ khai nào trong hệ thống', 'Thông báo');
+        return;
+      }
+      
+      // Check for null maDoanhNghiepKhaiPhi
+      const hasNullCompanyData = normalizedData.some(item => 
+        !item.maDoanhNghiepKhaiPhi || item.maDoanhNghiepKhaiPhi === 'null' || item.maDoanhNghiepKhaiPhi === ''
+      );
+      
+      if (hasNullCompanyData) {
+        console.warn('⚠️ API returned data with null maDoanhNghiepKhaiPhi');
+        showError('Không tìm thấy tờ khai trên cổng Hải Quan', 'Lỗi');
         return;
       }
       
@@ -320,9 +331,15 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
         console.log('⚠️ No data found with current filters');
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error fetching tokhai information:', error);
-      showError('Có lỗi xảy ra khi lấy thông tin từ hệ thống', 'Lỗi');
+      
+      // Check if it's the specific error about null maDoanhNghiepKhaiPhi
+      if (error.message && error.message.includes('Không tìm thấy tờ khai trên cổng Hải Quan')) {
+        showError(error.message, 'Lỗi');
+      } else {
+        showError('Có lỗi xảy ra khi lấy thông tin từ hệ thống', 'Lỗi');
+      }
     } finally {
       setLoading(false);
     }

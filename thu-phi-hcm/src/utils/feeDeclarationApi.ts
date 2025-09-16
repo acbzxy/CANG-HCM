@@ -426,8 +426,8 @@ export class FeeDeclarationApiService {
    * Get thong tin from /hai-quan/lay-thong-tin endpoint
    */
   static async getHaiQuanThongTin(params?: {
-    companyCode?: string;
-    customsDeclarationNumber?: string;
+    soToKhaiHaiQuan?: string;
+    maDoanhNghiep?: string;
   }): Promise<TokhaiThongtinResponse[]> {
     try {
       const url = ENDPOINTS.HAI_QUAN_LAY_THONG_TIN
@@ -436,11 +436,11 @@ export class FeeDeclarationApiService {
       
       // Build query parameters
       const queryParams = new URLSearchParams()
-      if (params?.companyCode) {
-        queryParams.append('companyCode', params.companyCode)
+      if (params?.maDoanhNghiep) {
+        queryParams.append('maDoanhNghiep', params.maDoanhNghiep)
       }
-      if (params?.customsDeclarationNumber) {
-        queryParams.append('customsDeclarationNumber', params.customsDeclarationNumber)
+      if (params?.soToKhaiHaiQuan) {
+        queryParams.append('soToKhaiHaiQuan', params.soToKhaiHaiQuan)
       }
       
       // Try POST method first (in case API requires POST)
@@ -453,8 +453,8 @@ export class FeeDeclarationApiService {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          companyCode: params?.companyCode || '',
-          customsDeclarationNumber: params?.customsDeclarationNumber || ''
+          soToKhaiHaiQuan: params?.soToKhaiHaiQuan || '',
+          maDoanhNghiep: params?.maDoanhNghiep || ''
         })
       })
       
@@ -495,6 +495,16 @@ export class FeeDeclarationApiService {
         console.log('🔍 Empty or unknown response format')
       }
       
+      // Check for null maDoanhNghiepKhaiPhi in response data
+      const hasNullCompanyData = data.some(item => 
+        !item.maDoanhNghiepKhaiPhi || item.maDoanhNghiepKhaiPhi === 'null' || item.maDoanhNghiepKhaiPhi === ''
+      );
+      
+      if (hasNullCompanyData) {
+        console.warn('⚠️ API returned data with null maDoanhNghiepKhaiPhi');
+        throw new Error('Không tìm thấy tờ khai trên cổng Hải Quan');
+      }
+      
       return data
       
     } catch (error) {
@@ -505,11 +515,11 @@ export class FeeDeclarationApiService {
         console.log('🔄 Trying GET method as fallback...')
         const fallbackUrl = ENDPOINTS.HAI_QUAN_LAY_THONG_TIN
         const queryParams = new URLSearchParams()
-        if (params?.companyCode) {
-          queryParams.append('companyCode', params.companyCode)
+        if (params?.maDoanhNghiep) {
+          queryParams.append('maDoanhNghiep', params.maDoanhNghiep)
         }
-        if (params?.customsDeclarationNumber) {
-          queryParams.append('customsDeclarationNumber', params.customsDeclarationNumber)
+        if (params?.soToKhaiHaiQuan) {
+          queryParams.append('soToKhaiHaiQuan', params.soToKhaiHaiQuan)
         }
         
         const fullUrl = queryParams.toString() ? `${fallbackUrl}?${queryParams.toString()}` : fallbackUrl
@@ -541,6 +551,16 @@ export class FeeDeclarationApiService {
           data = [responseData]
         } else {
           data = []
+        }
+        
+        // Check for null maDoanhNghiepKhaiPhi in fallback response data
+        const hasNullCompanyData = data.some(item => 
+          !item.maDoanhNghiepKhaiPhi || item.maDoanhNghiepKhaiPhi === 'null' || item.maDoanhNghiepKhaiPhi === ''
+        );
+        
+        if (hasNullCompanyData) {
+          console.warn('⚠️ GET fallback API returned data with null maDoanhNghiepKhaiPhi');
+          throw new Error('Không tìm thấy tờ khai trên cổng Hải Quan');
         }
         
         return data
