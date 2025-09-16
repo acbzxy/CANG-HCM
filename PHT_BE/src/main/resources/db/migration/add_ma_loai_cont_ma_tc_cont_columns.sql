@@ -14,3 +14,5 @@ COMMENT ON COLUMN STO_KHAI_CT.MA_LOAI_CONT IS 'Mã loại container - Container 
 COMMENT ON COLUMN STO_KHAI_CT.MA_TC_CONT IS 'Mã tính chất container - Container characteristic code';
 
 
+
+

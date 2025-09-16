@@ -345,7 +345,7 @@ const AdminLoginPage: React.FC = () => {
               flex: none !important;
             }
             .cards-stack {
-              gap: 20px !important;
+              gap: 10px !important;
             }
           }
           
@@ -959,7 +959,7 @@ const AdminLoginPage: React.FC = () => {
               <div className="cards-stack" style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '20px'
+                gap: '14px'
               }}>
 
                 {/* Admin Features Card */}
@@ -1167,7 +1167,7 @@ const AdminLoginPage: React.FC = () => {
           zIndex: 100,
           background: 'linear-gradient(90deg, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.2) 100%)',
           backdropFilter: 'blur(10px)',
-          padding: '18px',
+          padding: '10px',
           position: 'absolute',
           bottom: '0px',
           left: '0',

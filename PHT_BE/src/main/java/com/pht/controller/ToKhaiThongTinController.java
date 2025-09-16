@@ -1,5 +1,6 @@
 package com.pht.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -89,6 +90,42 @@ public class ToKhaiThongTinController {
             return ResponseHelper.ok(toKhaiList);
         } catch (Exception ex) {
             log.error("Lỗi khi lấy danh sách tờ khai trạng thái 02: ", ex);
+            return ResponseHelper.error(ex);
+        }
+    }
+
+    @Operation(summary = "Lấy danh sách tờ khai trạng thái 02 và 03")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Thành công", content = {
+                    @Content(schema = @Schema(implementation = com.pht.common.model.ApiDataResponse.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi", content = {
+                    @Content(schema = @Schema(implementation = com.pht.common.OrderBy.ApiErrorResponse.class), mediaType = "application/json")
+            })
+    })
+    @GetMapping("/ds-nphi-03")
+    public ResponseEntity<?> layDanhSachToKhaiTrangThai02va03() {
+        try {
+            log.info("Nhận yêu cầu lấy danh sách tờ khai trạng thái 02 và 03");
+            
+            // Lấy tờ khai trạng thái 02
+            List<StoKhai> toKhai02List = toKhaiThongTinService.findByTrangThai("02");
+            log.info("Tìm thấy {} tờ khai với trạng thái 02", toKhai02List.size());
+            
+            // Lấy tờ khai trạng thái 03
+            List<StoKhai> toKhai03List = toKhaiThongTinService.findByTrangThai("03");
+            log.info("Tìm thấy {} tờ khai với trạng thái 03", toKhai03List.size());
+            
+            // Gộp 2 danh sách
+            List<StoKhai> combinedList = new ArrayList<>();
+            combinedList.addAll(toKhai02List);
+            combinedList.addAll(toKhai03List);
+            
+            log.info("Tổng cộng tìm thấy {} tờ khai với trạng thái 02 và 03", combinedList.size());
+            
+            return ResponseHelper.ok(combinedList);
+        } catch (Exception ex) {
+            log.error("Lỗi khi lấy danh sách tờ khai trạng thái 02 và 03: ", ex);
             return ResponseHelper.error(ex);
         }
     }

@@ -28,3 +28,11 @@ logging:
     com.fis.core: debug
     org.springframework.xml.transform.TransformerFactoryUtils: error #disable warn log of docx4j
     org.hibernate.type.BasicTypeRegistry: OFF
+
+# Email configuration
+email:
+  host: smtp.gmail.com
+  port: 587
+  username: thaivh19@gmail.com
+  password: pcan tmiw vgkk rfcs
+  from: thaivh19@gmail.com

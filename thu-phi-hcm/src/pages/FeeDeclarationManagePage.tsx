@@ -176,6 +176,9 @@ const FeeDeclarationManagePage: React.FC = () => {
   const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
+  // Prevent duplicate API calls
+  const isLoadingRef = React.useRef(false);
+
   // Load fee declarations on component mount and when filters change
   useEffect(() => {
     debugLog('Component mounted, loading fee declarations');
@@ -251,7 +254,14 @@ const FeeDeclarationManagePage: React.FC = () => {
 
   // Load fee declarations from API
   const loadFeeDeclarations = async () => {
+    // Prevent duplicate calls
+    if (isLoadingRef.current) {
+      console.log('🔄 Fee declarations are already loading, skipping duplicate call');
+      return;
+    }
+    
     try {
+      isLoadingRef.current = true;
       setLoading(true);
       console.log('Loading fee declarations...');
       
@@ -323,7 +333,7 @@ const FeeDeclarationManagePage: React.FC = () => {
         console.error('💥 API call failed:', apiError);
         console.error('💥 Error message:', (apiError as Error).message);
         console.error('💥 Error stack:', (apiError as Error).stack);
-        showError('Không thể kết nối đến server. Sử dụng dữ liệu demo.');
+        console.log('🔄 API không kết nối được, sử dụng dữ liệu demo.');
       }
 
       // Fallback to mock data
@@ -377,6 +387,7 @@ const FeeDeclarationManagePage: React.FC = () => {
       setTotalElements(0);
       setTotalPages(0);
     } finally {
+      isLoadingRef.current = false;
       setLoading(false);
       console.log('🔄 Loading finished, loading state set to false');
     }
@@ -894,6 +905,7 @@ const FeeDeclarationManagePage: React.FC = () => {
           state: { 
             selectedItem: detailedData,
             isEditMode: false,
+            toKhaiId: item.id, // Pass the fee declaration ID as toKhaiId
             trangThaiPhatHanh: item.trangThaiPhatHanh // Pass trangThaiPhatHanh from fee declaration
           } 
         });
@@ -912,51 +924,9 @@ const FeeDeclarationManagePage: React.FC = () => {
 
   return (
     <div style={{ padding: '20px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-      {/* Debug Info */}
-      {isDebugMode() && (
-        <div style={{
-          backgroundColor: '#fff3cd',
-          border: '1px solid #ffeaa7',
-          borderRadius: '4px',
-          padding: '10px',
-          marginBottom: '20px',
-          fontSize: '12px',
-          color: '#856404'
-        }}>
-          <strong>DEBUG MODE:</strong> 
-          <span style={{ marginLeft: '10px' }}>
-            Loading: {loading ? 'Yes' : 'No'} | 
-            Data count: {feeDeclarations.length} | 
-            Total: {totalElements} |
-            Backend URL: {window.location.hostname === 'localhost' ? 'http://localhost:8080' : 'Production'}
-          </span>
-          <button 
-            onClick={() => (window as any).debug.disableDebug()}
-            style={{ 
-              marginLeft: '10px', 
-              fontSize: '10px', 
-              padding: '2px 6px',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '2px',
-              cursor: 'pointer'
-            }}
-          >
-            Tắt Debug
-          </button>
-        </div>
-      )}
+      {/* Debug Info removed as per user request */}
       
-      {/* Page Title */}
-      <div style={{ 
-        marginBottom: '20px',
-        fontSize: '14px',
-        fontWeight: 'bold'
-      }}>
-        [ {totalElements} tờ khai phí ] - Trang: {currentPage + 1}/{totalPages || 1}
-        {loading && <span style={{ marginLeft: '10px', color: '#007bff' }}>Đang tải...</span>}
-      </div>
+      {/* Title removed: hide total declarations line */}
 
       {/* Filter Section */}
       <div style={{
@@ -1251,7 +1221,7 @@ const FeeDeclarationManagePage: React.FC = () => {
                     </span>
                   )}
                 </td>
-                <td style={{ padding: '8px', textAlign: 'center', fontSize: '12px' }}>
+                <td style={{ padding: '8px', textAlign: 'center', fontSize: '12px', whiteSpace: 'nowrap' }}>
                   <button
                     style={{
                       backgroundColor: '#007bff',
@@ -1282,30 +1252,38 @@ const FeeDeclarationManagePage: React.FC = () => {
                   </button>
                 </td>
                                  <td style={{ padding: '8px', textAlign: 'center', fontSize: '12px' }}>
-                   <button
-                     style={{
-                       backgroundColor: '#17a2b8',
-                       color: 'white',
-                       border: 'none',
-                       padding: '6px 12px',
-                       borderRadius: '4px',
-                       cursor: 'pointer',
-                       fontSize: '11px',
-                       fontWeight: '500'
-                     }}
-                     onClick={() => {
-                       // Find the corresponding FeeDeclaration object
-                       const feeDeclaration = feeDeclarations.find(fd => String(fd.id) === item.id);
-                       if (feeDeclaration) {
-                         handleCreateReceipt(feeDeclaration);
-                       } else {
-                         console.error('Could not find FeeDeclaration for item:', item);
-                       }
-                     }}
-                     title="Tạo biên lai"
-                   >
-                     Tạo biên lai
-                   </button>
+                   {(() => {
+                     // Find the corresponding FeeDeclaration object to get trangThai from API
+                     const feeDeclaration = feeDeclarations.find(fd => String(fd.id) === item.id);
+                     const canCreateReceipt = feeDeclaration?.trangThai === '03' && feeDeclaration?.trangThaiPhatHanh !== '02';
+                     
+                     return (
+                       <button
+                         style={{
+                           backgroundColor: canCreateReceipt ? '#17a2b8' : '#6c757d',
+                           color: 'white',
+                           border: 'none',
+                           padding: '6px 12px',
+                           borderRadius: '4px',
+                           cursor: canCreateReceipt ? 'pointer' : 'not-allowed',
+                           fontSize: '11px',
+                           fontWeight: '500',
+                           opacity: canCreateReceipt ? 1 : 0.6
+                         }}
+                         disabled={!canCreateReceipt}
+                         onClick={() => {
+                           if (canCreateReceipt && feeDeclaration) {
+                             handleCreateReceipt(feeDeclaration);
+                           } else {
+                             console.error('Could not find FeeDeclaration for item:', item);
+                           }
+                         }}
+                         title={canCreateReceipt ? 'Tạo biên lai' : `Không thể tạo biên lai (Trạng thái: ${feeDeclaration?.trangThai || 'N/A'})`}
+                       >
+                         Tạo biên lai
+                       </button>
+                     );
+                   })()}
                  </td>
                 <td style={{ padding: '8px', textAlign: 'right', fontSize: '12px', fontWeight: 'bold' }}>
                   {formatCurrency(item.tongTien)}

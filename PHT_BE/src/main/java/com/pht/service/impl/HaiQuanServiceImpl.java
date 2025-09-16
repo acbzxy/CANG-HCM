@@ -35,25 +35,45 @@ public class HaiQuanServiceImpl implements HaiQuanService {
         log.info("Lấy thông tin hải quan cho số tờ khai: {}, mã doanh nghiệp: {}", 
                 request.getSoToKhaiHaiQuan(), request.getMaDoanhNghiep());
         
+        // Validate input
+        if (request.getMaDoanhNghiep() == null || request.getMaDoanhNghiep().trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã doanh nghiệp không được để trống");
+        }
+        if (request.getSoToKhaiHaiQuan() == null || request.getSoToKhaiHaiQuan().trim().isEmpty()) {
+            throw new IllegalArgumentException("Số tờ khai hải quan không được để trống");
+        }
+        
         try {
-            // Đọc file 320.xml từ đường dẫn tuyệt đối
-            String xmlContent = fileReaderUtil.readFileContentByPath("C:\\IDA\\HQ\\320.xml");
+            // Tạo tên file XML dựa trên thông tin request
+            // Format: 320_{maDoanhNghiep}_{soToKhaiHaiQuan}.xml
+            String fileName = String.format("320_%s_%s.xml", 
+                    request.getMaDoanhNghiep().trim(), 
+                    request.getSoToKhaiHaiQuan().trim());
+            
+            log.info("Tìm file XML với tên: {}", fileName);
+            
+            // Đọc file XML từ đường dẫn
+            String filePath = "C:\\IDA\\HQ\\" + fileName;
+            String xmlContent = fileReaderUtil.readFileContentByPath(filePath);
             
             if (xmlContent == null || xmlContent.isEmpty()) {
-                log.warn("Không tìm thấy dữ liệu trong file 320.xml");
+                log.warn("Không tìm thấy dữ liệu trong file: {}", fileName);
                 return createEmptyResponse();
             }
             
             // Parse XML content thành response object
             ThongTinHaiQuanResponse response = parseXmlToResponse(xmlContent);
             
-            log.info("Trả về thông tin hải quan thành công với {} chi tiết", 
-                    response.getChiTietList() != null ? response.getChiTietList().size() : 0);
+            // Validate dữ liệu trong XML có khớp với request không
+            validateXmlDataWithRequest(response, request);
+            
+            log.info("Trả về thông tin hải quan thành công với {} chi tiết từ file: {}", 
+                    response.getChiTietList() != null ? response.getChiTietList().size() : 0, fileName);
             return response;
             
         } catch (IOException e) {
-            log.error("Lỗi khi đọc file 320.xml: ", e);
-            throw new RuntimeException("Lỗi khi đọc dữ liệu từ file 320.xml: " + e.getMessage());
+            log.error("Lỗi khi đọc file XML: ", e);
+            throw new RuntimeException("Lỗi khi đọc dữ liệu từ file XML: " + e.getMessage());
         } catch (Exception e) {
             log.error("Lỗi khi xử lý dữ liệu hải quan: ", e);
             throw new RuntimeException("Lỗi khi xử lý dữ liệu hải quan: " + e.getMessage());
@@ -236,6 +256,30 @@ public class HaiQuanServiceImpl implements HaiQuanService {
         return chiTietList;
     }
     
+    
+    /**
+     * Validate dữ liệu trong XML có khớp với request không
+     */
+    private void validateXmlDataWithRequest(ThongTinHaiQuanResponse response, LayThongTinHaiQuanRequest request) {
+        log.info("Validate dữ liệu XML với request - maDoanhNghiep: {}, soToKhaiHaiQuan: {}", 
+                request.getMaDoanhNghiep(), request.getSoToKhaiHaiQuan());
+        
+        // Kiểm tra mã doanh nghiệp
+        if (response.getMaDoanhNghiepKhaiPhi() != null && 
+            !response.getMaDoanhNghiepKhaiPhi().equals(request.getMaDoanhNghiep().trim())) {
+            log.warn("Mã doanh nghiệp trong XML ('{}') không khớp với request ('{}')", 
+                    response.getMaDoanhNghiepKhaiPhi(), request.getMaDoanhNghiep());
+        }
+        
+        // Kiểm tra số tờ khai hải quan
+        if (response.getSoToKhai() != null && 
+            !response.getSoToKhai().equals(request.getSoToKhaiHaiQuan().trim())) {
+            log.warn("Số tờ khai trong XML ('{}') không khớp với request ('{}')", 
+                    response.getSoToKhai(), request.getSoToKhaiHaiQuan());
+        }
+        
+        log.info("Validation hoàn tất");
+    }
     
     /**
      * Query MA_LOAI_CONT và MA_TC_CONT từ bảng SBIEU_CUOC theo mã biểu cước

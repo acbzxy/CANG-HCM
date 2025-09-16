@@ -22,3 +22,5 @@ public class SBienLaiCtUpdateRequest {
     private BigDecimal soTien;
 }
 
+
+

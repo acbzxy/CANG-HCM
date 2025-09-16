@@ -352,7 +352,14 @@ const QROrderPage: React.FC = () => {
 
   // Fee selection handlers
   const handleSelectFee = async () => {
+    // Prevent duplicate calls
+    if (isFeeLoadingRef.current) {
+      console.log('🔄 Fee notifications are already loading, skipping duplicate call');
+      return;
+    }
+    
     try {
+      isFeeLoadingRef.current = true;
       console.log('🔍 Loading fee notifications...');
       
       // Add timeout to prevent hanging requests
@@ -444,6 +451,8 @@ const QROrderPage: React.FC = () => {
         showError('Có lỗi xảy ra khi tải danh sách thông báo phí');
       }
       setFeeNotifications([]);
+    } finally {
+      isFeeLoadingRef.current = false;
     }
   }
 
@@ -604,7 +613,14 @@ const QROrderPage: React.FC = () => {
 
   // Load order data from API with timeout
   const loadOrderData = async () => {
+    // Prevent duplicate calls
+    if (isLoadingRef.current) {
+      console.log('🔄 Order data is already loading, skipping duplicate call');
+      return;
+    }
+    
     try {
+      isLoadingRef.current = true;
       setOrderLoading(true);
       console.log('🔍 Loading order data...');
       
@@ -650,6 +666,7 @@ const QROrderPage: React.FC = () => {
       }
       setOrderData(null);
     } finally {
+      isLoadingRef.current = false;
       setOrderLoading(false);
     }
   };
@@ -658,6 +675,10 @@ const QROrderPage: React.FC = () => {
   useEffect(() => {
     loadOrderData();
   }, []);
+
+  // Prevent duplicate calls by adding a ref to track if data is already loading
+  const isLoadingRef = React.useRef(false);
+  const isFeeLoadingRef = React.useRef(false);
 
   // Fee search function
   const handleFeeSearch = () => {

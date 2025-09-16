@@ -187,7 +187,7 @@ const AccountPage: React.FC = () => {
 
   // Get company data based on user type
   const getCompanyData = () => {
-    if (user?.userType === 'mst_custom' || user?.taxCode === '368745291047') {
+    if (user?.userType === 'mst_custom' || user?.taxCode === '0304126484') {
       return {
         companyCode: '0109844160',
         companyName: 'CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV',

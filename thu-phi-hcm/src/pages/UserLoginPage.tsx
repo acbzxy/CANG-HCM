@@ -952,7 +952,7 @@ const UserLoginPage: React.FC = () => {
               <div className="cards-stack" style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '20px'
+                gap: '14px'
               }}>
 
                 {/* Notifications Card */}

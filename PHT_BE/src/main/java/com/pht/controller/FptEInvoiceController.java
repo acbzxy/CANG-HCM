@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.concurrent.CompletableFuture;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pht.common.OrderBy;
 import com.pht.common.helper.ResponseHelper;
@@ -30,6 +32,8 @@ import com.pht.model.response.DeleteInvoiceResponse;
 import com.pht.model.response.ReplaceInvoiceResponse;
 import com.pht.service.ToKhaiThongTinService;
 import com.pht.service.SBienLaiService;
+import com.pht.service.EmailService;
+import com.pht.util.PdfConverterUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -51,6 +55,8 @@ public class FptEInvoiceController {
     private final ObjectMapper objectMapper;
     private final ToKhaiThongTinService toKhaiThongTinService;
     private final SBienLaiService sBienLaiService;
+    private final EmailService emailService;
+    private final PdfConverterUtil pdfConverterUtil;
 
     @Value("${fpt.einvoice.api.url:https://api-uat.einvoice.fpt.com.vn}")
     private String einvoiceApiUrl;
@@ -246,6 +252,9 @@ public class FptEInvoiceController {
             updateTrangThaiPhatHanhTo02(request.getId());
             
             log.info("Đã cập nhật trạng thái phát hành thành '02' cho tờ khai ID: {}", request.getId());
+            
+            // Gửi email PDF biên lai bất đồng bộ (không đợi kết quả)
+            sendEmailBienLaiAsync(request.getId());
             
             return ResponseHelper.ok("Cập nhật trạng thái phát hành thành công");
             
@@ -784,6 +793,288 @@ public class FptEInvoiceController {
             log.error("Lỗi khi cập nhật imageBl cho biên lai từ tờ khai ID {}: ", toKhaiId, e);
             // Không throw exception để không ảnh hưởng đến flow chính
         }
+    }
+
+    /**
+     * Gửi email PDF biên lai cho tờ khai bất đồng bộ (không đợi kết quả)
+     */
+    private void sendEmailBienLaiAsync(Long toKhaiId) {
+        try {
+            log.info("🚀 Bắt đầu gửi email bất đồng bộ cho tờ khai ID: {}", toKhaiId);
+            
+            // Lấy tờ khai để lấy ID_BIEN_LAI
+            com.pht.entity.StoKhai toKhai = toKhaiThongTinService.getToKhaiThongTinById(toKhaiId);
+            
+            if (toKhai.getIdBienLai() == null) {
+                log.info("Tờ khai ID: {} không có ID_BIEN_LAI, bỏ qua gửi email", toKhaiId);
+                return;
+            }
+            
+            // Lấy biên lai từ ID_BIEN_LAI
+            com.pht.entity.SBienLai bienLai = sBienLaiService.findById(toKhai.getIdBienLai());
+            
+            if (bienLai == null) {
+                log.warn("Không tìm thấy biên lai với ID: {} từ tờ khai ID: {}", 
+                        toKhai.getIdBienLai(), toKhaiId);
+                return;
+            }
+            
+            // Kiểm tra email và imageBl
+            if (bienLai.getEmail() == null || bienLai.getEmail().trim().isEmpty()) {
+                log.warn("Biên lai ID: {} không có email, bỏ qua gửi email", bienLai.getId());
+                return;
+            }
+            
+            if (bienLai.getImageBl() == null || bienLai.getImageBl().trim().isEmpty()) {
+                log.warn("Biên lai ID: {} không có imageBl, bỏ qua gửi email", bienLai.getId());
+                return;
+            }
+            
+            // Xử lý base64 data
+            byte[] pdfBytes;
+            try {
+                String cleanBase64 = bienLai.getImageBl();
+                if (cleanBase64.contains(",")) {
+                    cleanBase64 = cleanBase64.substring(cleanBase64.indexOf(",") + 1);
+                }
+                
+                byte[] base64Bytes = java.util.Base64.getDecoder().decode(cleanBase64);
+                
+                if (isPdfData(base64Bytes)) {
+                    pdfBytes = base64Bytes;
+                } else {
+                    pdfBytes = pdfConverterUtil.convertBase64ImageToPdf(bienLai.getImageBl());
+                }
+            } catch (Exception e) {
+                log.error("Lỗi khi xử lý base64 data cho biên lai ID {}: ", bienLai.getId(), e);
+                return;
+            }
+            
+            // Chuẩn bị thông tin email
+            String emailSubject = "Biên lai thanh toán - " + (bienLai.getSoBl() != null ? bienLai.getSoBl() : "BL" + bienLai.getId());
+            String fileName = "BL_PHT_" + (bienLai.getMaBl() != null ? bienLai.getMaBl() : bienLai.getId()) + ".pdf";
+            String htmlContent = createEmailHtmlContent(bienLai, toKhai);
+            java.util.List<String> emailList = java.util.Arrays.asList(bienLai.getEmail().trim());
+            
+            // Gửi email bất đồng bộ
+            emailService.sendEmailWithPdfAttachmentAsync(emailList, emailSubject, htmlContent, pdfBytes, fileName);
+            
+            log.info("📧 Đã khởi tạo gửi email bất đồng bộ cho tờ khai ID: {}, email: {}, API sẽ trả response ngay lập tức", 
+                    toKhaiId, bienLai.getEmail());
+            
+        } catch (Exception e) {
+            log.error("❌ Lỗi khi khởi tạo gửi email bất đồng bộ cho tờ khai ID {}: ", toKhaiId, e);
+        }
+    }
+
+    /**
+     * Gửi email PDF biên lai cho tờ khai
+     */
+    private void sendEmailBienLai(Long toKhaiId) {
+        try {
+            log.info("Bắt đầu gửi email PDF biên lai cho tờ khai ID: {}", toKhaiId);
+            
+            // Lấy tờ khai để lấy ID_BIEN_LAI
+            com.pht.entity.StoKhai toKhai = toKhaiThongTinService.getToKhaiThongTinById(toKhaiId);
+            
+            if (toKhai.getIdBienLai() == null) {
+                log.info("Tờ khai ID: {} không có ID_BIEN_LAI, bỏ qua gửi email", toKhaiId);
+                return;
+            }
+            
+            log.info("Tìm thấy ID_BIEN_LAI: {} trong tờ khai ID: {}, bắt đầu lấy thông tin biên lai", 
+                    toKhai.getIdBienLai(), toKhaiId);
+            
+            // Lấy biên lai từ ID_BIEN_LAI
+            com.pht.entity.SBienLai bienLai = sBienLaiService.findById(toKhai.getIdBienLai());
+            
+            if (bienLai == null) {
+                log.warn("Không tìm thấy biên lai với ID: {} từ tờ khai ID: {}", 
+                        toKhai.getIdBienLai(), toKhaiId);
+                return;
+            }
+            
+            // Kiểm tra email
+            if (bienLai.getEmail() == null || bienLai.getEmail().trim().isEmpty()) {
+                log.warn("Biên lai ID: {} không có email, bỏ qua gửi email", bienLai.getId());
+                return;
+            }
+            
+            // Kiểm tra imageBl (base64)
+            if (bienLai.getImageBl() == null || bienLai.getImageBl().trim().isEmpty()) {
+                log.warn("Biên lai ID: {} không có imageBl, bỏ qua gửi email", bienLai.getId());
+                return;
+            }
+            
+            log.info("Tìm thấy biên lai ID: {}, email: {}, có imageBl (độ dài: {})", 
+                    bienLai.getId(), bienLai.getEmail(), bienLai.getImageBl().length());
+            
+            
+            // Xử lý base64 data - có thể là image hoặc PDF
+            byte[] pdfBytes;
+            try {
+                // Clean base64 string
+                String cleanBase64 = bienLai.getImageBl();
+                if (cleanBase64.contains(",")) {
+                    cleanBase64 = cleanBase64.substring(cleanBase64.indexOf(",") + 1);
+                }
+                
+                // Decode base64 thành byte array
+                byte[] base64Bytes = java.util.Base64.getDecoder().decode(cleanBase64);
+                log.info("Decode base64 thành công, kích thước: {} bytes", base64Bytes.length);
+                
+                // Kiểm tra xem có phải là PDF không
+                if (isPdfData(base64Bytes)) {
+                    log.info("Base64 data đã là PDF, sử dụng trực tiếp");
+                    pdfBytes = base64Bytes;
+                } else {
+                    log.info("Base64 data là image, convert thành PDF");
+                    // Convert image thành PDF
+                    pdfBytes = pdfConverterUtil.convertBase64ImageToPdf(bienLai.getImageBl());
+                    log.info("Convert base64 image thành PDF thành công, kích thước PDF: {} bytes", pdfBytes.length);
+                }
+            } catch (Exception e) {
+                log.error("Lỗi khi xử lý base64 data cho biên lai ID {}: ", bienLai.getId(), e);
+                return;
+            }
+            
+            // Chuẩn bị thông tin email
+            String emailSubject = "Biên lai thanh toán - " + (bienLai.getSoBl() != null ? bienLai.getSoBl() : "BL" + bienLai.getId());
+            String fileName = "BL_PHT_" + (bienLai.getMaBl() != null ? bienLai.getMaBl() : bienLai.getId()) + ".pdf";
+            
+            // Tạo nội dung HTML email
+            String htmlContent = createEmailHtmlContent(bienLai, toKhai);
+            log.info("Tạo nội dung HTML email thành công, độ dài: {} ký tự", htmlContent.length());
+            
+            // Chuẩn bị danh sách email
+            java.util.List<String> emailList = java.util.Arrays.asList(bienLai.getEmail().trim());
+            log.info("Chuẩn bị gửi email đến: {}, subject: {}, fileName: {}, PDF size: {} bytes", 
+                    emailList, emailSubject, fileName, pdfBytes.length);
+            
+            // Gửi email
+            boolean emailSent = emailService.sendEmailWithPdfAttachment(
+                emailList, emailSubject, htmlContent, pdfBytes, fileName);
+            
+            if (emailSent) {
+                log.info("✅ Gửi email PDF biên lai THÀNH CÔNG cho biên lai ID: {}, email: {}", 
+                        bienLai.getId(), bienLai.getEmail());
+            } else {
+                log.error("❌ Gửi email PDF biên lai THẤT BẠI cho biên lai ID: {}, email: {}", 
+                        bienLai.getId(), bienLai.getEmail());
+            }
+            
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi email PDF biên lai cho tờ khai ID {}: ", toKhaiId, e);
+            // Không throw exception để không ảnh hưởng đến flow chính
+        }
+    }
+    
+    /**
+     * Kiểm tra xem byte array có phải là PDF data không
+     */
+    private boolean isPdfData(byte[] data) {
+        if (data.length < 4) {
+            return false;
+        }
+        
+        // PDF magic bytes: %PDF
+        return data[0] == 0x25 && data[1] == 0x50 && data[2] == 0x44 && data[3] == 0x46;
+    }
+
+
+    /**
+     * Tạo nội dung HTML cho email
+     */
+    private String createEmailHtmlContent(com.pht.entity.SBienLai bienLai, com.pht.entity.StoKhai toKhai) {
+        StringBuilder html = new StringBuilder();
+        
+        // Header với logo và tiêu đề
+        html.append("<!DOCTYPE html>");
+        html.append("<html><head><meta charset='UTF-8'></head>");
+        html.append("<body style='font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5;'>");
+        
+        // Container chính
+        html.append("<div style='max-width: 600px; margin: 0 auto; background-color: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;'>");
+        
+        // Header với màu nền
+        html.append("<div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;'>");
+        html.append("<h1 style='color: white; margin: 0; font-size: 28px; font-weight: bold;'>📄 BIÊN LAI THANH TOÁN</h1>");
+        html.append("<p style='color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;'>Hệ thống Phí Hạ Tầng Cảng Biển HCM</p>");
+        html.append("</div>");
+        
+        // Nội dung chính
+        html.append("<div style='padding: 30px;'>");
+        
+        // Thông báo thành công
+        html.append("<div style='background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px; padding: 15px; margin-bottom: 25px;'>");
+        html.append("<p style='margin: 0; color: #155724; font-weight: bold;'>✅ Giao dịch đã được xử lý thành công!</p>");
+        html.append("</div>");
+        
+        // Thông tin biên lai
+        html.append("<h2 style='color: #2c3e50; margin-bottom: 20px; border-bottom: 2px solid #3498db; padding-bottom: 10px;'>📋 Thông tin biên lai</h2>");
+        
+        html.append("<table style='width: 100%; border-collapse: collapse; margin-bottom: 25px;'>");
+        
+        if (bienLai.getSoBl() != null) {
+            html.append("<tr><td style='padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; color: #34495e; width: 40%;'>Mã số biên lai:</td>");
+            html.append("<td style='padding: 12px; border-bottom: 1px solid #eee; color: #2c3e50;'>").append(bienLai.getMaBl()).append("</td></tr>");
+        }
+        
+        if (bienLai.getTenDvi() != null) {
+            html.append("<tr><td style='padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; color: #34495e;'>Tên đơn vị:</td>");
+            html.append("<td style='padding: 12px; border-bottom: 1px solid #eee; color: #2c3e50;'>").append(bienLai.getTenDvi()).append("</td></tr>");
+        }
+        
+        if (bienLai.getMst() != null) {
+            html.append("<tr><td style='padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; color: #34495e;'>Mã số thuế:</td>");
+            html.append("<td style='padding: 12px; border-bottom: 1px solid #eee; color: #2c3e50;'>").append(bienLai.getMst()).append("</td></tr>");
+        }
+        
+        if (toKhai.getSoToKhai() != null) {
+            html.append("<tr><td style='padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; color: #34495e;'>Số tờ khai:</td>");
+            html.append("<td style='padding: 12px; border-bottom: 1px solid #eee; color: #2c3e50;'>").append(toKhai.getSoToKhai()).append("</td></tr>");
+        }
+        
+        if (bienLai.getNgayBl() != null) {
+            html.append("<tr><td style='padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; color: #34495e;'>Ngày biên lai:</td>");
+            html.append("<td style='padding: 12px; border-bottom: 1px solid #eee; color: #2c3e50;'>").append(bienLai.getNgayBl().toString()).append("</td></tr>");
+        }
+        
+        if (bienLai.getDiaChi() != null) {
+            html.append("<tr><td style='padding: 12px; border-bottom: 1px solid #eee; font-weight: bold; color: #34495e;'>Địa chỉ:</td>");
+            html.append("<td style='padding: 12px; border-bottom: 1px solid #eee; color: #2c3e50;'>").append(bienLai.getDiaChi()).append("</td></tr>");
+        }
+        
+        html.append("</table>");
+        
+        // Thông tin về file đính kèm
+        html.append("<div style='background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 20px 0;'>");
+        html.append("<h3 style='margin: 0 0 10px 0; color: #1976d2;'>📎 File đính kèm</h3>");
+        html.append("<p style='margin: 0; color: #424242;'>Biên lai PDF đã được đính kèm trong email này. Vui lòng tải về và lưu trữ để làm bằng chứng thanh toán.</p>");
+        html.append("</div>");
+        
+        // Lưu ý quan trọng
+        html.append("<div style='background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px; padding: 15px; margin: 20px 0;'>");
+        html.append("<h4 style='margin: 0 0 10px 0; color: #856404;'>⚠️ Lưu ý quan trọng</h4>");
+        html.append("<ul style='margin: 0; padding-left: 20px; color: #856404;'>");
+        html.append("<li>Biên lai này là bằng chứng hợp lệ của giao dịch</li>");
+        html.append("<li>Vui lòng lưu trữ cẩn thận để sử dụng khi cần thiết</li>");
+        html.append("<li>Liên hệ hotline nếu có thắc mắc về giao dịch</li>");
+        html.append("</ul>");
+        html.append("</div>");
+        
+        html.append("</div>");
+        
+        // Footer
+        html.append("<div style='background-color: #f8f9fa; padding: 20px; text-align: center; border-top: 1px solid #dee2e6;'>");
+        html.append("<p style='margin: 0; color: #6c757d; font-size: 14px;'>Trân trọng,<br><strong>Hệ thống Phí Hạ Tầng Cảng Biển HCM</strong></p>");
+        html.append("<p style='margin: 10px 0 0 0; color: #adb5bd; font-size: 12px;'>Email được gửi tự động từ hệ thống</p>");
+        html.append("</div>");
+        
+        html.append("</div>");
+        html.append("</body></html>");
+        
+        return html.toString();
     }
 
     /**

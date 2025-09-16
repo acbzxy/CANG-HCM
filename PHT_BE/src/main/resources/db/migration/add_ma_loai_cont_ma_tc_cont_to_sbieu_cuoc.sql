@@ -14,3 +14,5 @@ COMMENT ON COLUMN SBIEU_CUOC.MA_LOAI_CONT IS 'Mã loại container - Container t
 COMMENT ON COLUMN SBIEU_CUOC.MA_TC_CONT IS 'Mã tính chất container - Container characteristic code for direct mapping';
 
 
+
+

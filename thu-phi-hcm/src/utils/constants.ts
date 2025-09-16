@@ -56,6 +56,11 @@ export const SYSTEM_SETTINGS = {
   supportedFileTypes: ['pdf', 'doc', 'docx', 'jpg', 'png'],
 } as const
 
+// Feature flags
+export const FEATURE_FLAGS = {
+  enableNotifications: true, // Set true to show toasts globally
+} as const
+
 // Payment methods
 export const PAYMENT_METHODS = [
   {

@@ -236,7 +236,8 @@ const CreateReceiptPage: React.FC = () => {
         // Generate receipt code based on declaration number
         const declarationNumber = selectedItem.soToKhai || selectedItem.declarationNumber;
         if (declarationNumber) {
-          const receiptCodeGenerated = `BL${declarationNumber.slice(-4)}`;
+          const lastFourDigits = declarationNumber.slice(-4);
+          const receiptCodeGenerated = `BL${lastFourDigits.padStart(6, '0')}`;
           setReceiptCode(receiptCodeGenerated);
         }
         
@@ -377,8 +378,8 @@ const CreateReceiptPage: React.FC = () => {
   // };
 
   // Form states
-  const [receiptCode, setReceiptCode] = useState('');
-  const [receiptNumber, setReceiptNumber] = useState('0000000');
+  const [receiptCode, setReceiptCode] = useState('BL000001');
+  const [receiptNumber, setReceiptNumber] = useState('000000001');
   const [paymentMethod, setPaymentMethod] = useState('Chuyển khoản');
   const [receiptDate, setReceiptDate] = useState('2021-08-21');
   const [notes, setNotes] = useState('');
@@ -927,6 +928,8 @@ const CreateReceiptPage: React.FC = () => {
         type: "01/MTT",
         form: "1",
         serial: "C25MTT",
+       // aun: 1,                         // << thêm: bạn tự cấp số từ MTT
+       // seq: receiptCode,
         seq: "",
         ma_cqthu: "",
         bname: companyName,
@@ -948,7 +951,7 @@ const CreateReceiptPage: React.FC = () => {
         notsendmail: 1,
         sendfile: 1,
         sec: "",
-        paym: "TM",
+        paym: "CK",
         items: feeDetails.map((detail, index) => ({
           line: index + 1,
           type: "",
@@ -1138,10 +1141,15 @@ const CreateReceiptPage: React.FC = () => {
     try {
       // Call API to update trang thai phat hanh
       const updateRequest: FPTEInvoiceUpdateStatusRequest = {
-        id: selectedItem?.id || 0
+        id: toKhaiId || selectedItem?.id || 0
       };
       
       console.log('🔍 Update Status Request:', updateRequest);
+      console.log('🔍 Debug - toKhaiId:', toKhaiId);
+      console.log('🔍 Debug - selectedItem.id:', selectedItem?.id);
+      console.log('🔍 Debug - passedToKhaiId:', passedToKhaiId);
+      console.log('🔍 Debug - Final id:', toKhaiId || selectedItem?.id || 0);
+      console.log('🔍 Debug - selectedItem keys:', selectedItem ? Object.keys(selectedItem) : 'selectedItem is null');
       
       const response = await fptEInvoiceService.updateTrangThaiPhatHanh(updateRequest);
       

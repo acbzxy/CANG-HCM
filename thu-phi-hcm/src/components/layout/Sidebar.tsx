@@ -193,15 +193,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     }
     
     if (user?.userType === 'mst_custom') {
-      // Show specific menus for MST user (000000000001/123456)
+      // Show 3 main menus + 4 basic menus for MST user (0304126484/123456)
       const allowedPaths = [
-        '/dashboard',           // Trang chủ
-        '/payment',             // Nộp phí cơ sở hạ tầng
-        '/debt-management',     // Q.lý xử lý nợ phí
+        '/dashboard',           // Trang chủ (basic)
         '/payment-management',  // Quản lý thanh toán
-        '/account',             // Thông tin tài khoản
-        '/password',            // Đổi mật khẩu
-        '/guide'                // Hướng dẫn
+        '/debt-management',     // Q.lý xử lý nợ phí
+        '/payment',             // Nộp phí cơ sở hạ tầng
+        '/account',             // Thông tin tài khoản (basic)
+        '/password',            // Đổi mật khẩu (basic)
+        '/guide'                // Hướng dẫn (basic)
       ]
       return allNavItems.filter(item => allowedPaths.includes(item.path))
     }
