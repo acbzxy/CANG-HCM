@@ -31,7 +31,7 @@ public class HaiQuanServiceImpl implements HaiQuanService {
     private final SbieuCuocRepository sbieuCuocRepository;
 
     @Override
-    public ThongTinHaiQuanResponse layThongTinHaiQuan(LayThongTinHaiQuanRequest request) {
+    public List<ThongTinHaiQuanResponse> layThongTinHaiQuan(LayThongTinHaiQuanRequest request) {
         log.info("Lấy thông tin hải quan cho số tờ khai: {}, mã doanh nghiệp: {}", 
                 request.getSoToKhaiHaiQuan(), request.getMaDoanhNghiep());
         
@@ -39,38 +39,50 @@ public class HaiQuanServiceImpl implements HaiQuanService {
         if (request.getMaDoanhNghiep() == null || request.getMaDoanhNghiep().trim().isEmpty()) {
             throw new IllegalArgumentException("Mã doanh nghiệp không được để trống");
         }
-        if (request.getSoToKhaiHaiQuan() == null || request.getSoToKhaiHaiQuan().trim().isEmpty()) {
-            throw new IllegalArgumentException("Số tờ khai hải quan không được để trống");
-        }
+        // soToKhaiHaiQuan có thể null hoặc rỗng - sẽ dùng định dạng khác
         
         try {
             // Tạo tên file XML dựa trên thông tin request
-            // Format: 320_{maDoanhNghiep}_{soToKhaiHaiQuan}.xml
-            String fileName = String.format("320_%s_%s.xml", 
-                    request.getMaDoanhNghiep().trim(), 
-                    request.getSoToKhaiHaiQuan().trim());
+            String fileName;
+            String xmlContent;
             
-            log.info("Tìm file XML với tên: {}", fileName);
+            // Kiểm tra có số tờ khai hải quan không
+            boolean hasSoToKhaiHaiQuan = request.getSoToKhaiHaiQuan() != null && 
+                                        !request.getSoToKhaiHaiQuan().trim().isEmpty();
+            
+            if (hasSoToKhaiHaiQuan) {
+                // Có cả mã doanh nghiệp và số tờ khai → dùng định dạng: 320_{maDoanhNghiep}_{soToKhaiHaiQuan}.xml
+                fileName = String.format("320_%s_%s.xml", 
+                        request.getMaDoanhNghiep().trim(), 
+                        request.getSoToKhaiHaiQuan().trim());
+                log.info("Có số tờ khai hải quan, tìm file XML với định dạng: {}", fileName);
+            } else {
+                // Chỉ có mã doanh nghiệp → dùng định dạng: 320_{maDoanhNghiep}.xml
+                fileName = String.format("320_%s.xml", 
+                        request.getMaDoanhNghiep().trim());
+                log.info("Không có số tờ khai hải quan, tìm file XML với định dạng: {}", fileName);
+            }
             
             // Đọc file XML từ đường dẫn
             String filePath = "C:\\IDA\\HQ\\" + fileName;
-            String xmlContent = fileReaderUtil.readFileContentByPath(filePath);
-            
+            xmlContent = fileReaderUtil.readFileContentByPath(filePath);
+
             if (xmlContent == null || xmlContent.isEmpty()) {
                 log.warn("Không tìm thấy dữ liệu trong file: {}", fileName);
-                return createEmptyResponse();
+                return new ArrayList<>(); // Trả về list rỗng
             }
-            
-            // Parse XML content thành response object
-            ThongTinHaiQuanResponse response = parseXmlToResponse(xmlContent);
-            
+
+            // Parse XML content thành danh sách response objects
+            List<ThongTinHaiQuanResponse> danhSachToKhai = parseXmlToListResponse(xmlContent);
+
             // Validate dữ liệu trong XML có khớp với request không
-            validateXmlDataWithRequest(response, request);
+            validateXmlDataWithRequest(danhSachToKhai, request);
+
+            log.info("Trả về thông tin hải quan thành công với {} tờ khai từ file: {}", 
+                    danhSachToKhai.size(), fileName);
             
-            log.info("Trả về thông tin hải quan thành công với {} chi tiết từ file: {}", 
-                    response.getChiTietList() != null ? response.getChiTietList().size() : 0, fileName);
-            return response;
-            
+            return danhSachToKhai;
+
         } catch (IOException e) {
             log.error("Lỗi khi đọc file XML: ", e);
             throw new RuntimeException("Lỗi khi đọc dữ liệu từ file XML: " + e.getMessage());
@@ -86,9 +98,19 @@ public class HaiQuanServiceImpl implements HaiQuanService {
         
         try {
             String xmlResponse = request.getHaiQuanResponse();
-            ThongTinHaiQuanResponse response = parseXmlToResponse(xmlResponse);
             
-            log.info("Parse thành công với {} chi tiết", 
+            // Parse XML thành danh sách và lấy tờ khai đầu tiên
+            List<ThongTinHaiQuanResponse> danhSachToKhai = parseXmlToListResponse(xmlResponse);
+            
+            if (danhSachToKhai.isEmpty()) {
+                log.warn("Không tìm thấy ThongTinChungTu nào trong XML");
+                return createEmptyResponse();
+            }
+            
+            // Trả về tờ khai đầu tiên để tương thích với API cũ
+            ThongTinHaiQuanResponse response = danhSachToKhai.get(0);
+            
+            log.info("Parse thành công với {} chi tiết từ tờ khai đầu tiên", 
                     response.getChiTietList() != null ? response.getChiTietList().size() : 0);
             return response;
             
@@ -100,60 +122,79 @@ public class HaiQuanServiceImpl implements HaiQuanService {
 
     
     /**
-     * Parse XML content thành response object
+     * Parse XML content thành danh sách response objects (mỗi ThongTinChungTu = 1 response)
      */
-    private ThongTinHaiQuanResponse parseXmlToResponse(String xmlContent) {
+    private List<ThongTinHaiQuanResponse> parseXmlToListResponse(String xmlContent) {
+        List<ThongTinHaiQuanResponse> danhSachToKhai = new ArrayList<>();
+        
+        // Tìm tất cả các ThongTinChungTu
+        Pattern pattern = Pattern.compile("<ThongTinChungTu>(.*?)</ThongTinChungTu>", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(xmlContent);
+        
+        int index = 1;
+        while (matcher.find()) {
+            String thongTinChungTuXml = matcher.group(1);
+            
+            ThongTinHaiQuanResponse response = parseSingleThongTinChungTu(thongTinChungTuXml, index);
+            danhSachToKhai.add(response);
+            
+            log.info("Parse ThongTinChungTu {}: SoToKhai={}, TongTienPhi={}, SoChiTiet={}", 
+                    index, response.getSoToKhai(), response.getTongTienPhi(), 
+                    response.getChiTietList() != null ? response.getChiTietList().size() : 0);
+            
+            index++;
+        }
+        
+        log.info("Parse XML thành công với {} ThongTinChungTu", danhSachToKhai.size());
+        return danhSachToKhai;
+    }
+    
+    /**
+     * Parse một ThongTinChungTu thành response object
+     */
+    private ThongTinHaiQuanResponse parseSingleThongTinChungTu(String thongTinChungTuXml, int index) {
         ThongTinHaiQuanResponse response = new ThongTinHaiQuanResponse();
         
         // Thông tin chính
-        response.setId(1L);
+        response.setId((long) index);
         response.setNguonTK(1); // Lấy từ hải quan
         
         // Parse doanh nghiệp
-        response.setMaDoanhNghiepKhaiPhi(extractXmlValue(xmlContent, "Ma_DV"));
-        response.setTenDoanhNghiepKhaiPhi(extractXmlValue(xmlContent, "Ten_DV"));
-        response.setDiaChiKhaiPhi(extractXmlValue(xmlContent, "DiaChi"));
+        response.setMaDoanhNghiepKhaiPhi(extractXmlValue(thongTinChungTuXml, "Ma_DV"));
+        response.setTenDoanhNghiepKhaiPhi(extractXmlValue(thongTinChungTuXml, "Ten_DV"));
+        response.setDiaChiKhaiPhi(extractXmlValue(thongTinChungTuXml, "DiaChi"));
         
         // Doanh nghiệp XNK giống doanh nghiệp khai phí
-        response.setMaDoanhNghiepXNK(extractXmlValue(xmlContent, "Ma_DV"));
-        response.setTenDoanhNghiepXNK(extractXmlValue(xmlContent, "Ten_DV"));
-        response.setDiaChiXNK(extractXmlValue(xmlContent, "DiaChi"));
+        response.setMaDoanhNghiepXNK(extractXmlValue(thongTinChungTuXml, "Ma_DV"));
+        response.setTenDoanhNghiepXNK(extractXmlValue(thongTinChungTuXml, "Ten_DV"));
+        response.setDiaChiXNK(extractXmlValue(thongTinChungTuXml, "DiaChi"));
         
         // Parse tờ khai hải quan
-        response.setSoToKhai(extractXmlValue(xmlContent, "So_TK_HQ"));
-        response.setNgayToKhai(parseDate(extractXmlValue(xmlContent, "Ngay_TK_HQ")));
-        response.setMaHaiQuan(extractXmlValue(xmlContent, "Ma_HQ"));
-        response.setMaLoaiHinh(extractXmlValue(xmlContent, "Ma_LH"));
-        response.setMaLuuKho(""); // Chưa có trong XML
-        response.setNuocXuatKhau(""); // Chưa có trong XML
+        response.setSoToKhai(extractXmlValue(thongTinChungTuXml, "So_TK_HQ"));
+        response.setNgayToKhai(parseDate(extractXmlValue(thongTinChungTuXml, "Ngay_TK_HQ")));
+        response.setMaHaiQuan(extractXmlValue(thongTinChungTuXml, "Ma_HQ"));
+        response.setMaLoaiHinh(extractXmlValue(thongTinChungTuXml, "Ma_LH"));
+        response.setMaLuuKho(extractXmlValue(thongTinChungTuXml, "Ma_LuuKho"));
+        response.setNuocXuatKhau(extractXmlValue(thongTinChungTuXml, "Nuoc_XK"));
         
-        // THÔNG TIN HÀNG HÓA (chưa có trong XML, để trống)
-        response.setMaPhuongThucVC("");
-        response.setPhuongTienVC("");
-        response.setMaDiaDiemXepHang("");
-        response.setMaDiaDiemDoHang("");
-        response.setMaPhanLoaiHangHoa("");
-        response.setMucDichVC("");
+        // THÔNG TIN HÀNG HÓA
+        response.setMaPhuongThucVC(extractXmlValue(thongTinChungTuXml, "Ma_PhuongThucVC"));
+        response.setPhuongTienVC(extractXmlValue(thongTinChungTuXml, "PhuongTien_VC"));
+        response.setMaDiaDiemXepHang(extractXmlValue(thongTinChungTuXml, "Ma_DD_XepHang"));
+        response.setMaDiaDiemDoHang(extractXmlValue(thongTinChungTuXml, "Ma_DD_DoHang"));
+        response.setMaPhanLoaiHangHoa(extractXmlValue(thongTinChungTuXml, "Ma_PhanLoaiHH"));
+        response.setMucDichVC(extractXmlValue(thongTinChungTuXml, "MucDich_VC"));
         
         // Parse tờ khai phí
-        response.setSoTiepNhanKhaiPhi("");
+        response.setSoTiepNhanKhaiPhi(""); // Luôn để trống
         response.setNgayKhaiPhi(LocalDate.now());
-        response.setNhomLoaiPhi(extractXmlValue(xmlContent, "Ma_LoaiPhi"));
-        response.setLoaiThanhToan("00");//CHUYEN KHOAN NGAN HANG
-        response.setGhiChuKhaiPhi(extractXmlValue(xmlContent, "Ten_LoaiPhi"));
+        response.setNhomLoaiPhi(extractXmlValue(thongTinChungTuXml, "Ma_LoaiPhi"));
+        response.setLoaiThanhToan(extractXmlValue(thongTinChungTuXml, "Loai_ThanhToan"));
+        response.setGhiChuKhaiPhi(extractXmlValue(thongTinChungTuXml, "Ten_LoaiPhi"));
         
-        // Parse thông tin thu phí
-        String soTienStr = extractXmlValue(xmlContent, "SoTien_TO");
-        if (soTienStr != null && !soTienStr.isEmpty()) {
-            try {
-                response.setTongTienPhi(new BigDecimal(soTienStr));
-            } catch (NumberFormatException e) {
-                log.warn("Không thể parse số tiền: {}", soTienStr);
-                response.setTongTienPhi(BigDecimal.ZERO);
-            }
-        } else {
-            response.setTongTienPhi(BigDecimal.ZERO);
-        }
+        // Parse thông tin thu phí - tính tổng từ các ThongTinNopTien trong ThongTinChungTu này
+        BigDecimal tongTienPhi = calculateTotalAmountFromThongTinChungTu(thongTinChungTuXml);
+        response.setTongTienPhi(tongTienPhi);
         
         response.setTrangThaiNganHang("00");//TRANG THAI CHUA GACH NO
         response.setSoThongBaoNopPhi(""); // Chưa có trong XML
@@ -165,12 +206,12 @@ public class HaiQuanServiceImpl implements HaiQuanService {
         response.setXemBienLai(""); // Chưa có trong XML
         
         // DANH MỤC LOẠI HÀNG MIỄN PHÍ
-        response.setLoaiHangMienPhi(""); // Chưa có trong XML
-        response.setLoaiHang(extractXmlValue(xmlContent, "Ma_LH"));
+        response.setLoaiHangMienPhi(extractXmlValue(thongTinChungTuXml, "Loai_Hang_MienPhi"));
+        response.setLoaiHang(extractXmlValue(thongTinChungTuXml, "Loai_Hang"));
         response.setTrangThai("00");
         
-        // Parse danh sách chi tiết từ ThongTinNopTien
-        List<ChiTietHaiQuanResponse> chiTietList = parseChiTietList(xmlContent);
+        // Parse danh sách chi tiết từ ThongTinNopTien trong ThongTinChungTu này
+        List<ChiTietHaiQuanResponse> chiTietList = parseChiTietListFromThongTinChungTu(thongTinChungTuXml, index);
         response.setChiTietList(chiTietList);
         
         return response;
@@ -187,6 +228,7 @@ public class HaiQuanServiceImpl implements HaiQuanService {
         response.setChiTietList(new ArrayList<>());
         return response;
     }
+    
     
     /**
      * Extract giá trị từ XML tag
@@ -216,14 +258,48 @@ public class HaiQuanServiceImpl implements HaiQuanService {
     }
     
     /**
-     * Parse danh sách chi tiết từ ThongTinNopTien
+     * Tính tổng số tiền từ các ThongTinNopTien trong một ThongTinChungTu
      */
-    private List<ChiTietHaiQuanResponse> parseChiTietList(String xml) {
+    private BigDecimal calculateTotalAmountFromThongTinChungTu(String thongTinChungTuXml) {
+        BigDecimal total = BigDecimal.ZERO;
+        int count = 0;
+        
+        // Tìm tất cả các ThongTinNopTien trong ThongTinChungTu này
+        Pattern pattern = Pattern.compile("<ThongTinNopTien>(.*?)</ThongTinNopTien>", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(thongTinChungTuXml);
+        
+        while (matcher.find()) {
+            String chiTietXml = matcher.group(1);
+            String thanhTienStr = extractXmlValue(chiTietXml, "Thanh_Tien");
+            
+            count++;
+            if (thanhTienStr != null && !thanhTienStr.isEmpty()) {
+                try {
+                    BigDecimal thanhTien = new BigDecimal(thanhTienStr);
+                    total = total.add(thanhTien);
+                    log.debug("ThongTinNopTien {}: Thanh_Tien = {}", count, thanhTien);
+                } catch (NumberFormatException e) {
+                    log.warn("Không thể parse số tiền từ ThongTinNopTien {}: {}", count, thanhTienStr);
+                }
+            } else {
+                log.debug("ThongTinNopTien {}: Thanh_Tien rỗng", count);
+            }
+        }
+        
+        log.debug("Tính tổng số tiền từ {} ThongTinNopTien trong ThongTinChungTu: {}", count, total);
+        
+        return total;
+    }
+
+    /**
+     * Parse danh sách chi tiết từ ThongTinNopTien trong một ThongTinChungTu
+     */
+    private List<ChiTietHaiQuanResponse> parseChiTietListFromThongTinChungTu(String thongTinChungTuXml, int toKhaiIndex) {
         List<ChiTietHaiQuanResponse> chiTietList = new ArrayList<>();
         
-        // Tìm tất cả các ThongTinNopTien
+        // Tìm tất cả các ThongTinNopTien trong ThongTinChungTu này
         Pattern pattern = Pattern.compile("<ThongTinNopTien>(.*?)</ThongTinNopTien>", Pattern.DOTALL);
-        Matcher matcher = pattern.matcher(xml);
+        Matcher matcher = pattern.matcher(thongTinChungTuXml);
         
         int index = 1;
         while (matcher.find()) {
@@ -231,7 +307,7 @@ public class HaiQuanServiceImpl implements HaiQuanService {
             
             ChiTietHaiQuanResponse chiTiet = new ChiTietHaiQuanResponse();
             chiTiet.setId((long) index);
-            chiTiet.setToKhaiThongTinID(1L);
+            chiTiet.setToKhaiThongTinID((long) toKhaiIndex);
             chiTiet.setSoVanDon(extractXmlValue(chiTietXml, "So_VD"));
             chiTiet.setSoHieu(extractXmlValue(chiTietXml, "So_Hieu_Container"));
             
@@ -250,9 +326,14 @@ public class HaiQuanServiceImpl implements HaiQuanService {
             chiTiet.setGhiChu(extractXmlValue(chiTietXml, "Ten_BieuCuoc"));
             
             chiTietList.add(chiTiet);
+            
+            log.debug("Parse chi tiết {} trong ThongTinChungTu {}: Ma_BieuCuoc={}, So_VD={}, So_Hieu={}, So_Luong={}", 
+                    index, toKhaiIndex, maBieuCuoc, chiTiet.getSoVanDon(), chiTiet.getSoHieu(), soLuongStr);
+            
             index++;
         }
         
+        log.debug("Parse được {} chi tiết từ ThongTinChungTu {}", chiTietList.size(), toKhaiIndex);
         return chiTietList;
     }
     
@@ -260,25 +341,30 @@ public class HaiQuanServiceImpl implements HaiQuanService {
     /**
      * Validate dữ liệu trong XML có khớp với request không
      */
-    private void validateXmlDataWithRequest(ThongTinHaiQuanResponse response, LayThongTinHaiQuanRequest request) {
+    private void validateXmlDataWithRequest(List<ThongTinHaiQuanResponse> danhSachToKhai, LayThongTinHaiQuanRequest request) {
         log.info("Validate dữ liệu XML với request - maDoanhNghiep: {}, soToKhaiHaiQuan: {}", 
                 request.getMaDoanhNghiep(), request.getSoToKhaiHaiQuan());
         
-        // Kiểm tra mã doanh nghiệp
-        if (response.getMaDoanhNghiepKhaiPhi() != null && 
-            !response.getMaDoanhNghiepKhaiPhi().equals(request.getMaDoanhNghiep().trim())) {
-            log.warn("Mã doanh nghiệp trong XML ('{}') không khớp với request ('{}')", 
-                    response.getMaDoanhNghiepKhaiPhi(), request.getMaDoanhNghiep());
+        // Kiểm tra mã doanh nghiệp cho tất cả tờ khai
+        for (ThongTinHaiQuanResponse response : danhSachToKhai) {
+            if (response.getMaDoanhNghiepKhaiPhi() != null && 
+                !response.getMaDoanhNghiepKhaiPhi().equals(request.getMaDoanhNghiep().trim())) {
+                log.warn("Mã doanh nghiệp trong XML ('{}') không khớp với request ('{}') cho tờ khai {}", 
+                        response.getMaDoanhNghiepKhaiPhi(), request.getMaDoanhNghiep(), response.getSoToKhai());
+            }
         }
         
-        // Kiểm tra số tờ khai hải quan
-        if (response.getSoToKhai() != null && 
-            !response.getSoToKhai().equals(request.getSoToKhaiHaiQuan().trim())) {
-            log.warn("Số tờ khai trong XML ('{}') không khớp với request ('{}')", 
-                    response.getSoToKhai(), request.getSoToKhaiHaiQuan());
+        // Kiểm tra số tờ khai hải quan (chỉ kiểm tra tờ khai đầu tiên)
+        if (!danhSachToKhai.isEmpty() && request.getSoToKhaiHaiQuan() != null) {
+            ThongTinHaiQuanResponse firstResponse = danhSachToKhai.get(0);
+            if (firstResponse.getSoToKhai() != null && 
+                !firstResponse.getSoToKhai().equals(request.getSoToKhaiHaiQuan().trim())) {
+                log.warn("Số tờ khai trong XML ('{}') không khớp với request ('{}')", 
+                        firstResponse.getSoToKhai(), request.getSoToKhaiHaiQuan());
+            }
         }
         
-        log.info("Validation hoàn tất");
+        log.info("Validation hoàn tất cho {} tờ khai", danhSachToKhai.size());
     }
     
     /**

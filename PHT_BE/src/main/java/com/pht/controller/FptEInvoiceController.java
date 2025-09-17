@@ -254,7 +254,7 @@ public class FptEInvoiceController {
             log.info("Đã cập nhật trạng thái phát hành thành '02' cho tờ khai ID: {}", request.getId());
             
             // Gửi email PDF biên lai bất đồng bộ (không đợi kết quả)
-            sendEmailBienLaiAsync(request.getId());
+            // sendEmailBienLaiAsync(request.getId());
             
             return ResponseHelper.ok("Cập nhật trạng thái phát hành thành công");
             
