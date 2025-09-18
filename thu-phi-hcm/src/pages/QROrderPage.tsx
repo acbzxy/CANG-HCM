@@ -1,4 +1,26 @@
 import React, { useState, useEffect } from 'react'
+// Lightweight CRC16-CCITT implementation (same as main_QRcode.js expectation)
+const crc16ccitt = (str: string): number => {
+  let crc = 0xFFFF
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8
+    for (let j = 0; j < 8; j++) {
+      if ((crc & 0x8000) !== 0) {
+        crc = (crc << 1) ^ 0x1021
+      } else {
+        crc <<= 1
+      }
+      crc &= 0xFFFF
+    }
+  }
+  return crc & 0xFFFF
+}
+// Generate QR image URL via public QR service (no extra deps). Replace with local lib if needed.
+const toQrDataURL = async (text: string): Promise<string> => {
+  const encoded = encodeURIComponent(text)
+  // ecc=M, size=200x200
+  return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&ecc=M&data=${encoded}`
+}
 import { useNotification } from '../context/NotificationContext'
 
 interface QROrder {
@@ -6,6 +28,7 @@ interface QROrder {
   stt: number
   soThuTu: string
   doanhNghiep: string
+  tenDn?: string
   soDonHang: string
   ngayDonHang: string
   loaiThanhToan: string
@@ -53,6 +76,7 @@ const QROrderPage: React.FC = () => {
   const [countdown, setCountdown] = useState(3)
   const [showPaymentLink, setShowPaymentLink] = useState(false)
   const [showQRCode, setShowQRCode] = useState(false)
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [donHangId, setDonHangId] = useState<number | null>(null)
   const [isOrderSigned, setIsOrderSigned] = useState(false)
   
@@ -214,6 +238,85 @@ const QROrderPage: React.FC = () => {
     }
   }
 
+  // ==== main_QRcode.js equivalent ====
+  const QR_TPL_VCB = `000201010212262400069704890110010010865652045912530370454{total_length}{totalv}5802VN5919Cong ty CP Traphaco6005HANOI62{additional_information_length}{sid_length}{sid}{storeID_length}{storeID}{expDate_referenceID_length}{expDate_referenceID}{terminalID_length}{terminalID}{note_length}{note}6304`
+  const QR_TPL_FIS = `0002010102122624000697042301100104128565520457345303{curr_code}54{total_length}{totalv}5802VN5935CONG TY TNHH HE THONG THONG TIN FPT6005HANOI62{additional_information_length}{storeID_length}{storeID}{terminalID_length}{terminalID}{note_length}{note}6304`
+  const momentAdd1YearYY = (isoLike: string) => {
+    const d = new Date(isoLike)
+    d.setFullYear(d.getFullYear() + 1)
+    return String(d.getFullYear()).slice(2)
+  }
+  const pad = (n: number, w = 2) => String(n).padStart(w, '0')
+  type QrInput = { uc: string; totalv: string; c3?: string; c1?: string; c2?: string; idt: string; seq?: string; serial?: string; curr?: 'VND'|'USD'; btax?: string; form?: string }
+  const generatePaymentQr = async (data: QrInput): Promise<string> => {
+    const taxc = data.uc.split('.')[0]
+    let qrData = ''
+    let totalv = data.totalv
+    let total_length = pad(totalv.toString().length)
+    if (["0100108656", "0104128565-998"].includes(taxc)) {
+      // VCB
+      qrData = QR_TPL_VCB
+      const sid = data.c3 ?? ''
+      const sid_length = sid.length === 0 ? '' : '01' + pad(sid.length)
+      const storeID = data.c1 ?? ''
+      const storeID_length = storeID.length === 0 ? '' : '03' + pad(storeID.length)
+      const referenceID = data.c3 ?? ''
+      const expDate = `01${momentAdd1YearYY(data.idt)}12311200`
+      const terminalID = data.c2 ?? ''
+      const terminalID_length = terminalID.length === 0 ? '' : '07' + pad(terminalID.length)
+      const note = 'tthd-' + Number(data.seq || '0') + (data.serial || '')
+      const note_length = '08' + pad(note.length)
+      const expDate_referenceID = expDate + referenceID
+      const expDate_referenceID_length = '05' + pad(expDate_referenceID.length)
+      const storeID_check = storeID.length === 0 ? 0 : 4 + storeID.length
+      const terminalID_check = terminalID.length === 0 ? 0 : 4 + terminalID.length
+      const expDate_referenceID_check = expDate_referenceID.length === 0 ? 0 : 4 + expDate_referenceID.length
+      const additional_information_length = 4 + sid.length + storeID_check + terminalID_check + 4 + note.length + expDate_referenceID_check
+      qrData = qrData.replace('{total_length}', total_length)
+      qrData = qrData.replace('{totalv}', totalv)
+      qrData = qrData.replace('{sid}', sid)
+      qrData = qrData.replace('{sid_length}', sid_length)
+      qrData = qrData.replace('{storeID_length}', storeID_length)
+      qrData = qrData.replace('{storeID}', storeID)
+      qrData = qrData.replace('{expDate_referenceID_length}', expDate_referenceID_length)
+      qrData = qrData.replace('{expDate_referenceID}', expDate_referenceID)
+      qrData = qrData.replace('{terminalID_length}', terminalID_length)
+      qrData = qrData.replace('{terminalID}', terminalID)
+      qrData = qrData.replace('{note_length}', note_length)
+      qrData = qrData.replace('{note}', note)
+      qrData = qrData.replace('{additional_information_length}', String(additional_information_length))
+    } else if (["0104128565", "2222222222", "0104128565-999"].includes(taxc)) {
+      // FIS
+      qrData = QR_TPL_FIS
+      const curr_code = data.curr === 'USD' ? 840 : 704
+      const storeID = 'PB6HN'
+      const storeID_length = storeID.length === 0 ? '' : '03' + pad(storeID.length)
+      const terminalID = data.uc.split('.')[1]
+      const terminalID_length = storeID.length === 0 ? '' : '07' + pad(terminalID.length)
+      const note = `${data.btax}-${data.form}${data.serial}-${data.seq}`
+      const note_length = '08' + pad(note.length)
+      const terminalID_check = terminalID.length === 0 ? 0 : 4 + terminalID.length
+      const storeID_check = storeID.length === 0 ? 0 : 4 + storeID.length
+      const additional_information_length = storeID_check + terminalID_check + 4 + note.length
+      qrData = qrData.replace('{curr_code}', String(curr_code))
+      qrData = qrData.replace('{total_length}', total_length)
+      qrData = qrData.replace('{totalv}', totalv)
+      qrData = qrData.replace('{storeID_length}', storeID_length)
+      qrData = qrData.replace('{storeID}', storeID)
+      qrData = qrData.replace('{terminalID_length}', terminalID_length)
+      qrData = qrData.replace('{terminalID}', terminalID)
+      qrData = qrData.replace('{note_length}', note_length)
+      qrData = qrData.replace('{note}', note)
+      qrData = qrData.replace('{additional_information_length}', String(additional_information_length))
+    } else {
+      // default: VCB path
+      qrData = QR_TPL_VCB.replace('{total_length}', total_length).replace('{totalv}', totalv)
+    }
+    const crc = crc16ccitt(qrData).toString(16).padStart(4, '0').toUpperCase()
+    const qrDataCheck = qrData + crc
+    return await toQrDataURL(qrDataCheck)
+  }
+
   // Helper function to view order details
   const handleViewOrderDetails = (order: any) => {
     console.log('🔍 Viewing order details:', order);
@@ -336,6 +439,35 @@ const QROrderPage: React.FC = () => {
       // Show total when save button is clicked
       setShowTotal(true);
       showSuccess('Đơn hàng đã được tạo thành công!');
+      // Generate QR according to main_QRcode.js logic
+      if (formData.hinhThucThanhToan === 'QR') {
+        try {
+          const mst = '0304126484' // demo tax code; replace with actual
+          const uc = `${mst}.INV` // matches data.uc usage (tax.creator)
+          const totalv = Number(requestBody.tongTien).toFixed(0)
+          const now = new Date()
+          const pad2 = (n: number) => n.toString().padStart(2, '0')
+          const idt = `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}T00:00:00`
+          const data = {
+            uc,
+            totalv,
+            c3: '', // sid
+            c1: '', // storeID
+            c2: '', // terminalID
+            idt,
+            seq: '000001',
+            serial: 'AA/24E',
+            curr: 'VND' as 'VND',
+            btax: mst,
+            form: '01GTTT'
+          }
+          const qr = await generatePaymentQr(data)
+          setQrDataUrl(qr)
+          setShowQRCode(true)
+        } catch (e) {
+          console.error('❌ Generate QR failed:', e)
+        }
+      }
       
     } catch (error) {
       console.error('❌ Error creating order:', error);
@@ -1029,7 +1161,7 @@ const QROrderPage: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {currentOrders.map((order, index) => (
+            {currentOrders.map((order: QROrder, index: number) => (
               <tr key={order.id} style={{ 
                 backgroundColor: index % 2 === 0 ? '#f8f9fa' : '#fff',
                 borderBottom: '1px solid #dee2e6'
@@ -1423,7 +1555,7 @@ const QROrderPage: React.FC = () => {
                           <span>THANH TOÁN TẠI ĐÂY</span>
                         </button>
                       </div>
-                    ) : showQRCode ? (
+                    ) : showQRCode && qrDataUrl ? (<img src={qrDataUrl} alt="QR" style={{ width: '160px', height: '160px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: 'white' }} />) : showQRCode ? (
                       // Real QR Code Display
                       <div style={{
                         display: 'flex',
@@ -2893,7 +3025,6 @@ const QROrderPage: React.FC = () => {
                     padding: '10px 12px',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    fontWeight: 'bold',
                     minHeight: '42px',
                     display: 'flex',
                     alignItems: 'center',
