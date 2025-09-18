@@ -1281,78 +1281,6 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
       setLoading(false);
     }
   };
-  // Kích hoạt bước 2 chỉ khi trạng thái cho biết đã ký số
-  // Kích hoạt bước 3 khi đã lấy thông báo phí
-  const isNoticeFetched = React.useMemo(() => {
-    const d: any = initialData || {};
-    const candidates = [
-      d?.trangThaiThongBaoText,
-      d?.trangThaiThongBao,
-      d?.statusThongBao,
-      d?.trangThai,
-      d?.status,
-    ]
-      .filter(Boolean)
-      .map((v: any) => v.toString().toUpperCase());
-
-    const textFetched = candidates.some((s: string) =>
-      s.includes('ĐÃ LẤY THÔNG BÁO') || s.includes('DA LAY THONG BAO') || s.includes('ĐÃ LẤY') || s.includes('DA LAY') || s === 'NOTICE_FETCHED' || s === 'DA_LAY_THONG_BAO' || s === '03'
-    );
-
-    const hasNoticeNumber = Object.keys(d || {}).some((key) => key.toString().toLowerCase().includes('sothongbao') && !!d[key]);
-
-    const explicitNotice = !!(d?.soThongBao || d?.soThongBaoNopPhi || d?.soThongBaoPhi || d?.soThongBaoSo);
-
-    return textFetched || hasNoticeNumber || explicitNotice;
-  }, [initialData]);
-
-  // Kích hoạt bước 4 khi đã sinh mã QR/đơn hàng QR sau khi đã lấy thông báo
-  const isPaymentReady = React.useMemo(() => {
-    const d: any = initialData || {};
-    const statusCandidates = [
-      d?.trangThaiThanhToan,
-      d?.statusThanhToan,
-      d?.thanhToanStatus,
-      d?.trangThaiNganHang,
-    ]
-      .filter(Boolean)
-      .map((v: any) => v.toString().toUpperCase());
-
-    // Có dấu hiệu đã tạo QR hoặc đơn hàng cho thanh toán QR
-    const textHasQr = statusCandidates.some((s: string) =>
-      s.includes('QR') || s.includes('TAO QR') || s.includes('TẠO QR') || s.includes('CHO THANH TOAN') || s.includes('CHO_THANH_TOAN') || s === 'QR_CREATED' || s === 'PENDING_QR'
-    );
-
-    // Có trường thông tin liên quan QR/đơn hàng
-    const hasQrFields = !!(d?.qrCode || d?.qrUrl || d?.paymentOrderId || d?.orderId || d?.maTraCuuBienLai || d?.xemBienLai);
-
-    // Bước 4 chỉ bật khi đã có bước 3
-    return isNoticeFetched && (textHasQr || hasQrFields);
-  }, [initialData, isNoticeFetched]);
-
-  // Bước 2 phải luôn giữ màu nếu đã ký số hoặc đã lấy thông báo (vì lấy thông báo chỉ sau khi ký)
-  const isSigned = React.useMemo(() => {
-    const d: any = initialData || {};
-    const candidates = [
-      d?.trangThaiText,
-      d?.trangThai,
-      d?.status,
-      d?.trangThaiKySo,
-      d?.statusKySo,
-      d?.kySoStatus,
-    ]
-      .filter(Boolean)
-      .map((v: any) => v.toString().toUpperCase());
-
-    const textSigned = candidates.some((s: string) =>
-      s === '02' || s === 'SIGNED' || s.includes('KÝ SỐ') || s.includes('KY SO') || s.includes('DA KY')
-    );
-
-    const evidenceSigned = !!(d?.msgId || d?.kylan1Xml || d?.kylan2Xml);
-
-    return textSigned || evidenceSigned || isNoticeFetched;
-  }, [initialData, isNoticeFetched]);
-
   return (
     <motion.div ref={modalRootRef}
       className="w-full flex flex-col bg-white"
@@ -1374,44 +1302,37 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
           </button>
           <span className="font-semibold">Thông Tin Tờ Khai Phí</span>
         </h4>
-        {mode !== 'view' && (
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={handleCancelDeclaration}
-              className="btn btn-default bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-            >
-              <i className="fas fa-times w-4 h-4 me-1"></i>
-              Hủy tờ khai
-            </button>
-            <button 
-              onClick={handleSignDeclaration}
-              className="btn btn-default bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-            >
-              <i className="fas fa-signature w-4 h-4 me-1"></i>
-              Ký số tờ khai (khai báo nộp phí)
-            </button>
-            <button 
-              onClick={handleSave}
-              disabled={loading}
-              className="btn btn-default bg-blue-800 text-white rounded hover:bg-blue-900 transition-colors disabled:bg-gray-400"
-            >
-              <WindowIcon className="w-4 h-4 me-1" />
-              {loading ? 'Đang lưu...' : 'Lưu lại'}
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleCancelDeclaration}
+            className="btn btn-default bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+            disabled={mode === 'view'}
+          >
+            <i className="fas fa-times w-4 h-4 me-1"></i>
+            Hủy tờ khai
+          </button>
+          <button 
+            onClick={handleSignDeclaration}
+            className="btn btn-default bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+            disabled={mode === 'view'}
+          >
+            <i className="fas fa-signature w-4 h-4 me-1"></i>
+            Ký số tờ khai (khai báo nộp phí)
+          </button>
+          <button 
+            onClick={handleSave}
+            disabled={loading || mode === 'view'}
+            className="btn btn-default bg-blue-800 text-white rounded hover:bg-blue-900 transition-colors disabled:bg-gray-400"
+          >
+            <WindowIcon className="w-4 h-4 me-1" />
+            {loading ? 'Đang lưu...' : 'Lưu lại'}
+          </button>
+          
+        </div>
       </div>
 
       {/* Body */}
-      <div 
-        className={asPopup ? "modal-body flex-1 pr-[15px] pb-[15px] pl-[15px] bg-[#E8EBEF] overflow-y-auto" : "modal-body mt-[40px] pr-[15px] pb-[100px] pl-[15px] bg-[#E8EBEF] min-h-[278px]"}
-        style={asPopup ? {
-          scrollBehavior: 'smooth',
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'thin',
-          scrollbarColor: '#cbd5e0 #f7fafc'
-        } : {}}
-      >
+      <div className={asPopup ? "modal-body mt-[40px] pr-[15px] pb-[100px] pl-[15px] bg-[#E8EBEF] min-h-[278px] overflow-y-auto" : "modal-body mt-[40px] pr-[15px] pb-[100px] pl-[15px] bg-[#E8EBEF] min-h-[278px]"}>
         <div className="w-full">
           {/* Arrow Step Indicator */}
           <div className="flex items-center w-full mb-6 mt-[22px] rounded-full overflow-hidden">
@@ -1432,14 +1353,8 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
               </div>
             </div>
             <div 
-              className={isSigned ? "relative h-10 flex items-center text-white font-bold text-sm px-4 shadow-lg flex-1" : "relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"}
-              style={isSigned ? {
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
-                clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
-                marginLeft: '-20px',
-                marginRight: '3px',
-                zIndex: 4
-              } : {
+              className="relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"
+              style={{
                 clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
                 marginLeft: '-20px',
                 marginRight: '3px',
@@ -1447,21 +1362,15 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
               }}
             >
               <div className="flex items-center space-x-2 justify-center w-full">
-                <div className={isSigned ? "w-6 h-6 rounded-full bg-white flex items-center justify-center text-xs font-bold text-black" : "w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold"}>
+                <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold">
                   2
                 </div>
                 <span className="text-sm font-medium">Ký Số Tờ Khai Báo Nộp Phí</span>
               </div>
             </div>
             <div 
-              className={isNoticeFetched ? "relative h-10 flex items-center text-white font-bold text-sm px-4 shadow-lg flex-1" : "relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"}
-              style={isNoticeFetched ? {
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
-                clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
-                marginLeft: '-20px',
-                marginRight: '3px',
-                zIndex: 3
-              } : {
+              className="relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"
+              style={{
                 clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
                 marginLeft: '-20px',
                 marginRight: '3px',
@@ -1469,21 +1378,15 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
               }}
             >
               <div className="flex items-center space-x-2 justify-center w-full">
-                <div className={isNoticeFetched ? "w-6 h-6 rounded-full bg-white flex items-center justify-center text-xs font-bold text-black" : "w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold"}>
+                <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold">
                   3
                 </div>
                 <span className="text-sm font-medium">Lấy Thông Báo Phí</span>
               </div>
             </div>
             <div 
-              className={isPaymentReady ? "relative h-10 flex items-center text-white font-bold text-sm px-4 shadow-lg flex-1" : "relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"}
-              style={isPaymentReady ? {
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
-                clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
-                marginLeft: '-20px',
-                marginRight: '3px',
-                zIndex: 2
-              } : {
+              className="relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"
+              style={{
                 clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
                 marginLeft: '-20px',
                 marginRight: '3px',
@@ -1491,7 +1394,7 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
               }}
             >
               <div className="flex items-center space-x-2 justify-center w-full">
-                <div className={isPaymentReady ? "w-6 h-6 rounded-full bg-white flex items-center justify-center text-xs font-bold text-black" : "w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold"}>
+                <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold">
                   4
                 </div>
                 <span className="text-sm font-medium">Thực Hiện Nộp Phí</span>
@@ -1651,7 +1554,96 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
             </div>
           )}
 
-          {/* Selected declaration info section has been intentionally removed (hidden). */}
+          {/* Display selected tokhai details */}
+          {showSelectedData && selectedTokhai && (
+            <div className="mb-6">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-sm font-semibold text-green-800">
+                    📋 Thông tin tờ khai đã chọn
+                  </h4>
+                  <button
+                    onClick={handleClearSelection}
+                    className="text-red-600 hover:text-red-800 text-xs"
+                  >
+                    ✕ Xóa lựa chọn
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <div className="space-y-2">
+                      <div><strong>Số tờ khai:</strong> {selectedTokhai.soToKhai}</div>
+                      <div><strong>Ngày tờ khai:</strong> {selectedTokhai.ngayToKhai}</div>
+                      <div><strong>Doanh nghiệp khai phí:</strong> {selectedTokhai.tenDoanhNghiepKhaiPhi}</div>
+                      <div><strong>Mã doanh nghiệp:</strong> {selectedTokhai.maDoanhNghiepKhaiPhi}</div>
+                      <div><strong>Địa chỉ:</strong> {selectedTokhai.diaChiKhaiPhi}</div>
+                      <div><strong>Mã hải quan:</strong> {selectedTokhai.maHaiQuan}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="space-y-2">
+                      <div><strong>Tổng tiền phí:</strong> {selectedTokhai.tongTienPhi?.toLocaleString()} VND</div>
+                      <div><strong>Trạng thái:</strong> {selectedTokhai.trangThai}</div>
+                      <div><strong>Trạng thái ngân hàng:</strong> {selectedTokhai.trangThaiNganHang}</div>
+                      <div><strong>Loại thanh toán:</strong> {selectedTokhai.loaiThanhToan}</div>
+                      <div><strong>Phương tiện vận chuyển:</strong> {selectedTokhai.phuongTienVC}</div>
+                      <div><strong>Ghi chú:</strong> {selectedTokhai.ghiChuKhaiPhi}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Container details */}
+                {selectedTokhai.chiTietList && selectedTokhai.chiTietList.length > 0 && (
+                  <div className="mt-4">
+                    <h5 className="text-xs font-semibold text-green-800 mb-2">📦 Chi tiết container:</h5>
+                    <div className="max-h-32 overflow-y-auto">
+                      <table className="w-full text-xs border">
+                        <thead className="bg-green-100">
+                          <tr>
+                            <th className="border p-1 text-left">Số vận đơn</th>
+                            <th className="border p-1 text-left">Số hiệu</th>
+                            <th className="border p-1 text-left">Loại cont</th>
+                            <th className="border p-1 text-left">Trọng lượng</th>
+                            <th className="border p-1 text-left">Số tiền</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedTokhai.chiTietList.map((detail, index) => (
+                            <tr key={index}>
+                              <td className="border p-1">{detail.soVanDon}</td>
+                              <td className="border p-1">{detail.soHieu}</td>
+                              <td className="border p-1">{detail.loaiCont}</td>
+                              <td className="border p-1">{detail.tongTrongLuong} {detail.donViTinh}</td>
+                              <td className="border p-1">{detail.soTien?.toLocaleString()} VND</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-3 flex gap-2">
+                  <button
+                    className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700"
+                    onClick={handleAutoFillForm}
+                  >
+                    📝 Tự động điền form
+                  </button>
+                  <button
+                    className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
+                    onClick={() => {
+                      // TODO: Implement edit logic
+                      showInfo('Chức năng chỉnh sửa đang phát triển', 'Thông báo');
+                    }}
+                  >
+                    ✏️ Chỉnh sửa
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <FeeDeclarationForm />
           <CargoTabs />
