@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.pht.common.OrderBy;
 import com.pht.common.helper.ResponseHelper;
 import com.pht.common.model.ApiDataResponse;
+import java.util.List;
+
 import com.pht.model.request.LayThongTinHaiQuanRequest;
 import com.pht.model.response.ThongTinHaiQuanResponse;
 import com.pht.service.HaiQuanService;
@@ -47,7 +49,7 @@ public class HaiQuanController {
     public ResponseEntity<?> layThongTinHaiQuan(@RequestBody LayThongTinHaiQuanRequest request) {
         try {
             log.info("Nhận yêu cầu lấy thông tin hải quan: {}", request);
-            ThongTinHaiQuanResponse result = haiQuanService.layThongTinHaiQuan(request);
+            List<ThongTinHaiQuanResponse> result = haiQuanService.layThongTinHaiQuan(request);
             return ResponseHelper.ok(result);
         } catch (Exception ex) {
             log.error("Lỗi khi lấy thông tin hải quan: ", ex);
