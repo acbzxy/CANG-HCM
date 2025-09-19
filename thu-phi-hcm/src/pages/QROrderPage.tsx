@@ -79,6 +79,7 @@ const QROrderPage: React.FC = () => {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [donHangId, setDonHangId] = useState<number | null>(null)
   const [isOrderSigned, setIsOrderSigned] = useState(false)
+  const [qrPaid, setQrPaid] = useState(false)
   
   // Fee selection states
   const [feeFromDate, setFeeFromDate] = useState('2022-02-13')
@@ -132,6 +133,19 @@ const QROrderPage: React.FC = () => {
       }
     }
   }, [isProcessing, countdown, formData.hinhThucThanhToan])
+
+  // Auto mark QR as paid after 30s when QR shown
+  useEffect(() => {
+    if (showQRCode) {
+      setQrPaid(false)
+      const t = setTimeout(() => {
+        setQrPaid(true)
+        setShowQRCode(false) // Hide QR after 30s
+        try { showSuccess('Thanh toán thành công!', 'Thành công') } catch {}
+      }, 30000)
+      return () => clearTimeout(t)
+    }
+  }, [showQRCode])
 
   // Search function
   const handleSearch = () => {
@@ -341,6 +355,7 @@ const QROrderPage: React.FC = () => {
     setShowTotal(false) // Reset total display when opening modal
     setShowPaymentLink(false) // Reset payment link when opening modal
     setShowQRCode(false) // Reset QR code when opening modal
+    setQrPaid(false)
   }
 
   const handleCloseModal = () => {
@@ -363,6 +378,7 @@ const QROrderPage: React.FC = () => {
     setCountdown(3)
     setShowPaymentLink(false)
     setShowQRCode(false)
+    setQrPaid(false)
     setDonHangId(null)
     setIsOrderSigned(false)
   }
@@ -1555,7 +1571,9 @@ const QROrderPage: React.FC = () => {
                           <span>THANH TOÁN TẠI ĐÂY</span>
                         </button>
                       </div>
-                    ) : showQRCode && qrDataUrl ? (<img src={qrDataUrl} alt="QR" style={{ width: '160px', height: '160px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: 'white' }} />) : showQRCode ? (
+                    ) : showQRCode && qrDataUrl ? (
+                      <img src={qrDataUrl} alt="QR" style={{ width: '200px', height: '200px', border: '1px solid #e5e7eb', borderRadius: '10px', backgroundColor: 'white', boxShadow: '0 4px 18px rgba(0,0,0,.06)' }} />
+                    ) : showQRCode ? (
                       // Real QR Code Display
                       <div style={{
                         display: 'flex',
@@ -1982,6 +2000,13 @@ const QROrderPage: React.FC = () => {
                       <span style={{ color: '#666', fontWeight: '400', fontSize: '12px' }}>
                         Nếu không quét được mã vạch bạn có thể click chuột phải vào mã QR để tải ảnh về
                       </span>
+                    ) : qrPaid ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                        <span style={{ width: 36, height: 36, borderRadius: '50%', display: 'inline-block', position: 'relative', background: '#2ecc71', boxShadow: '0 6px 16px rgba(46, 204, 113, .35)' }}>
+                          <span style={{ position: 'absolute', left: 15, top: 10, width: 8, height: 16, borderRight: '4px solid #fff', borderBottom: '4px solid #fff', transform: 'rotate(45deg)' }} />
+                        </span>
+                        <span style={{ color: '#16a34a', fontWeight: 700, fontSize: '16px' }}>Thanh toán thành công</span>
+                      </div>
                     ) : (
                       'Thông tin thanh toán sẽ tự động hiện thị sau khi điệy sản phẩm có kết quả'
                     )}
