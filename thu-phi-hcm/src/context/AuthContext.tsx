@@ -169,6 +169,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           status: "active",
           createdAt: new Date().toISOString(),
           lastLoginAt: new Date().toISOString(),
+          // Thêm quyền cho module Getin/Getout
+          allowedFunctions: [
+            { funcId: 1, funcIdCode: "DASHBOARD", funcName: "Trang chủ" },
+            { funcId: 7, funcIdCode: "GETIN_GETOUT_INFO", funcName: "Nhận thông tin Getin/Getout từ hệ thống" },
+          ],
         };
 
         // Save to session storage

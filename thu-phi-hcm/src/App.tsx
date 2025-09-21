@@ -32,6 +32,7 @@ const DebtManagePage = lazy(() => import("./pages/DebtManagePage"));
 const CreateReceiptPage = lazy(() => import("./pages/CreateReceiptPage"));
 const ReceiptManagePage = lazy(() => import("./pages/ReceiptManagePage"));
 const ChartDemoPage = lazy(() => import("./pages/ChartDemoPage"));
+const GetinGetoutPage = lazy(() => import("./pages/GetinGetoutPage"));
 
 // Reports Pages
 const ReportsPage = lazy(() => import("./pages/reports/ReportsPage"));
@@ -128,6 +129,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/getin-getout"
+              element={
+                <ProtectedRoute>
+                  <GetinGetoutPage />
                 </ProtectedRoute>
               }
             />
