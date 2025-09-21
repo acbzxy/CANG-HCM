@@ -706,7 +706,7 @@ const AdminLoginPage: React.FC = () => {
                           textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                         }}
                       >
-                        ĐĂNG NHẬP QUẢN TRỊ
+                        ĐĂNG NHẬP HỆ THỐNG
                       </h3>
                     </div>
 
@@ -1094,13 +1094,19 @@ const AdminLoginPage: React.FC = () => {
                       </div>
                     </form>
 
-                    {/* Link to Business Login */}
+                    {/* Navigation Links */}
                     <div
                       style={{
                         marginTop: "20px",
                         textAlign: "center",
+                        display: "flex",
+                        flexDirection: "row",
+                        gap: "8px",
+                        justifyContent: "center",
+                        alignItems: "center",
                       }}
                     >
+                      {/* Link to Business Login */}
                       <a
                         href="#"
                         onClick={(e) => {
@@ -1110,15 +1116,16 @@ const AdminLoginPage: React.FC = () => {
                         style={{
                           color: "#3498db",
                           textDecoration: "none",
-                          fontSize: "14px",
+                          fontSize: "12px",
                           fontWeight: "500",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          gap: "6px",
-                          padding: "8px",
+                          gap: "4px",
+                          padding: "6px 10px",
                           borderRadius: "6px",
                           transition: "all 0.2s ease",
+                          whiteSpace: "nowrap",
                         }}
                         onMouseOver={(e) => {
                           e.currentTarget.style.backgroundColor =
@@ -1131,7 +1138,42 @@ const AdminLoginPage: React.FC = () => {
                         }}
                       >
                         <i className="fas fa-building"></i>
-                        Chuyển tới đăng nhập doanh nghiệp
+                        <span>Đăng nhập doanh nghiệp</span>
+                      </a>
+
+                      {/* Link to Cang Vu Login */}
+                      <a
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate("/cangvu-login");
+                        }}
+                        style={{
+                          color: "#0066b3",
+                          textDecoration: "none",
+                          fontSize: "12px",
+                          fontWeight: "500",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: "4px",
+                          padding: "6px 10px",
+                          borderRadius: "6px",
+                          transition: "all 0.2s ease",
+                          whiteSpace: "nowrap",
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor =
+                            "rgba(0, 102, 179, 0.1)";
+                          e.currentTarget.style.color = "#004d87";
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = "transparent";
+                          e.currentTarget.style.color = "#0066b3";
+                        }}
+                      >
+                        <i className="fas fa-users"></i>
+                        <span>Đăng nhập cán bộ cảng vụ</span>
                       </a>
                     </div>
                   </div>

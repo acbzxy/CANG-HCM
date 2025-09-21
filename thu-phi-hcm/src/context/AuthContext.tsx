@@ -202,6 +202,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           // Thêm quyền cho các module mới
           allowedFunctions: [
             { funcId: 1, funcIdCode: "DASHBOARD", funcName: "Trang chủ" },
+            { funcId: 7, funcIdCode: "BUSINESS_CATEGORIES", funcName: "Danh mục nghiệp vụ" },
+            { funcId: 15, funcIdCode: "DATA_RECONCILIATION", funcName: "Đối soát dữ liệu" },
+            { funcId: 16, funcIdCode: "RECONCILIATION_NOTIFICATION", funcName: "Xem thông báo chờ kết quả đối soát" },
+            { funcId: 17, funcIdCode: "RECONCILIATION_RESULT", funcName: "Xem kết quả đối soát từ Ngân hàng, Kho bạc" },
+            { funcId: 18, funcIdCode: "RECONCILIATION_EXPORT", funcName: "Xuất kết quả đối soát ra file Excel" },
+            { funcId: 19, funcIdCode: "RECONCILIATION_PRINT", funcName: "In kết quả đối soát" },
+            { funcId: 20, funcIdCode: "RECONCILIATION_LIST", funcName: "Xem danh sách tất cả các lần đối soát" },
+            { funcId: 21, funcIdCode: "RECONCILIATION_SEARCH", funcName: "Tìm kiếm/tra cứu lần đối soát theo tiêu chí" },
+            { funcId: 22, funcIdCode: "RECONCILIATION_DETAIL", funcName: "Xem chi tiết kết quả của từng lần đối soát" },
+            { funcId: 23, funcIdCode: "RECONCILIATION_EXPORT_LIST", funcName: "Xuất danh sách kết quả ra Excel" },
+            { funcId: 24, funcIdCode: "RECONCILIATION_PRINT_LIST", funcName: "In danh sách kết quả" },
+            { funcId: 25, funcIdCode: "RECONCILIATION_REPORT", funcName: "Lập báo cáo đối soát định kỳ" },
+            { funcId: 26, funcIdCode: "RECONCILIATION_EXPORT_REPORT", funcName: "Xuất/tải báo cáo để gửi lãnh đạo" },
+            { funcId: 27, funcIdCode: "RECONCILIATION_UPDATE", funcName: "Ghi chú, cập nhật trạng thái xử lý lần đối soát" },
+            { funcId: 28, funcIdCode: "RECONCILIATION_HISTORY", funcName: "Quản lý lịch sử các lần đối soát" },
             { funcId: 33, funcIdCode: "STATISTICS_REPORTS", funcName: "Báo cáo thống kê" },
           ],
         };

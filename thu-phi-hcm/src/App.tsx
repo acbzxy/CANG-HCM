@@ -11,6 +11,7 @@ import "./utils/setupPermissions";
 // Lazy load components for better performance
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const AdminLoginPage = lazy(() => import("./pages/AdminLoginPage"));
+const CangVuLoginPage = lazy(() => import("./pages/CangVuLoginPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
@@ -117,6 +118,7 @@ function App() {
             <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin-login" element={<AdminLoginPage />} />
+            <Route path="/cangvu-login" element={<CangVuLoginPage />} />
             <Route path="/receipt-lookup" element={<ReceiptLookupPage />} />
             <Route path="/ecom-payment" element={<EcomPaymentPage />} />
 
