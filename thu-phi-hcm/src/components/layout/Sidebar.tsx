@@ -397,8 +397,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     if (user?.userType === "mst_custom") {
       const allowedPaths = [
         "/dashboard",
-        "/payment-management",
-        "/debt-management",
         "/payment",
         "/account",
         "/password",
