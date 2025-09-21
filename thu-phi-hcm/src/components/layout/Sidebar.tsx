@@ -105,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       icon: "fas fa-sync-alt",
       hasSubmenu: true,
       submenu: [
-        { path: "/data-reconciliation/initialize", label: "Khởi tạo" },
+        { path: "/data-reconciliation/initialize", label: "Đối soát" },
         {
           path: "/data-reconciliation/manage-list",
           label: "Quản lý danh sách đối soát",
@@ -179,6 +179,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         { path: "/system/users", label: "Quản lý người dùng" },
         { path: "/system/business", label: "Quản lý thông tin doanh nghiệp" },
         { path: "/system/password", label: "Đổi mật khẩu" },
+      ],
+    },
+    {
+      path: "/statistics-reports",
+      label: "BÁO CÁO THỐNG KÊ",
+      icon: "fas fa-chart-bar",
+      hasSubmenu: true,
+      submenu: [
+        { path: "/statistics-reports/revenue", label: "Báo cáo doanh thu" },
+        { path: "/statistics-reports/declarations", label: "Thống kê tờ khai" },
+        { path: "/statistics-reports/payments", label: "Thống kê thanh toán" },
       ],
     },
     {
@@ -259,6 +270,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         return ["/data-reconciliation"];
       case 28: // Quản lý lịch sử các lần đối soát
         return ["/data-reconciliation"];
+      case 33: // Báo cáo thống kê (module mới)
+        return ["/statistics-reports", "/statistics-reports/revenue", "/statistics-reports/declarations", "/statistics-reports/payments"];
       default:
         return [];
     }
@@ -382,7 +395,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         "/dashboard",
         "/payment-management",
         "/debt-management",
-        "/payment",
+        "/data-reconciliation",
+        "/statistics-reports",
+        "/business-categories",
         "/account",
         "/password",
         "/guide",

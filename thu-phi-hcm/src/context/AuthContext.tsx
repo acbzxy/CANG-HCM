@@ -199,6 +199,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           status: "active",
           createdAt: new Date().toISOString(),
           lastLoginAt: new Date().toISOString(),
+          // Thêm quyền cho các module mới
+          allowedFunctions: [
+            { funcId: 1, funcIdCode: "DASHBOARD", funcName: "Trang chủ" },
+            { funcId: 33, funcIdCode: "STATISTICS_REPORTS", funcName: "Báo cáo thống kê" },
+          ],
         };
 
         // Save to session storage

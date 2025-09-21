@@ -6,7 +6,7 @@ const DataReconciliationPage: React.FC = () => {
   const reconciliationTypes = [
     {
       id: 'initialize',
-      title: 'Khởi tạo',
+      title: 'Đối soát',
       description: 'Khởi tạo quy trình đối soát dữ liệu mới',
       icon: '🚀',
       path: '/data-reconciliation/initialize',
