@@ -169,9 +169,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           status: "active",
           createdAt: new Date().toISOString(),
           lastLoginAt: new Date().toISOString(),
-          // Thêm quyền cho module Getin/Getout
+          // Thêm quyền cho các module
           allowedFunctions: [
             { funcId: 1, funcIdCode: "DASHBOARD", funcName: "Trang chủ" },
+            { funcId: 2, funcIdCode: "FEE_DECLARATION_MANAGE", funcName: "Xem quản lí tờ khai nộp phí" },
+            { funcId: 3, funcIdCode: "RECEIPT_NOTIFICATION", funcName: "Nhận thông báo và xem tính phí từ hệ thống thu phí" },
+            { funcId: 5, funcIdCode: "FEE_PAYMENT_LIST", funcName: "Xem danh sách nộp phí của các DN XNK" },
+            { funcId: 6, funcIdCode: "FEE_PAYMENT_STATUS", funcName: "Tra cứu tình trạng nộp phí của các DN XNK" },
             { funcId: 7, funcIdCode: "GETIN_GETOUT_INFO", funcName: "Nhận thông tin Getin/Getout từ hệ thống" },
           ],
         };
