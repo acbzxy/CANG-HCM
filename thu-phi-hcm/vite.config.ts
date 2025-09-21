@@ -16,8 +16,8 @@ export default defineConfig({
       '/api': {
         target: 'http://10.14.122.24:8081',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/PHT_BE/api')
-      }
-    }
+        rewrite: (path) => path.replace(/^\/api/, "/PHT_BE/api"),
+      },
+    },
   },
 });

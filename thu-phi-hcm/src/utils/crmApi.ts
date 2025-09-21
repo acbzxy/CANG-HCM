@@ -95,6 +95,23 @@ const CRM_ENDPOINTS = {
   SYS_USER_CREATE: `${CRM_API_BASE_URL}/api/sys-user/create`,
   SYS_USER_VIEW: `${CRM_API_BASE_URL}/api/sys-user/view`,
   SYS_USER_UPDATE: `${CRM_API_BASE_URL}/api/sys-user/update`,
+  SYS_USER_ALL: `${CRM_API_BASE_URL}/api/sys-user/all`,
+  SYS_USER_DELETE: `${CRM_API_BASE_URL}/api/sys-user/delete`,
+
+  // === NHÓM NGƯỜI DÙNG (SYS GROUP USER) ===
+  SYS_GROUP_USER_CREATE: `${CRM_API_BASE_URL}/api/sys-group-user/create`,
+  SYS_GROUP_USER_ALL: `${CRM_API_BASE_URL}/api/sys-group-user/all`,
+  SYS_GROUP_USER_UPDATE: `${CRM_API_BASE_URL}/api/sys-group-user/update`,
+  SYS_GROUP_USER_DELETE: `${CRM_API_BASE_URL}/api/sys-group-user/delete`,
+
+  // === PHÂN QUYỀN NHÓM CHỨC NĂNG (SYS GROUP FUNCTION) ===
+  SYS_GROUP_FUNC_CREATE: `${CRM_API_BASE_URL}/api/sys-group-func/create`,
+  SYS_GROUP_FUNC_UPDATE: `${CRM_API_BASE_URL}/api/sys-group-func/update`,
+
+  // === TẮT CHỨC NĂNG NGƯỜI DÙNG (SYS DISABLE FEATURE) ===
+  SYS_DIS_FEAT_CREATE: `${CRM_API_BASE_URL}/api/sys-dis-feat/create`,
+  SYS_DIS_FEAT_BY_USER: `${CRM_API_BASE_URL}/api/sys-dis-feat/by-user`,
+  SYS_DIS_FEAT_DELETE: `${CRM_API_BASE_URL}/api/sys-dis-feat/delete`,
 
   // === LEGACY COMPATIBILITY ===
   FEE_DECLARATIONS: `${CRM_API_BASE_URL}/api/tokhai-thongtin/all`, // redirect to real endpoint
@@ -680,6 +697,364 @@ export interface CrmBienLaiSearchParams {
 
 // CRM API Service
 export class CrmApiService {
+  /**
+   * Tạo mới nhóm người dùng (sys-group-user)
+   * POST /api/sys-group-user/create
+   * Body: { groupName: string }
+   */
+  static async createSysGroupUser(payload: {
+    groupName: string;
+  }): Promise<any> {
+    return makeApiRequest<any>(CRM_ENDPOINTS.SYS_GROUP_USER_CREATE, {
+      method: "POST",
+      headers: getHeaders(false),
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Lấy danh sách tất cả nhóm người dùng
+   * GET /api/sys-group-user/all
+   */
+  static async getAllSysGroupUsers(): Promise<
+    ApiDataResponse<Array<{ id: number; groupName: string }>> | any
+  > {
+    return makeApiRequest<any>(CRM_ENDPOINTS.SYS_GROUP_USER_ALL, {
+      method: "GET",
+      headers: getHeaders(false),
+    });
+  }
+
+  /**
+   * Cập nhật thông tin nhóm người dùng
+   * PUT /api/sys-group-user/update
+   * Body: { id, groupName }
+   */
+  static async updateSysGroupUser(payload: {
+    id: number;
+    groupName: string;
+  }): Promise<any> {
+    return makeApiRequest<any>(CRM_ENDPOINTS.SYS_GROUP_USER_UPDATE, {
+      method: "PUT",
+      headers: getHeaders(false),
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Xóa nhóm người dùng
+   * DELETE /api/sys-group-user/delete/{id}
+   * Path parameter: id
+   */
+  static async deleteSysGroupUser(id: number): Promise<any> {
+    return makeApiRequest<any>(`${CRM_ENDPOINTS.SYS_GROUP_USER_DELETE}/${id}`, {
+      method: "DELETE",
+      headers: getHeaders(false),
+    });
+  }
+
+  /**
+   * Tạo phân quyền nhóm chức năng
+   * POST /api/sys-group-func/create
+   * Body: { funcId, groupId }
+   */
+  static async createSysGroupFunc(payload: {
+    funcId: number;
+    groupId: number;
+  }): Promise<any> {
+    return makeApiRequest<any>(CRM_ENDPOINTS.SYS_GROUP_FUNC_CREATE, {
+      method: "POST",
+      headers: getHeaders(false),
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Cập nhật phân quyền nhóm (sys-group-func)
+   * PUT /api/sys-group-func/update
+   * Body: { id, funcId, groupId }
+   */
+  static async updateSysGroupFunc(payload: {
+    id: number;
+    funcId: number;
+    groupId: number;
+  }): Promise<any> {
+    return makeApiRequest<any>(CRM_ENDPOINTS.SYS_GROUP_FUNC_UPDATE, {
+      method: "PUT",
+      headers: getHeaders(false),
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Tắt chức năng cho người dùng cụ thể
+   * POST /api/sys-dis-feat/create
+   * Body: { userId, funcId }
+   */
+  static async createSysDisFeat(payload: {
+    userId: number;
+    funcId: number;
+  }): Promise<any> {
+    return makeApiRequest<any>(CRM_ENDPOINTS.SYS_DIS_FEAT_CREATE, {
+      method: "POST",
+      headers: getHeaders(false),
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Lấy danh sách chức năng bị tắt của user
+   * GET /api/sys-dis-feat/by-user?userId={userId}
+   */
+  static async getDisabledFeaturesByUser(userId: number): Promise<any> {
+    return makeApiRequest<any>(
+      `${CRM_ENDPOINTS.SYS_DIS_FEAT_BY_USER}?userId=${userId}`,
+      {
+        method: "GET",
+        headers: getHeaders(true),
+      }
+    );
+  }
+
+  /**
+   * Bật lại chức năng cho user (xóa record tắt chức năng)
+   * DELETE /api/sys-dis-feat/delete/{id}
+   */
+  static async deleteSysDisFeat(id: number): Promise<any> {
+    return makeApiRequest<any>(`${CRM_ENDPOINTS.SYS_DIS_FEAT_DELETE}/${id}`, {
+      method: "DELETE",
+      headers: getHeaders(true),
+    });
+  }
+
+  /**
+   * Tắt nhiều chức năng cho người dùng cụ thể
+   * Sử dụng khi muốn tắt một số chức năng mà nhóm có quyền
+   */
+  static async disableUserFeatures(
+    userId: number,
+    funcIds: number[]
+  ): Promise<void> {
+    try {
+      console.log(
+        `Bắt đầu tắt ${funcIds.length} chức năng cho userId=${userId}`
+      );
+
+      for (const funcId of funcIds) {
+        try {
+          const response = await this.createSysDisFeat({ userId, funcId });
+          const created = response?.data || response;
+
+          if (created && (created.id || created.userId)) {
+            console.log(
+              `🚫 Đã tắt chức năng funcId=${funcId} cho userId=${userId} (ID: ${created.id})`
+            );
+          } else {
+            console.warn(
+              `⚠️ Tắt chức năng funcId=${funcId} cho userId=${userId} không trả về dữ liệu hợp lệ`
+            );
+          }
+        } catch (error: any) {
+          // Kiểm tra nếu lỗi là do chức năng đã bị tắt (duplicate)
+          if (
+            error?.message?.includes("đã tồn tại") ||
+            error?.message?.includes("duplicate")
+          ) {
+            console.log(
+              `ℹ️ Chức năng funcId=${funcId} cho userId=${userId} đã bị tắt, bỏ qua`
+            );
+          } else {
+            console.warn(
+              `❌ Không thể tắt chức năng funcId=${funcId} cho userId=${userId}:`,
+              error?.message || error
+            );
+          }
+        }
+      }
+
+      console.log(`✅ Hoàn thành tắt chức năng cho userId=${userId}`);
+    } catch (error) {
+      console.error("❌ Lỗi khi tắt chức năng cho user:", error);
+    }
+  }
+
+  /**
+   * Lấy quyền của user từ bảng sys_group_func dựa trên groupId
+   */
+  static async getUserPermissionsByGroup(
+    groupId: number
+  ): Promise<FunctionDto[]> {
+    try {
+      // TODO: Tạo API endpoint để lấy quyền theo groupId
+      // Hiện tại sử dụng mapping tạm thời
+      const defaultPermissions = this.getDefaultPermissionsByGroup(groupId);
+
+      // Tạo FunctionDto từ funcId
+      const permissions: FunctionDto[] = defaultPermissions.map((funcId) => ({
+        funcId: funcId,
+        funcIdCode: `FUNC_${funcId.toString().padStart(2, "0")}`,
+        funcName: this.getFunctionName(funcId),
+      }));
+
+      console.log(
+        `📋 Lấy quyền cho groupId=${groupId}:`,
+        permissions.map((p) => p.funcName)
+      );
+      return permissions;
+    } catch (error) {
+      console.error("❌ Lỗi khi lấy quyền user:", error);
+      return [];
+    }
+  }
+
+  /**
+   * Lấy tên chức năng từ funcId
+   */
+  static getFunctionName(funcId: number): string {
+    const functionNames: Record<number, string> = {
+      1: "Login/Logout",
+      2: "Xem quản lí tờ khai nộp phí",
+      3: "Nhận thông báo và xem tính phí từ hệ thống thu phí",
+      4: "Check thông tin tờ khai phí",
+      5: "Xem danh sách nộp phí của các DN XNK",
+      6: "Tra cứu tình trạng nộp phí của các DN XNK",
+      7: "Nhận thông tin Getin/Getout từ hệ thống",
+      8: "Thêm/Tạo mới tờ khai báo nộp phí",
+      9: "Check danh sách tờ khai đã làm",
+      10: "Chọn tờ khai muốn ký, chọn chữ ký số và ký số",
+      11: 'Lấy thông báo ở button "Tính phí"',
+      12: "Nhận thông báo",
+      13: "Thanh toán QR/Ecom",
+      14: "Nhận biên lai thu phí",
+      15: "Tạo mới lần đối soát",
+      16: "Xem thông báo chờ kết quả đối soát",
+      17: "Xem kết quả đối soát từ Ngân hàng, Kho bạc",
+      18: "Xuất kết quả đối soát ra file Excel",
+      19: "In kết quả đối soát",
+      20: "Xem danh sách tất cả các lần đối soát",
+      21: "Tìm kiếm/tra cứu lần đối soát theo tiêu chí",
+      22: "Xem chi tiết kết quả của từng lần đối soát",
+      23: "Xuất danh sách kết quả ra Excel",
+      24: "In danh sách kết quả",
+      25: "Lập báo cáo đối soát định kỳ",
+      26: "Xuất/tải báo cáo để gửi lãnh đạo",
+      27: "Ghi chú, cập nhật trạng thái xử lý lần đối soát",
+      28: "Quản lý lịch sử các lần đối soát",
+    };
+
+    return functionNames[funcId] || `Chức năng ${funcId}`;
+  }
+
+  /**
+   * Setup quyền mặc định cho tất cả các nhóm (chỉ chạy 1 lần để cấu hình)
+   * Bảng sys_group_func sẽ là bảng cấu hình quyền theo nhóm
+   */
+  static async setupDefaultGroupPermissions(): Promise<void> {
+    try {
+      console.log("🔧 Bắt đầu setup quyền mặc định cho tất cả nhóm...");
+
+      // Setup quyền cho từng nhóm
+      const groups = [1, 2, 3]; // Doanh nghiệp Cảng, Doanh nghiệp XNK, Cán bộ Cảng vụ
+
+      for (const groupId of groups) {
+        const defaultPermissions = this.getDefaultPermissionsByGroup(groupId);
+
+        console.log(
+          `📋 Setup quyền cho groupId=${groupId}, có ${defaultPermissions.length} quyền`
+        );
+
+        // Gán từng quyền cho nhóm
+        for (const funcId of defaultPermissions) {
+          try {
+            const response = await this.createSysGroupFunc({ funcId, groupId });
+            const created = response?.data || response;
+
+            if (created && (created.id || created.funcId)) {
+              console.log(
+                `✅ Đã setup quyền funcId=${funcId} cho groupId=${groupId} (ID: ${created.id})`
+              );
+            } else {
+              console.warn(
+                `⚠️ Setup quyền funcId=${funcId} cho groupId=${groupId} không trả về dữ liệu hợp lệ`
+              );
+            }
+          } catch (error: any) {
+            // Kiểm tra nếu lỗi là do quyền đã tồn tại (duplicate)
+            if (
+              error?.message?.includes("đã tồn tại") ||
+              error?.message?.includes("duplicate")
+            ) {
+              console.log(
+                `ℹ️ Quyền funcId=${funcId} cho groupId=${groupId} đã tồn tại, bỏ qua`
+              );
+            } else {
+              console.warn(
+                `❌ Không thể setup quyền funcId=${funcId} cho groupId=${groupId}:`,
+                error?.message || error
+              );
+            }
+          }
+        }
+      }
+
+      console.log("✅ Hoàn thành setup quyền mặc định cho tất cả nhóm");
+    } catch (error) {
+      console.error("❌ Lỗi khi setup quyền mặc định:", error);
+    }
+  }
+
+  /**
+   * Lấy danh sách quyền mặc định theo nhóm
+   * Dựa trên ảnh bạn gửi
+   */
+  private static getDefaultPermissionsByGroup(groupId: number): number[] {
+    switch (groupId) {
+      case 1: // Doanh nghiệp Cảng (quản lí phí)
+        return [
+          1, // Login/Logout
+          2, // Xem quản lí tờ khai nộp phí
+          3, // Nhận thông báo và xem tính phí từ hệ thống thu phí
+          4, // Check thông tin tờ khai phí
+          5, // Xem danh sách nộp phí của các DN XNK
+          6, // Tra cứu tình trạng nộp phí của các DN XNK
+          7, // Nhận thông tin Getin/Getout từ hệ thống
+        ];
+
+      case 2: // Doanh nghiệp XNK (người nộp phí)
+        return [
+          1, // Login/Logout
+          8, // Thêm/Tạo mới tờ khai báo nộp phí
+          9, // Check danh sách tờ khai đã làm
+          10, // Chọn tờ khai muốn ký, chọn chữ ký số và ký số
+          11, // Lấy thông báo ở button "Tính phí"
+          12, // Nhận thông báo
+          13, // Thanh toán QR/Ecom
+          14, // Nhận biên lai thu phí
+        ];
+
+      case 3: // Cán bộ Cảng vụ
+        return [
+          1, // Login/Logout
+          15, // Tạo mới lần đối soát (gửi yêu cầu đến hệ thống Ngân hàng, Kho bạc)
+          16, // Xem thông báo chờ kết quả đối soát
+          17, // Xem kết quả đối soát từ Ngân hàng, Kho bạc
+          18, // Xuất kết quả đối soát ra file Excel
+          19, // In kết quả đối soát
+          20, // Xem danh sách tất cả các lần đối soát
+          21, // Tìm kiếm/tra cứu lần đối soát theo tiêu chí
+          22, // Xem chi tiết kết quả của từng lần đối soát
+          23, // Xuất danh sách kết quả ra Excel
+          24, // In danh sách kết quả
+          25, // Lập báo cáo đối soát định kỳ
+          26, // Xuất/tải báo cáo để gửi lãnh đạo
+          27, // Ghi chú, cập nhật trạng thái xử lý lần đối soát
+          28, // Quản lý lịch sử các lần đối soát
+        ];
+
+      default:
+        return [1]; // Chỉ có Login/Logout
+    }
+  }
   /**
    * Test kết nối API với nhiều endpoint và timeout
    */
@@ -2416,6 +2791,7 @@ export class CrmApiService {
   // === USER REGISTRATION (SYS USER) ===
   /**
    * Đăng ký người dùng mới theo API /api/sys-user/create
+   * Tự động gán quyền mặc định cho nhóm
    */
   static async registerSysUser(payload: {
     username: string;
@@ -2427,15 +2803,90 @@ export class CrmApiService {
     address: string;
     note?: string;
   }): Promise<any> {
-    // Không gửi Authorization cho API đăng ký
-    return makeApiRequest<any>(CRM_ENDPOINTS.SYS_USER_CREATE, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      // 1. Tạo user mới
+      const userResponse = await makeApiRequest<any>(
+        CRM_ENDPOINTS.SYS_USER_CREATE,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      // 2. Quyền đã được cấu hình sẵn trong bảng sys_group_func
+      // Không cần gán quyền mới khi tạo user
+      console.log(
+        `User được tạo với groupId=${payload.groupId}, quyền sẽ được lấy từ bảng sys_group_func`
+      );
+
+      return userResponse;
+    } catch (error) {
+      console.error("Lỗi khi đăng ký user:", error);
+      throw error;
+    }
+  }
+
+  /**
+   * Đăng ký người dùng với quyền tùy chỉnh
+   * Có thể tắt một số chức năng mà nhóm có quyền
+   */
+  static async registerSysUserWithCustomPermissions(payload: {
+    username: string;
+    password: string;
+    groupId: number;
+    fullname: string;
+    mail: string;
+    phone: string;
+    address: string;
+    note?: string;
+    disabledFuncIds?: number[]; // Danh sách funcId cần tắt
+  }): Promise<any> {
+    try {
+      // 1. Tạo user mới
+      const userResponse = await makeApiRequest<any>(
+        CRM_ENDPOINTS.SYS_USER_CREATE,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const userId = userResponse?.data?.id || userResponse?.id;
+      if (!userId) {
+        throw new Error("Không thể lấy userId từ response");
+      }
+
+      // 2. Quyền đã được cấu hình sẵn trong bảng sys_group_func
+      // Không cần gán quyền mới khi tạo user
+      console.log(
+        `User được tạo với groupId=${payload.groupId}, quyền sẽ được lấy từ bảng sys_group_func`
+      );
+
+      // 3. Tắt các chức năng được chỉ định
+      if (payload.disabledFuncIds && payload.disabledFuncIds.length > 0) {
+        try {
+          await this.disableUserFeatures(userId, payload.disabledFuncIds);
+          console.log(
+            `Đã tắt ${payload.disabledFuncIds.length} chức năng cho user ${userId}`
+          );
+        } catch (disableError) {
+          console.warn("Không thể tắt chức năng:", disableError);
+        }
+      }
+
+      return userResponse;
+    } catch (error) {
+      console.error("Lỗi khi đăng ký user với quyền tùy chỉnh:", error);
+      throw error;
+    }
   }
 
   /**
@@ -2473,6 +2924,30 @@ export class CrmApiService {
       method: "PUT",
       headers: getHeaders(false),
       body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * Lấy danh sách tất cả người dùng hệ thống
+   * GET /api/sys-user/all
+   */
+  static async getAllSysUsers(): Promise<
+    ApiDataResponse<any[]> | ApiErrorResponse
+  > {
+    return makeApiRequest<ApiDataResponse<any[]>>(CRM_ENDPOINTS.SYS_USER_ALL, {
+      method: "GET",
+      headers: getHeaders(true),
+    });
+  }
+
+  /**
+   * Xóa người dùng hệ thống
+   * DELETE /api/sys-user/delete/{id}
+   */
+  static async deleteSysUser(id: number): Promise<any> {
+    return makeApiRequest<any>(`${CRM_ENDPOINTS.SYS_USER_DELETE}/${id}`, {
+      method: "DELETE",
+      headers: getHeaders(true),
     });
   }
 
