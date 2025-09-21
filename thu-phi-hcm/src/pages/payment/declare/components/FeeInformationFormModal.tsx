@@ -1304,22 +1304,6 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
         </h4>
         <div className="flex items-center gap-2">
           <button 
-            onClick={handleCancelDeclaration}
-            className="btn btn-default bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-            disabled={mode === 'view'}
-          >
-            <i className="fas fa-times w-4 h-4 me-1"></i>
-            Hủy tờ khai
-          </button>
-          <button 
-            onClick={handleSignDeclaration}
-            className="btn btn-default bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
-            disabled={mode === 'view'}
-          >
-            <i className="fas fa-signature w-4 h-4 me-1"></i>
-            Ký số tờ khai (khai báo nộp phí)
-          </button>
-          <button 
             onClick={handleSave}
             disabled={loading || mode === 'view'}
             className="btn btn-default bg-blue-800 text-white rounded hover:bg-blue-900 transition-colors disabled:bg-gray-400"
