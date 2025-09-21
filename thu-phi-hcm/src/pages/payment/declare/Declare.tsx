@@ -785,21 +785,6 @@ const Declare: React.FC = () => {
                 &nbsp;Thêm mới
               </button>
               
-              <button
-                className="btn btn-primary btn-padding rounded flex items-center"
-                type="button"
-                onClick={async () => {
-                  try {
-                    showInfo('Đang tạo thông báo phí...', 'Xử lý');
-                    // TODO: Implement create notification
-                    showSuccess('Chức năng đang phát triển', 'Thông báo');
-                  } catch (error: any) {
-                    showError(`Lỗi: ${error.message}`, 'Lỗi');
-                  }
-                }}
-              >
-                📋&nbsp;Tạo thông báo phí
-              </button>
             </div>
             
             {/* Secondary Action Buttons */}
