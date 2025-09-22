@@ -19,14 +19,6 @@ const DataReconciliationPage: React.FC = () => {
       icon: '📋',
       path: '/data-reconciliation/manage-list',
       gradient: 'from-blue-500 to-blue-600'
-    },
-    {
-      id: 'customs-report',
-      title: 'Báo cáo đối soát Hải Quan',
-      description: 'Báo cáo kết quả đối soát với cơ quan Hải Quan',
-      icon: '📊',
-      path: '/data-reconciliation/customs-report',
-      gradient: 'from-purple-500 to-purple-600'
     }
   ]
 
@@ -117,20 +109,6 @@ const DataReconciliationPage: React.FC = () => {
                 <h3 className="font-semibold text-gray-800 mb-1">Bước 2</h3>
                 <p className="text-gray-600 text-sm">Quản lý danh sách</p>
               </div>
-              
-              <div className="hidden md:block text-gray-400">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-              
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-2xl mb-3">
-                  📊
-                </div>
-                <h3 className="font-semibold text-gray-800 mb-1">Bước 3</h3>
-                <p className="text-gray-600 text-sm">Báo cáo Hải Quan</p>
-              </div>
             </div>
           </Card.Body>
         </Card>
@@ -147,8 +125,8 @@ const DataReconciliationPage: React.FC = () => {
                 <div className="text-gray-600 space-y-2">
                   <p>• Đối soát dữ liệu được thực hiện định kỳ hàng tháng</p>
                   <p>• Cần đảm bảo tính chính xác và đầy đủ của dữ liệu trước khi đối soát</p>
-                  <p>• Báo cáo đối soát phải được gửi đến Hải Quan trong thời hạn quy định</p>
                   <p>• Mọi sai lệch phải được ghi nhận và xử lý kịp thời</p>
+                  <p>• Dữ liệu đối soát cần được lưu trữ và quản lý an toàn</p>
                 </div>
               </div>
             </div>

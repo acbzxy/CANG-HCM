@@ -88,14 +88,6 @@ const ManageListPage: React.FC = () => {
                 <p className="text-gray-600">Tra cứu và theo dõi các đợt đối soát dữ liệu</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="primary" icon={<span>🏦</span>}>
-                Đối soát ngân hàng
-              </Button>
-              <Button variant="success" icon={<span>💰</span>}>
-                Đối soát kho bạc
-              </Button>
-            </div>
           </div>
         </div>
 
