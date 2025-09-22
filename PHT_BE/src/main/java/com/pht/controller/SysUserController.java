@@ -1,5 +1,7 @@
 package com.pht.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +41,31 @@ public class SysUserController {
 
     private final SysUserService sysUserService;
     private final UserPermissionService userPermissionService;
+
+    @Operation(summary = "Lấy danh sách tất cả người dùng hệ thống")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Thành công", content = {
+                    @Content(schema = @Schema(implementation = SysUser.class), mediaType = "application/json")
+            }),
+            @ApiResponse(responseCode = "500", description = "Lỗi hệ thống", content = {
+                    @Content(schema = @Schema(implementation = BusinessException.class), mediaType = "application/json")
+            })
+    })
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllUsers() {
+        try {
+            log.info("Nhận yêu cầu lấy danh sách tất cả người dùng hệ thống");
+            
+            List<SysUser> result = sysUserService.getAllUsers();
+            
+            log.info("Lấy danh sách người dùng thành công, tổng số: {}", result.size());
+            
+            return ResponseHelper.ok(result);
+        } catch (Exception ex) {
+            log.error("Lỗi hệ thống khi lấy danh sách người dùng: ", ex);
+            return ResponseHelper.error(ex);
+        }
+    }
 
     @Operation(summary = "Tạo mới người dùng")
     @ApiResponses({

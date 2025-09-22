@@ -24,9 +24,14 @@ public class SysGroupFunc {
     @Column(name = "ID")
     private Long id;
 
-    @Column(name = "FUNC_ID")
-    private Long funcId;
-
-    @Column(name = "GROUP_ID")
+    @Column(name = "GROUP_ID", nullable = false)
     private Long groupId;
+
+    @Column(name = "FUNC_ID", nullable = false)
+    private Long funcId;
 }
+
+
+
+
+

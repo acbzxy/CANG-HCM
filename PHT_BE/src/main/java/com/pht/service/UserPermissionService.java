@@ -9,3 +9,9 @@ public interface UserPermissionService {
     
     UserPermissionDto getUserPermissionsByUsername(String username) throws BusinessException;
 }
+
+
+
+
+
+

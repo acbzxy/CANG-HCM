@@ -11,3 +11,9 @@ public class SysGroupUserCreateRequest {
 
     private String groupName;
 }
+
+
+
+
+
+

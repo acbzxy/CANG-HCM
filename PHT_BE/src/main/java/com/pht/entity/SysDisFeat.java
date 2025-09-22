@@ -30,3 +30,9 @@ public class SysDisFeat {
     @Column(name = "FUNC_ID")
     private Long funcId;
 }
+
+
+
+
+
+

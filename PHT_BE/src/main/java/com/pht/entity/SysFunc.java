@@ -24,9 +24,14 @@ public class SysFunc {
     @Column(name = "ID")
     private Long id;
 
-    @Column(name = "FUNC_ID", length = 100)
+    @Column(name = "FUNC_ID", nullable = false, unique = true, length = 50)
     private String funcId;
 
-    @Column(name = "FUNC_NAME", length = 255)
+    @Column(name = "FUNC_NAME", nullable = false, length = 255)
     private String funcName;
 }
+
+
+
+
+

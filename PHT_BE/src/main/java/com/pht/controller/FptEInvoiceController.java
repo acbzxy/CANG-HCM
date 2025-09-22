@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pht.common.OrderBy;
@@ -32,7 +31,6 @@ import com.pht.model.response.DeleteInvoiceResponse;
 import com.pht.model.response.ReplaceInvoiceResponse;
 import com.pht.service.ToKhaiThongTinService;
 import com.pht.service.SBienLaiService;
-import com.pht.service.EmailService;
 import com.pht.util.PdfConverterUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -55,7 +53,6 @@ public class FptEInvoiceController {
     private final ObjectMapper objectMapper;
     private final ToKhaiThongTinService toKhaiThongTinService;
     private final SBienLaiService sBienLaiService;
-    private final EmailService emailService;
     private final PdfConverterUtil pdfConverterUtil;
 
     @Value("${fpt.einvoice.api.url:https://api-uat.einvoice.fpt.com.vn}")
@@ -798,6 +795,7 @@ public class FptEInvoiceController {
     /**
      * Gửi email PDF biên lai cho tờ khai bất đồng bộ (không đợi kết quả)
      */
+    @SuppressWarnings("unused")
     private void sendEmailBienLaiAsync(Long toKhaiId) {
         try {
             log.info("🚀 Bắt đầu gửi email bất đồng bộ cho tờ khai ID: {}", toKhaiId);
@@ -856,8 +854,8 @@ public class FptEInvoiceController {
             String htmlContent = createEmailHtmlContent(bienLai, toKhai);
             java.util.List<String> emailList = java.util.Arrays.asList(bienLai.getEmail().trim());
             
-            // Gửi email bất đồng bộ
-            emailService.sendEmailWithPdfAttachmentAsync(emailList, emailSubject, htmlContent, pdfBytes, fileName);
+            // Gửi email bất đồng bộ - ĐÃ TẮT
+            // emailService.sendEmailWithPdfAttachmentAsync(emailList, emailSubject, htmlContent, pdfBytes, fileName);
             
             log.info("📧 Đã khởi tạo gửi email bất đồng bộ cho tờ khai ID: {}, email: {}, API sẽ trả response ngay lập tức", 
                     toKhaiId, bienLai.getEmail());
@@ -870,6 +868,7 @@ public class FptEInvoiceController {
     /**
      * Gửi email PDF biên lai cho tờ khai
      */
+    @SuppressWarnings("unused")
     private void sendEmailBienLai(Long toKhaiId) {
         try {
             log.info("Bắt đầu gửi email PDF biên lai cho tờ khai ID: {}", toKhaiId);
@@ -951,9 +950,10 @@ public class FptEInvoiceController {
             log.info("Chuẩn bị gửi email đến: {}, subject: {}, fileName: {}, PDF size: {} bytes", 
                     emailList, emailSubject, fileName, pdfBytes.length);
             
-            // Gửi email
-            boolean emailSent = emailService.sendEmailWithPdfAttachment(
-                emailList, emailSubject, htmlContent, pdfBytes, fileName);
+            // Gửi email - ĐÃ TẮT
+            // boolean emailSent = emailService.sendEmailWithPdfAttachment(
+            //     emailList, emailSubject, htmlContent, pdfBytes, fileName);
+            boolean emailSent = false; // Tạm thời set false vì đã tắt email
             
             if (emailSent) {
                 log.info("✅ Gửi email PDF biên lai THÀNH CÔNG cho biên lai ID: {}, email: {}", 

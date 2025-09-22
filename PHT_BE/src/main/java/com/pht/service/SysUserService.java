@@ -1,11 +1,15 @@
 package com.pht.service;
 
+import java.util.List;
+
 import com.pht.entity.SysUser;
 import com.pht.exception.BusinessException;
 import com.pht.model.request.SysUserCreateRequest;
 import com.pht.model.request.SysUserUpdateRequest;
 
 public interface SysUserService extends BaseService<SysUser, Long> {
+    
+    List<SysUser> getAllUsers();
     
     SysUser getUserById(Long id) throws BusinessException;
     
@@ -17,3 +21,6 @@ public interface SysUserService extends BaseService<SysUser, Long> {
     
     SysUser findByUsername(String username);
 }
+
+
+

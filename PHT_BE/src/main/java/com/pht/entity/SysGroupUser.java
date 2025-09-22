@@ -27,3 +27,4 @@ public class SysGroupUser {
     @Column(name = "GROUP_NAME", length = 255)
     private String groupName;
 }
+

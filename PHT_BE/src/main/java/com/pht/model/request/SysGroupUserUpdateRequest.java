@@ -12,3 +12,9 @@ public class SysGroupUserUpdateRequest {
     private Long id;
     private String groupName;
 }
+
+
+
+
+
+

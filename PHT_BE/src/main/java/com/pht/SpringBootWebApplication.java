@@ -20,12 +20,14 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages={
 		"com.pht.**"})
 @MapperScan(basePackages = {"com.pht.**.mybatis" })
 @EnableCaching
+@EnableAsync
 @EnableScheduling
 @EnableConfigurationProperties
 public class SpringBootWebApplication extends SpringBootServletInitializer {

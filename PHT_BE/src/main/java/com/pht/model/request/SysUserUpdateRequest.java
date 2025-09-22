@@ -19,3 +19,9 @@ public class SysUserUpdateRequest {
     private String address;
     private String note;
 }
+
+
+
+
+
+

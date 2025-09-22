@@ -7,3 +7,9 @@ import com.pht.entity.SysFunc;
 @Repository
 public interface SysFuncRepository extends BaseRepository<SysFunc, Long> {
 }
+
+
+
+
+
+

@@ -14,3 +14,9 @@ public interface SysDisFeatRepository extends BaseRepository<SysDisFeat, Long> {
     @Query("SELECT df FROM SysDisFeat df WHERE df.userId = :userId")
     List<SysDisFeat> findByUserId(@Param("userId") Long userId);
 }
+
+
+
+
+
+

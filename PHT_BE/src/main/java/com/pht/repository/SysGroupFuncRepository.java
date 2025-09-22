@@ -14,3 +14,9 @@ public interface SysGroupFuncRepository extends BaseRepository<SysGroupFunc, Lon
     @Query("SELECT gf FROM SysGroupFunc gf WHERE gf.groupId = :groupId")
     List<SysGroupFunc> findByGroupId(@Param("groupId") Long groupId);
 }
+
+
+
+
+
+
