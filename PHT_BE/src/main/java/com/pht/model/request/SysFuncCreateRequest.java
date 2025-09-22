@@ -12,3 +12,9 @@ public class SysFuncCreateRequest {
     private String funcId;
     private String funcName;
 }
+
+
+
+
+
+

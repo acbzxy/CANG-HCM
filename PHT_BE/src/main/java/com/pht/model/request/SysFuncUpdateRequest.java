@@ -13,3 +13,9 @@ public class SysFuncUpdateRequest {
     private String funcId;
     private String funcName;
 }
+
+
+
+
+
+

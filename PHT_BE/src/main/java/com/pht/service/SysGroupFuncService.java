@@ -19,3 +19,9 @@ public interface SysGroupFuncService extends BaseService<SysGroupFunc, Long> {
     
     List<SysGroupFunc> getByGroupId(Long groupId);
 }
+
+
+
+
+
+

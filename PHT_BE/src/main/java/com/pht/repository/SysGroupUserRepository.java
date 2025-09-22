@@ -7,3 +7,9 @@ import com.pht.entity.SysGroupUser;
 @Repository
 public interface SysGroupUserRepository extends BaseRepository<SysGroupUser, Long> {
 }
+
+
+
+
+
+

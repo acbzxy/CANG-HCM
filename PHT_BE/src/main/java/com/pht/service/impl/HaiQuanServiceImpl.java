@@ -204,6 +204,7 @@ public class HaiQuanServiceImpl implements HaiQuanService {
         response.setMauBienLai(""); // Chưa có trong XML
         response.setMaTraCuuBienLai(""); // Chưa có trong XML
         response.setXemBienLai(""); // Chưa có trong XML
+        response.setNgayTt(null); // Ngày thanh toán - chưa có trong XML
         
         // DANH MỤC LOẠI HÀNG MIỄN PHÍ
         response.setLoaiHangMienPhi(extractXmlValue(thongTinChungTuXml, "Loai_Hang_MienPhi"));

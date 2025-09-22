@@ -24,3 +24,9 @@ public class DanhSachThongTinHaiQuanResponse {
         this.thongBao = "Thành công";
     }
 }
+
+
+
+
+
+

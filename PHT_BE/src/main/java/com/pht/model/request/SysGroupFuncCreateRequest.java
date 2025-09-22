@@ -12,3 +12,9 @@ public class SysGroupFuncCreateRequest {
     private Long funcId;
     private Long groupId;
 }
+
+
+
+
+
+

@@ -2,6 +2,7 @@ package com.pht.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -145,6 +146,9 @@ public class StoKhai {
     @Column(name = "XEM_BL", length = 200)
     private String xemBienLai;
 
+    @Column(name = "NGAY_TT", columnDefinition = "TIMESTAMP")
+    private LocalDateTime ngayTt; // Ngày và giờ thanh toán
+
     // ID biên lai liên kết
     @Column(name = "ID_BIEN_LAI")
     private Long idBienLai;
@@ -172,6 +176,13 @@ public class StoKhai {
     // IMAGE DATA FIELD
     @Column(name = "IMG_BL", columnDefinition = "TEXT")
     private String imageBl;
+
+    // BANK WEBHOOK DATA FIELDS
+    @Column(name = "TVSD_JSON", columnDefinition = "TEXT")
+    private String tvsdJson; // JSON data từ ngân hàng
+
+    @Column(name = "TRANS_ID", length = 100)
+    private String transId; // Transaction ID từ ngân hàng
 
     // Relationship
     @OneToMany(mappedBy = "stoKhai", cascade = CascadeType.ALL, orphanRemoval = true)

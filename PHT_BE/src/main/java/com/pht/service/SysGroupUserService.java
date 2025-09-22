@@ -15,3 +15,9 @@ public interface SysGroupUserService extends BaseService<SysGroupUser, Long> {
     
     void deleteGroupUser(Long id) throws BusinessException;
 }
+
+
+
+
+
+

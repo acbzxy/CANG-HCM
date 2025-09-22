@@ -13,3 +13,9 @@ public class SysGroupFuncUpdateRequest {
     private Long funcId;
     private Long groupId;
 }
+
+
+
+
+
+

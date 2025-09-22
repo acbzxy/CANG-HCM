@@ -15,3 +15,9 @@ public interface SysFuncService extends BaseService<SysFunc, Long> {
     
     void deleteFunc(Long id) throws BusinessException;
 }
+
+
+
+
+
+

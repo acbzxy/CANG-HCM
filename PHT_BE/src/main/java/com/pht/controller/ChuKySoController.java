@@ -101,6 +101,7 @@ public class ChuKySoController {
     /**
      * Extract tên nhà phát hành từ issuer string
      */
+    @SuppressWarnings("unused")
     private String extractIssuerName(String issuer) {
         if (issuer == null || issuer.isEmpty()) {
             return "Unknown";

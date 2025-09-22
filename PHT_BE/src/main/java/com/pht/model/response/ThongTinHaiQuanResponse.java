@@ -56,6 +56,7 @@ public class ThongTinHaiQuanResponse {
     private String mauBienLai;
     private String maTraCuuBienLai;
     private String xemBienLai;
+    private LocalDate ngayTt; // Ngày thanh toán
     
     // DANH MỤC LOẠI HÀNG MIỄN PHÍ
     private String loaiHangMienPhi;

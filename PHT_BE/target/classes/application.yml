@@ -1,6 +1,10 @@
 spring:
   jackson:
     date-format: dd/MM/yyyy
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      fail-on-unknown-properties: false
   config.import:
     - classpath:backend-config.yml
   servlet:

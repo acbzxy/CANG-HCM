@@ -1,5 +1,6 @@
 package com.pht.service.impl;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,5 +111,18 @@ public class SysUserServiceImpl extends BaseServiceImpl<SysUser, Long> implement
     @Override
     public SysUser findByUsername(String username) {
         return sysUserRepository.findByUsername(username);
+    }
+
+    @Override
+    public List<SysUser> getAllUsers() {
+        log.info("Lấy danh sách tất cả người dùng hệ thống");
+        try {
+            List<SysUser> result = sysUserRepository.findAll();
+            log.info("Lấy thành công {} người dùng hệ thống", result.size());
+            return result;
+        } catch (Exception e) {
+            log.error("Lỗi khi lấy danh sách người dùng hệ thống: ", e);
+            throw new RuntimeException("Lỗi khi lấy danh sách người dùng hệ thống: " + e.getMessage(), e);
+        }
     }
 }

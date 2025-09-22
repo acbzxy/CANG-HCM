@@ -90,3 +90,4 @@ public class SysGroupFuncServiceImpl extends BaseServiceImpl<SysGroupFunc, Long>
         }
     }
 }
+

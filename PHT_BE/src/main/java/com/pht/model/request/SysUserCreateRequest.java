@@ -18,3 +18,9 @@ public class SysUserCreateRequest {
     private String address;
     private String note;
 }
+
+
+
+
+
+

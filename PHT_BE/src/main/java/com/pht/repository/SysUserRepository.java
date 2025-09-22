@@ -11,3 +11,9 @@ public interface SysUserRepository extends BaseRepository<SysUser, Long> {
     
     SysUser findByUsername(String username);
 }
+
+
+
+
+
+

@@ -19,3 +19,9 @@ public interface SysDisFeatService extends BaseService<SysDisFeat, Long> {
     
     List<SysDisFeat> getByUserId(Long userId);
 }
+
+
+
+
+
+
