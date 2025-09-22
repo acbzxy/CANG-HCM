@@ -61,18 +61,18 @@ const Declare: React.FC = () => {
       setFilteredData(prevData =>
         prevData.map(item =>
           item.id === row.id
-            ? { ...item, thongBao: 'Đã lấy', trangThai: 'Đã lấy thông báo', soTB: notificationNumber }
+            ? { ...item, thongBao: 'Đã tính phí', trangThai: 'Đã tính phí', soTB: notificationNumber }
             : item
         )
       );
       setAllData(prevData =>
         prevData.map(item =>
           item.id === row.id
-            ? { ...item, thongBao: 'Đã lấy', trangThai: 'Đã lấy thông báo', soTB: notificationNumber }
+            ? { ...item, thongBao: 'Đã tính phí', trangThai: 'Đã tính phí', soTB: notificationNumber }
             : item
         )
       );
-      showSuccess(`Đã cập nhật thông báo (offline). Số TB: ${notificationNumber}`, 'Thành công');
+      showSuccess(`Đã tính phí (offline). Số TB: ${notificationNumber}`, 'Thành công');
     } finally {
       setLoading(false);
     }
@@ -601,23 +601,13 @@ const Declare: React.FC = () => {
                 </th>
                 <th className="sticky-header w-[50px] table-header">#</th>
                 <th className="sticky-header table-header">Doanh nghiệp</th>
-                <th className="sticky-header w-[100px] table-header">
-                  TK hải quan
-                </th>
-                <th className="sticky-header w-[100px] table-header">
-                  Ngày TK HQ
-                </th>
-                <th className="sticky-header w-[120px] table-header">
-                  Ngày khai phí
-                </th>
-                <th className="sticky-header w-[100px] table-header">
-                  Loại tờ khai
-                </th>
-                <th className="sticky-header w-[120px] table-header">
-                  Lấy thông báo
-                </th>
-                <th className="sticky-header table-header">Số thông báo</th>
                 <th className="sticky-header table-header">Trạng thái</th>
+                <th className="sticky-header w-[120px] table-header">Tính phí</th>
+                <th className="sticky-header w-[100px] table-header">TK hải quan</th>
+                <th className="sticky-header w-[100px] table-header">Ngày TK HQ</th>
+                <th className="sticky-header w-[120px] table-header">Ngày khai phí</th>
+                <th className="sticky-header w-[100px] table-header">Loại tờ khai</th>
+                <th className="sticky-header table-header">Số thông báo</th>
                 <th className="sticky-header w-[100px]">Thành tiền</th>
               </tr>
             </thead>
@@ -655,30 +645,6 @@ const Declare: React.FC = () => {
                       </button>
                     </td>
                     <td>{row.doanhNghiepKB || row.doanhNghiepXNK || 'Công ty TNHH Vận Tải Biển Đông'}</td>
-                    <td>{row.maHQ}</td>
-                    <td>{row.ngayHQ}</td>
-                    <td>{row.ngayPhi}</td>
-                    <td>{row.loai}</td>
-                    <td className="text-center">
-                      {row.trangThai === 'Đã ký số' ? (
-                        <button
-                          onClick={() => handleGetNotification(row)}
-                          disabled={loading || row.thongBao === 'Đã lấy'}
-                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                            row.thongBao === 'Đã lấy'
-                              ? 'bg-green-100 text-green-800 border border-green-300 cursor-not-allowed'
-                              : 'bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer'
-                          } disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                          {loading ? 'Đang xử lý...' : (row.thongBao === 'Đã lấy' ? 'Đã lấy' : 'Lấy thông báo')}
-                        </button>
-                      ) : (
-                        <span className="text-gray-500 text-xs">
-                          Chưa ký số
-                        </span>
-                      )}
-                    </td>
-                    <td>{row.soTB}</td>
                     <td className="text-center">
                       <span 
                         className={`px-2 py-1 rounded text-xs font-medium ${
@@ -698,6 +664,30 @@ const Declare: React.FC = () => {
                         {row.trangThai}
                       </span>
                     </td>
+                    <td className="text-center">
+                      {row.trangThai === 'Đã ký số' ? (
+                        <button
+                          onClick={() => handleGetNotification(row)}
+                          disabled={loading || row.thongBao === 'Đã tính phí'}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            row.thongBao === 'Đã tính phí'
+                              ? 'bg-green-100 text-green-800 border border-green-300 cursor-not-allowed'
+                              : 'bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer'
+                          } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        >
+                          {loading ? 'Đang xử lý...' : (row.thongBao === 'Đã tính phí' ? 'Đã tính phí' : 'Tính phí')}
+                        </button>
+                      ) : (
+                        <span className="text-gray-500 text-xs">
+                          Chưa ký số
+                        </span>
+                      )}
+                    </td>
+                    <td>{row.maHQ}</td>
+                    <td>{row.ngayHQ}</td>
+                    <td>{row.ngayPhi}</td>
+                    <td>{row.loai}</td>
+                    <td>{row.soTB}</td>
                     <td className="text-right">
                       {row.thanhTien.toLocaleString()} đ
                     </td>
