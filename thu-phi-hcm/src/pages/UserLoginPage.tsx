@@ -28,7 +28,7 @@ const UserLoginPage: React.FC = () => {
 
   // Register modal states
   const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [accountType, setAccountType] = useState("Doanh nghiệp");
+  const [accountType, setAccountType] = useState("Doanh nghiệp Cảng");
   const [registerData, setRegisterData] = useState({
     username: "",
     password: "",
@@ -230,8 +230,8 @@ const UserLoginPage: React.FC = () => {
 
     if (!registerData.companyName.trim()) {
       newErrors.companyName =
-        accountType === "Cá nhân"
-          ? "Vui lòng nhập tên cá nhân"
+        accountType === "Cán bộ Cảng vụ"
+          ? "Vui lòng nhập tên cán bộ"
           : "Vui lòng nhập tên doanh nghiệp";
     }
 
@@ -263,9 +263,13 @@ const UserLoginPage: React.FC = () => {
     setIsRegisterLoading(true);
 
     try {
-      // Map theo chọn loại tài khoản: Cá nhân=1, Doanh nghiệp=2, Đại lý=3
+      // Map theo chọn loại tài khoản: Doanh nghiệp Cảng=1, Doanh nghiệp XNK=2, Cán bộ Cảng vụ=3
       const groupId =
-        accountType === "Cá nhân" ? 1 : accountType === "Doanh nghiệp" ? 2 : 3;
+        accountType === "Doanh nghiệp Cảng"
+          ? 1
+          : accountType === "Doanh nghiệp XNK"
+          ? 2
+          : 3;
       const payload = {
         username: registerData.username,
         password: registerData.password,
@@ -297,7 +301,7 @@ const UserLoginPage: React.FC = () => {
 
   const closeRegisterModal = () => {
     setShowRegisterModal(false);
-    setAccountType("Doanh nghiệp");
+    setAccountType("Doanh nghiệp Cảng");
     setRegisterData({
       username: "",
       password: "",
@@ -1871,9 +1875,9 @@ const UserLoginPage: React.FC = () => {
                   cursor: "pointer",
                 }}
               >
-                <option value="Doanh nghiệp">Doanh nghiệp</option>
-                <option value="Đại lý">Đại lý</option>
-                <option value="Cá nhân">Cá nhân</option>
+                <option value="Doanh nghiệp Cảng">Doanh nghiệp Cảng</option>
+                <option value="Doanh nghiệp XNK">Doanh nghiệp XNK</option>
+                <option value="Cán bộ Cảng vụ">Cán bộ Cảng vụ</option>
               </select>
               <button
                 onClick={closeRegisterModal}
@@ -2061,8 +2065,8 @@ const UserLoginPage: React.FC = () => {
                           fontWeight: "500",
                         }}
                       >
-                        {accountType === "Cá nhân"
-                          ? "Tên cá nhân:"
+                        {accountType === "Cán bộ Cảng vụ"
+                          ? "Tên cán bộ:"
                           : "Tên doanh nghiệp:"}
                         <span style={{ color: "#ef4444", marginLeft: "2px" }}>
                           *
@@ -2074,8 +2078,8 @@ const UserLoginPage: React.FC = () => {
                         value={registerData.companyName}
                         onChange={handleRegisterInputChange}
                         placeholder={
-                          accountType === "Cá nhân"
-                            ? "Nhập tên cá nhân..."
+                          accountType === "Cán bộ Cảng vụ"
+                            ? "Nhập tên cán bộ..."
                             : "Nhập tên..."
                         }
                         style={{
