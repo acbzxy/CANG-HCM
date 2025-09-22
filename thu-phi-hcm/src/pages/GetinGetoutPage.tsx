@@ -117,7 +117,7 @@ const GetinGetoutPage: React.FC = () => {
       'STT': index + 1,
       'Số vận đơn': item.billNumber,
       'Số hiệu cont': item.containerNumber,
-      [activeTab === 'getin' ? 'Ngày Nhập' : 'Ngày Xuất']: activeTab === 'getin' ? item.arrivalDate : item.departureDate,
+      [activeTab === 'getin' ? 'Ngày Nhập' : 'Ngày Xuất']: activeTab === 'getin' ? (item as any).arrivalDate : (item as any).departureDate,
       'Loại Hàng': item.goodsType,
       'Trọng Lượng': item.weight,
       'Trạng Thái': item.status,
@@ -226,7 +226,7 @@ const GetinGetoutPage: React.FC = () => {
                       {item.containerNumber}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {item.arrivalDate || item.departureDate}
+                      {(item as any).arrivalDate || (item as any).departureDate}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {item.goodsType}

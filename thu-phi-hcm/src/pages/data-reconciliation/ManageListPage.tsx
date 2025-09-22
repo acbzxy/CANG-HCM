@@ -64,7 +64,7 @@ const ManageListPage: React.FC = () => {
         </div>
 
         {/* Search and Filter */}
-        <Card className="mb-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <Card className="mb-6 animate-fade-in-up">
           <Card.Header>
             <h2 className="text-xl font-semibold text-gray-800">Tìm Kiếm và Lọc</h2>
           </Card.Header>
@@ -105,7 +105,6 @@ const ManageListPage: React.FC = () => {
               key={item.id} 
               hover 
               className="animate-fade-in-up"
-              style={{ animationDelay: `${(index + 1) * 0.1}s` }}
             >
               <Card.Body>
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between space-y-4 lg:space-y-0">

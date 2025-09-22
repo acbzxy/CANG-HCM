@@ -1459,7 +1459,7 @@ const AccountPage: React.FC = () => {
                   <tbody>
                     <tr>
                       <td
-                        colSpan="7"
+                        colSpan={7}
                         style={{
                           border: "1px solid #ddd",
                           padding: "20px",
@@ -1772,7 +1772,7 @@ const AccountPage: React.FC = () => {
                   <tbody>
                     <tr>
                       <td
-                        colSpan="6"
+                        colSpan={6}
                         style={{
                           border: "1px solid #ddd",
                           padding: "20px",

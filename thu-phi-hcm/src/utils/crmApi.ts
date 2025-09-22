@@ -1,8 +1,8 @@
 import type { ApiResponse } from "../types";
 
-// CRM API Base URL - dùng proxy Vite: '/api' được gắn sẵn trong endpoints
-// Đặt base rỗng để các endpoint dạng `/api/...` hoạt động qua proxy
+// CRM API Base URL - Sử dụng relative path để nginx proxy
 const CRM_API_BASE_URL = "";
+const USE_MOCK_DATA = false; // Tắt mock data, sử dụng real API
 
 // CRM API endpoints - CẬP NHẬT từ PHT_BE backend
 const CRM_ENDPOINTS = {
@@ -883,14 +883,14 @@ export class CrmApiService {
    */
   static async getUserPermissionsByGroup(
     groupId: number
-  ): Promise<FunctionDto[]> {
+  ): Promise<any[]> {
     try {
       // TODO: Tạo API endpoint để lấy quyền theo groupId
       // Hiện tại sử dụng mapping tạm thời
       const defaultPermissions = this.getDefaultPermissionsByGroup(groupId);
 
       // Tạo FunctionDto từ funcId
-      const permissions: FunctionDto[] = defaultPermissions.map((funcId) => ({
+      const permissions: any[] = defaultPermissions.map((funcId) => ({
         funcId: funcId,
         funcIdCode: `FUNC_${funcId.toString().padStart(2, "0")}`,
         funcName: this.getFunctionName(funcId),

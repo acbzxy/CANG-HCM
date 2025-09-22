@@ -387,8 +387,10 @@ const GuidePage: React.FC = () => {
                 alt="Logo TSD"
                 className="w-16 h-16"
                 onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                  e.currentTarget.nextElementSibling!.style.display = 'flex'
+                  const img = e.currentTarget as HTMLImageElement
+                  img.style.display = 'none'
+                  const nextEl = img.nextElementSibling as HTMLElement
+                  if (nextEl) nextEl.style.display = 'flex'
                 }}
               />
               <div 

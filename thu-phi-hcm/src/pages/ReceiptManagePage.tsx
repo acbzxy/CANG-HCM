@@ -180,7 +180,7 @@ const ReceiptManagePage: React.FC = () => {
         // Wrapped in ApiResponse
         pageData = response.data;
         console.log('Using wrapped response data');
-      } else if (response.content) {
+      } else if ((response as any).content) {
         // Direct PageResponse from backend (like FeeDeclarationService)
         pageData = response;
         console.log('Using direct PageResponse');
@@ -199,12 +199,12 @@ const ReceiptManagePage: React.FC = () => {
       }
       
       console.log('Receipts loaded successfully:', pageData);
-      setReceiptData(pageData.content);
+      setReceiptData((pageData as any).content);
       setPagination({
-        page: pageData.number,
-        size: pageData.size,
-        totalElements: pageData.totalElements,
-        totalPages: pageData.totalPages
+        page: (pageData as any).number,
+        size: (pageData as any).size,
+        totalElements: (pageData as any).totalElements,
+        totalPages: (pageData as any).totalPages
       });
     } catch (error) {
       console.error('Error loading receipts:', error);
@@ -306,7 +306,7 @@ const ReceiptManagePage: React.FC = () => {
     .reduce((sum, item) => sum + item.totalAmount, 0);
     
   const totalNotIssuedAmount = receiptData
-    .filter(item => !item.issued)
+    .filter(item => !(item as any).issued)
     .reduce((sum, item) => sum + item.totalAmount, 0);
 
   return (

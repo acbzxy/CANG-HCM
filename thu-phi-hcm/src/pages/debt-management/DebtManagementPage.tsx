@@ -90,7 +90,7 @@ const DebtManagementPage: React.FC = () => {
         </div>
 
         {/* Warning Notice */}
-        <Card variant="elevated" className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <Card variant="elevated" className="mb-8 animate-fade-in-up">
           <Card.Body>
             <div className="flex items-start space-x-4">
               <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600 text-xl flex-shrink-0">

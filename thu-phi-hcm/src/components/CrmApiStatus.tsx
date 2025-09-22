@@ -28,7 +28,7 @@ const CrmApiStatus: React.FC<CrmApiStatusProps> = ({
 
     try {
       const connected = await CrmApiService.testConnection()
-      setIsConnected(connected)
+      setIsConnected(connected.connected)
       setLastChecked(new Date())
       
       // Update stats

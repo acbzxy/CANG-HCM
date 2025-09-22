@@ -119,7 +119,7 @@ const CustomsReportPage: React.FC = () => {
           </Card>
 
           {/* Report Preview */}
-          <Card className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <Card className="animate-fade-in-up">
             <Card.Header>
               <h2 className="text-xl font-semibold text-gray-800">Xem Trước Báo Cáo</h2>
             </Card.Header>
@@ -198,7 +198,7 @@ const CustomsReportPage: React.FC = () => {
         </div>
 
         {/* Recent Reports */}
-        <Card className="mt-6 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <Card className="mt-6 animate-fade-in-up">
           <Card.Header>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-800">Báo Cáo Gần Đây</h2>

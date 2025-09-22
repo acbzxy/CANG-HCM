@@ -39,7 +39,6 @@ const SummaryByWarehousePage: React.FC = () => {
               hover 
               variant="elevated" 
               className="animate-fade-in-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
             >
               <div className="p-6 text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-green-500 rounded-2xl flex items-center justify-center text-white text-2xl mx-auto mb-4">
@@ -67,7 +66,7 @@ const SummaryByWarehousePage: React.FC = () => {
         </div>
 
         {/* Detailed Table */}
-        <Card className="animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+        <Card className="animate-fade-in-up">
           <Card.Header>
             <h2 className="text-xl font-semibold text-gray-800">Chi Tiết Theo Kho</h2>
           </Card.Header>

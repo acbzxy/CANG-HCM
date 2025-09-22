@@ -110,7 +110,7 @@ const CreateQRCodePage: React.FC = () => {
           </Card>
 
           {/* Preview */}
-          <Card className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <Card className="animate-fade-in-up">
             <Card.Header>
               <h2 className="text-xl font-semibold text-gray-800">Xem Trước Quyết Định</h2>
             </Card.Header>
@@ -167,7 +167,7 @@ const CreateQRCodePage: React.FC = () => {
         </div>
 
         {/* Warning */}
-        <Card variant="elevated" className="mt-6 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <Card variant="elevated" className="mt-6 animate-fade-in-up">
           <Card.Body>
             <div className="flex items-start space-x-4">
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center text-red-600 text-xl flex-shrink-0">

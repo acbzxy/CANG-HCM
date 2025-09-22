@@ -663,9 +663,9 @@ const CreateReceiptPage: React.FC = () => {
     } catch (error) {
       console.error('❌ Error saving receipt to system:', error);
       console.error('❌ Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : 'Unknown'
       });
       // Don't show error to user as this is additional save
       // The main E-Invoice save was already successful

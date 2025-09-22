@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Chart } from 'chart.js/auto';
 
 interface PieChartProps {
@@ -65,7 +65,7 @@ export default function DonutChart({ isAnimated = false, showLegend = false }: P
             intersect: false,
             mode: 'index'
           },
-          onHover: (event, activeElements) => {
+          onHover: (_, activeElements) => {
             if (el) {
               el.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
             }

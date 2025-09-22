@@ -90,7 +90,7 @@ const DataReconciliationPage: React.FC = () => {
         </div>
 
         {/* Process Flow */}
-        <Card variant="elevated" className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <Card variant="elevated" className="mb-8 animate-fade-in-up">
           <Card.Header>
             <h2 className="text-xl font-semibold text-gray-800">Quy Trình Đối Soát</h2>
           </Card.Header>
@@ -136,7 +136,7 @@ const DataReconciliationPage: React.FC = () => {
         </Card>
 
         {/* Information Notice */}
-        <Card variant="elevated" className="mb-8 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+        <Card variant="elevated" className="mb-8 animate-fade-in-up">
           <Card.Body>
             <div className="flex items-start space-x-4">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xl flex-shrink-0">
