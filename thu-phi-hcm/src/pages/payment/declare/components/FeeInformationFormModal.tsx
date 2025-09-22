@@ -33,6 +33,66 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
   const { user } = useAuth();
   const modalRootRef = React.useRef<HTMLDivElement | null>(null);
 
+  // Hàm xác định bước hiện tại dựa trên trạng thái
+  const getCurrentStep = () => {
+    if (mode === 'view' && initialData) {
+      const status = initialData.trangThai || '';
+      console.log('🔍 Checking status for progress bar:', status);
+      
+      if (status === 'Đã ký số') {
+        return 2; // Kích hoạt bước 2 khi đã ký số
+      } else if (status === 'Đã lấy thông báo' || status === 'Đã lấy') {
+        return 3; // Kích hoạt bước 3 khi đã lấy thông báo
+      } else if (status === 'Hoàn thành') {
+        return 5; // Kích hoạt bước 5 khi hoàn thành
+      } else if (status === 'Đang xử lý') {
+        return 4; // Kích hoạt bước 4 khi đang xử lý
+      }
+    }
+    return 1; // Mặc định là bước 1
+  };
+
+  const currentStep = getCurrentStep();
+
+  // Hàm tạo style cho từng bước
+  const getStepStyle = (stepNumber: number) => {
+    const isActive = stepNumber <= currentStep;
+    const isCurrentStep = stepNumber === currentStep;
+    
+    if (isActive) {
+      // Bước 1 và bước 2 luôn giữ màu xanh dương gradient
+      if (stepNumber === 1 || stepNumber === 2) {
+        return {
+          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
+          className: 'text-white'
+        };
+      }
+      // Các bước khác (3, 4, 5)
+      return {
+        background: isCurrentStep 
+          ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)' 
+          : 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
+        className: 'text-white'
+      };
+    } else {
+      return {
+        background: '#9ca3af',
+        className: 'text-white'
+      };
+    }
+  };
+
+  // Hàm tạo style cho số bước
+  const getStepNumberStyle = (stepNumber: number) => {
+    const isActive = stepNumber <= currentStep;
+    
+    if (isActive) {
+      return 'bg-white text-black';
+    } else {
+      return 'bg-gray-500 text-white';
+    }
+  };
+
   // Debug effect to monitor fetchedData changes
   React.useEffect(() => {
     console.log('🔄 fetchedData state changed:', {
@@ -40,6 +100,18 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
       data: fetchedData
     });
   }, [fetchedData]);
+
+  // Debug effect to monitor progress bar changes
+  React.useEffect(() => {
+    if (mode === 'view' && initialData) {
+      console.log('🎯 Progress bar info:', {
+        mode,
+        status: initialData.trangThai,
+        currentStep,
+        initialData
+      });
+    }
+  }, [mode, initialData, currentStep]);
 
   // Auto-fill company code from logged-in user
   React.useEffect(() => {
@@ -56,8 +128,18 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
         setIsManualDeclaration(true);
         setSelectedTokhai(initialData as any);
         setShowSelectedData(true);
+        // Try auto-fill when data is ready without showing error if state not yet set
+        const tryAutoFill = (attempt: number) => {
+          if (selectedTokhai) {
+            handleAutoFillForm();
+            return;
+          }
+          if (attempt < 10) {
+            setTimeout(() => tryAutoFill(attempt + 1), 100);
+          }
+        };
         setTimeout(() => {
-          handleAutoFillForm();
+          tryAutoFill(0);
           // Lock inputs in view mode (only inside this modal)
           const container = modalRootRef.current;
           if (container) {
@@ -451,6 +533,17 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
 
   const handleAutoFillForm = () => {
     if (!selectedTokhai) {
+      // Trong chế độ view, tránh hiện lỗi vội; thử chờ selectedTokhai sẵn sàng
+      if (mode === 'view') {
+        setTimeout(() => {
+          if (selectedTokhai) {
+            handleAutoFillForm();
+          } else {
+            showError('Chưa chọn tờ khai để điền form', 'Lỗi');
+          }
+        }, 150);
+        return;
+      }
       showError('Chưa chọn tờ khai để điền form', 'Lỗi');
       return;
     }
@@ -1320,25 +1413,29 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
         <div className="w-full">
           {/* Arrow Step Indicator */}
           <div className="flex items-center w-full mb-6 mt-[22px] rounded-full overflow-hidden">
+            {/* Bước 1: Tạo Tờ Khai Phí */}
             <div 
-              className="relative h-10 flex items-center text-white font-bold text-sm px-4 shadow-lg flex-1" 
+              className={`relative h-10 flex items-center ${getStepStyle(1).className} font-bold text-sm px-4 shadow-lg flex-1`}
               style={{ 
-                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
+                background: getStepStyle(1).background,
                 clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%)',
                 marginRight: '3px',
                 zIndex: 5
               }}
             >
               <div className="flex items-center space-x-2 justify-center w-full">
-                 <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-xs font-bold text-black">
+                 <div className={`w-6 h-6 rounded-full ${getStepNumberStyle(1)} flex items-center justify-center text-xs font-bold`}>
                    1
                  </div>
                 <span className="text-sm font-medium">Tạo Tờ Khai Phí</span>
               </div>
             </div>
+            
+            {/* Bước 2: Ký Số Tờ Khai Báo Nộp Phí */}
             <div 
-              className="relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"
+              className={`relative h-10 flex items-center ${getStepStyle(2).className} font-bold text-sm px-4 flex-1`}
               style={{
+                background: getStepStyle(2).background,
                 clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
                 marginLeft: '-20px',
                 marginRight: '3px',
@@ -1346,15 +1443,18 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
               }}
             >
               <div className="flex items-center space-x-2 justify-center w-full">
-                <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold">
+                <div className={`w-6 h-6 rounded-full ${getStepNumberStyle(2)} flex items-center justify-center text-xs font-bold`}>
                   2
                 </div>
                 <span className="text-sm font-medium">Ký Số Tờ Khai Báo Nộp Phí</span>
               </div>
             </div>
+            
+            {/* Bước 3: Lấy Thông Báo Phí */}
             <div 
-              className="relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"
+              className={`relative h-10 flex items-center ${getStepStyle(3).className} font-bold text-sm px-4 flex-1`}
               style={{
+                background: getStepStyle(3).background,
                 clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
                 marginLeft: '-20px',
                 marginRight: '3px',
@@ -1362,15 +1462,18 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
               }}
             >
               <div className="flex items-center space-x-2 justify-center w-full">
-                <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold">
+                <div className={`w-6 h-6 rounded-full ${getStepNumberStyle(3)} flex items-center justify-center text-xs font-bold`}>
                   3
                 </div>
                 <span className="text-sm font-medium">Lấy Thông Báo Phí</span>
               </div>
             </div>
+            
+            {/* Bước 4: Thực Hiện Nộp Phí */}
             <div 
-              className="relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1"
+              className={`relative h-10 flex items-center ${getStepStyle(4).className} font-bold text-sm px-4 flex-1`}
               style={{
+                background: getStepStyle(4).background,
                 clipPath: 'polygon(0 0, calc(100% - 20px) 0, 100% 50%, calc(100% - 20px) 100%, 0 100%, 20px 50%)',
                 marginLeft: '-20px',
                 marginRight: '3px',
@@ -1378,22 +1481,25 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
               }}
             >
               <div className="flex items-center space-x-2 justify-center w-full">
-                <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold">
+                <div className={`w-6 h-6 rounded-full ${getStepNumberStyle(4)} flex items-center justify-center text-xs font-bold`}>
                   4
                 </div>
                 <span className="text-sm font-medium">Thực Hiện Nộp Phí</span>
               </div>
             </div>
+            
+            {/* Bước 5: Hoàn Thành */}
             <div 
-              className="relative h-10 flex items-center bg-gray-400 text-white font-bold text-sm px-4 flex-1 rounded-r-full"
+              className={`relative h-10 flex items-center ${getStepStyle(5).className} font-bold text-sm px-4 flex-1 rounded-r-full`}
               style={{
+                background: getStepStyle(5).background,
                 clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 20px 50%)',
                 marginLeft: '-20px',
                 zIndex: 1
               }}
             >
               <div className="flex items-center space-x-2 justify-center w-full">
-                <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center text-xs font-bold">
+                <div className={`w-6 h-6 rounded-full ${getStepNumberStyle(5)} flex items-center justify-center text-xs font-bold`}>
                   5
                 </div>
                 <span className="text-sm font-medium">Hoàn Thành</span>
@@ -1538,8 +1644,8 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
             </div>
           )}
 
-          {/* Display selected tokhai details */}
-          {showSelectedData && selectedTokhai && (
+          {/* Display selected tokhai details - hidden in view mode */}
+          {showSelectedData && selectedTokhai && mode !== 'view' && (
             <div className="mb-6">
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-3">
