@@ -561,7 +561,7 @@ const CangVuLoginPage: React.FC = () => {
                   background: "rgba(255, 255, 255, 0.95)",
                   backdropFilter: "blur(25px)",
                   borderRadius: "24px",
-                  padding: "26px",
+                  padding: "40px",
                   border: "1px solid rgba(255, 255, 255, 0.4)",
                   boxShadow: "0 25px 60px rgba(0, 0, 0, 0.15)",
                   minWidth: "400px",
@@ -720,16 +720,24 @@ const CangVuLoginPage: React.FC = () => {
                         right: "2px",
                         top: "2px",
                         bottom: "2px",
-                        backgroundColor: "#fee",
-                        border: "none",
+                        backgroundColor: "#e8f0fe",
+                        border: "1px solid #d0d7de",
                         padding: "0 12px",
                         cursor: "pointer",
                         fontSize: "12px",
-                        color: "#e74c3c",
+                        color: "#0066b3",
                         borderRadius: "0 2px 2px 0",
                         display: "flex",
                         alignItems: "center",
                         gap: "4px",
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = "#dbeafe";
+                        e.currentTarget.style.borderColor = "#c5ced8";
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = "#e8f0fe";
+                        e.currentTarget.style.borderColor = "#d0d7de";
                       }}
                     >
                       <i
@@ -969,31 +977,7 @@ const CangVuLoginPage: React.FC = () => {
                     )}
                   </button>
 
-                  {/* Register Link */}
-                  <div
-                    style={{
-                      textAlign: "center",
-                      marginTop: "20px",
-                      fontSize: "14px",
-                      color: "#2c3e50",
-                    }}
-                  >
-                    Bạn chưa có tài khoản cán bộ? Đăng ký{" "}
-                    <a
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowRegisterModal(true);
-                      }}
-                          style={{
-                            color: "#0066b3",
-                            fontWeight: "bold",
-                            textDecoration: "none",
-                          }}
-                    >
-                      Tại đây
-                    </a>
-                  </div>
+                  
                 </form>
 
                 {/* Link back to main login */}

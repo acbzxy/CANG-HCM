@@ -105,15 +105,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       icon: "fas fa-sync-alt",
       hasSubmenu: true,
       submenu: [
-        { path: "/data-reconciliation/initialize", label: "Đối soát" },
         {
           path: "/data-reconciliation/manage-list",
-          label: "Quản lý danh sách đối soát",
+          label: "Tra cứu đối soát",
         },
-        {
-          path: "/data-reconciliation/customs-report",
-          label: "Báo cáo đối soát Hải Quan",
-        },
+        { path: "/data-reconciliation/initialize", label: "Đối soát thủ công" },
       ],
     },
     {
