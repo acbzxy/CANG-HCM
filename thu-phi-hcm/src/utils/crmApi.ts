@@ -1,4 +1,5 @@
 import type { ApiResponse } from "../types";
+import type { FunctionDto } from "../types";
 
 // CRM API Base URL - dùng proxy Vite: '/api' được gắn sẵn trong endpoints
 // Đặt base rỗng để các endpoint dạng `/api/...` hoạt động qua proxy
@@ -112,6 +113,12 @@ const CRM_ENDPOINTS = {
   SYS_DIS_FEAT_CREATE: `${CRM_API_BASE_URL}/api/sys-dis-feat/create`,
   SYS_DIS_FEAT_BY_USER: `${CRM_API_BASE_URL}/api/sys-dis-feat/by-user`,
   SYS_DIS_FEAT_DELETE: `${CRM_API_BASE_URL}/api/sys-dis-feat/delete`,
+
+  // === GETIN/GETOUT ===
+  GET_IN_GET_OUT_SEARCH: `${CRM_API_BASE_URL}/api/get-in-get-out/search`,
+  GET_IN_GET_OUT_EXPORT_EXCEL: `${CRM_API_BASE_URL}/api/get-in-get-out/export-excel`,
+  GET_IN_GET_OUT_UPLOAD_EXCEL: `${CRM_API_BASE_URL}/api/get-in-get-out/upload-excel`,
+  GET_IN_GET_OUT_EXPORT_EXCEL_RESULT: `${CRM_API_BASE_URL}/api/get-in-get-out/export-excel-result`,
 
   // === LEGACY COMPATIBILITY ===
   FEE_DECLARATIONS: `${CRM_API_BASE_URL}/api/tokhai-thongtin/all`, // redirect to real endpoint
@@ -3036,6 +3043,181 @@ export class CrmApiService {
       method: "DELETE",
       body: JSON.stringify({ id }),
     });
+  }
+
+  /**
+   * Tìm kiếm GETIN/GETOUT theo số vận đơn và số hiệu
+   */
+  static async searchGetInGetOut(
+    soVanDon?: string,
+    soHieu?: string
+  ): Promise<ApiDataResponse<any[]> | ApiErrorResponse> {
+    const params = new URLSearchParams();
+    if (soVanDon) params.append("soVanDon", soVanDon);
+    if (soHieu) params.append("soHieu", soHieu);
+
+    const url = `${CRM_ENDPOINTS.GET_IN_GET_OUT_SEARCH}?${params.toString()}`;
+
+    return makeApiRequest<ApiDataResponse<any[]>>(url, {
+      method: "GET",
+      headers: getHeaders(true),
+    });
+  }
+
+  /**
+   * Xuất Excel kết quả tra cứu GETIN/GETOUT
+   * GET /api/get-in-get-out/export-excel?soVanDon&soHieu
+   * Trả về: Blob (Excel). Ưu tiên lấy tên file từ header Content-Disposition
+   */
+  static async exportGetInGetOutExcel(
+    soVanDon?: string,
+    soHieu?: string
+  ): Promise<{ blob: Blob; fileName: string }> {
+    const params = new URLSearchParams();
+    if (soVanDon) params.append("soVanDon", soVanDon);
+    if (soHieu) params.append("soHieu", soHieu);
+
+    const url = `${
+      CRM_ENDPOINTS.GET_IN_GET_OUT_EXPORT_EXCEL
+    }?${params.toString()}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        ...getHeaders(true),
+        Accept:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      },
+    });
+
+    if (!response.ok) {
+      let errorMessage = `HTTP ${response.status}`;
+      try {
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const err = await response.json();
+          errorMessage = err?.message || errorMessage;
+        } else {
+          const text = await response.text();
+          if (text) errorMessage = text;
+        }
+      } catch (_) {}
+      throw new Error(errorMessage);
+    }
+
+    const blob = await response.blob();
+    const disposition = response.headers.get("content-disposition") || "";
+    let fileName = `TraCuuToKhai_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+    // Parse filename="..."
+    const match = disposition.match(/filename="?([^";]+)"?/i);
+    if (match && match[1]) fileName = match[1];
+
+    return { blob, fileName };
+  }
+
+  /**
+   * Upload Excel để tra cứu hàng loạt GETIN/GETOUT
+   * POST /api/get-in-get-out/upload-excel
+   * Body: multipart/form-data (field: file)
+   * Trả về JSON gồm thống kê và mảng data kết quả
+   */
+  static async uploadGetInGetOutExcel(file: File): Promise<
+    ApiDataResponse<{
+      totalRows: number;
+      processedRows: number;
+      foundRows: number;
+      notFoundRows: number;
+      data: any[];
+      errors?: Array<{
+        rowNumber: number;
+        soVanDon: string;
+        soHieu: string;
+        errorMessage: string;
+      }>;
+    }>
+  > {
+    const form = new FormData();
+    form.append("file", file);
+
+    // Tự chuẩn bị header mà KHÔNG set Content-Type để browser tự thêm boundary
+    const headers: Record<string, string> = { Accept: "application/json" };
+    const token =
+      sessionStorage.getItem("authToken") || localStorage.getItem("authToken");
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const response = await fetch(CRM_ENDPOINTS.GET_IN_GET_OUT_UPLOAD_EXCEL, {
+      method: "POST",
+      headers,
+      body: form,
+    });
+
+    if (!response.ok) {
+      let message = `HTTP ${response.status}`;
+      try {
+        const data = await response.json();
+        message = data?.message || message;
+      } catch (_) {}
+      throw new Error(message);
+    }
+
+    const data = (await response.json()) as ApiDataResponse<any>;
+    return data;
+  }
+
+  /**
+   * Export Excel kết quả tra cứu từ file Excel upload (nhiều sheet)
+   * POST /api/get-in-get-out/export-excel-result
+   * Body: multipart/form-data (field: file)
+   * Trả về: Blob Excel
+   */
+  static async exportGetInGetOutExcelResult(
+    file: File
+  ): Promise<{ blob: Blob; fileName: string }> {
+    const form = new FormData();
+    form.append("file", file);
+
+    const headers: Record<string, string> = {
+      Accept:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    };
+    const token =
+      sessionStorage.getItem("authToken") || localStorage.getItem("authToken");
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const response = await fetch(
+      CRM_ENDPOINTS.GET_IN_GET_OUT_EXPORT_EXCEL_RESULT,
+      {
+        method: "POST",
+        headers,
+        body: form,
+      }
+    );
+
+    if (!response.ok) {
+      let message = `HTTP ${response.status}`;
+      try {
+        const ct = response.headers.get("content-type") || "";
+        if (ct.includes("application/json")) {
+          const err = await response.json();
+          message = err?.message || message;
+        } else {
+          const text = await response.text();
+          if (text) message = text;
+        }
+      } catch (_) {}
+      throw new Error(message);
+    }
+
+    const blob = await response.blob();
+    const disposition = response.headers.get("content-disposition") || "";
+    let fileName = `TraCuuToKhai_KetQua_${new Date()
+      .toISOString()
+      .slice(0, 10)}.xlsx`;
+    const match = disposition.match(/filename="?([^";]+)"?/i);
+    if (match && match[1]) fileName = match[1];
+
+    return { blob, fileName };
   }
 }
 
