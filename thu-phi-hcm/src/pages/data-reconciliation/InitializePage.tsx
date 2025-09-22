@@ -17,8 +17,7 @@ interface ReconciliationData {
 }
 
 const InitializePage: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+  const [searchDate, setSearchDate] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingItem, setEditingItem] = useState<ReconciliationData | null>(null)
   
@@ -30,55 +29,8 @@ const InitializePage: React.FC = () => {
     dataSource: 'system'
   })
 
-  // Mock data
-  const [reconciliationData, setReconciliationData] = useState<ReconciliationData[]>([
-    {
-      id: '1',
-      name: 'Đối soát tháng 12/2024',
-      fromDate: '2024-12-01',
-      toDate: '2024-12-31',
-      dataSource: 'system',
-      status: 'completed',
-      createdAt: '2024-12-01',
-      createdBy: 'Nguyễn Văn A',
-      description: 'Đối soát dữ liệu tháng 12/2024',
-      matchRate: 98.5
-    },
-    {
-      id: '2',
-      name: 'Đối soát tháng 11/2024',
-      fromDate: '2024-11-01',
-      toDate: '2024-11-30',
-      dataSource: 'customs',
-      status: 'completed',
-      createdAt: '2024-11-01',
-      createdBy: 'Trần Thị B',
-      description: 'Đối soát dữ liệu tháng 11/2024',
-      matchRate: 99.2
-    },
-    {
-      id: '3',
-      name: 'Đối soát tháng 10/2024',
-      fromDate: '2024-10-01',
-      toDate: '2024-10-31',
-      dataSource: 'bank',
-      status: 'processing',
-      createdAt: '2024-10-01',
-      createdBy: 'Lê Văn C',
-      description: 'Đối soát dữ liệu tháng 10/2024'
-    },
-    {
-      id: '4',
-      name: 'Đối soát tháng 9/2024',
-      fromDate: '2024-09-01',
-      toDate: '2024-09-30',
-      dataSource: 'manual',
-      status: 'pending',
-      createdAt: '2024-09-01',
-      createdBy: 'Phạm Thị D',
-      description: 'Đối soát dữ liệu tháng 9/2024'
-    }
-  ])
+  // Mock data - để trống bảng
+  const [reconciliationData, setReconciliationData] = useState<ReconciliationData[]>([])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -115,10 +67,10 @@ const InitializePage: React.FC = () => {
   }
 
   const filteredData = reconciliationData.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || item.status === statusFilter
-    return matchesSearch && matchesStatus
+    const matchesDate = !searchDate || 
+                       (item.fromDate <= searchDate && item.toDate >= searchDate) ||
+                       item.createdAt === searchDate
+    return matchesDate
   })
 
   const handleCreate = () => {
@@ -193,55 +145,43 @@ const InitializePage: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 animate-fade-in-up">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center text-white text-2xl">
-                📊
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Quản Lý Đối Soát Dữ Liệu</h1>
-                <p className="text-gray-600">Quản lý các đợt đối soát dữ liệu</p>
-              </div>
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center text-white text-2xl">
+              📊
             </div>
-            <Button 
-              variant="success" 
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center space-x-2"
-            >
-              <span>+</span>
-              <span>Tạo Mới</span>
-            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">Đối Soát Thủ Công</h1>
+              <p className="text-gray-600">Quản lý các đợt đối soát dữ liệu</p>
+            </div>
           </div>
         </div>
 
         {/* Search and Filter */}
-        <Card className="mb-6 animate-fade-in-up">
-          <Card.Body>
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Tìm kiếm theo tên hoặc mô tả..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div className="md:w-48">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-50 border-2 border-transparent rounded-xl hover:bg-gray-100 focus:bg-white focus:border-green-500 focus:ring-4 focus:ring-green-500/10 transition-all duration-300 focus:outline-none"
-                >
-                  <option value="all">Tất cả trạng thái</option>
-                  <option value="pending">Chờ xử lý</option>
-                  <option value="processing">Đang xử lý</option>
-                  <option value="completed">Hoàn thành</option>
-                  <option value="failed">Thất bại</option>
-                </select>
-              </div>
+        <div className="mb-6 animate-fade-in-up">
+          <div className="flex justify-end gap-4">
+            <div className="w-48">
+              <Input
+                type="date"
+                placeholder="Tìm kiếm theo ngày đối soát..."
+                value={searchDate}
+                onChange={(e) => setSearchDate(e.target.value)}
+                className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 transition-all duration-200"
+              />
             </div>
-          </Card.Body>
-        </Card>
+            <div className="w-32">
+              <Button
+                variant="success"
+                onClick={() => {
+                  // Logic search sẽ được thực hiện tự động khi searchDate thay đổi
+                }}
+                className="w-full flex items-center justify-center space-x-2"
+              >
+                <i className="fas fa-search"></i>
+                <span>Search</span>
+              </Button>
+            </div>
+          </div>
+        </div>
 
         {/* Data Table */}
         <Card className="animate-fade-in-up">
@@ -251,67 +191,77 @@ const InitializePage: React.FC = () => {
             </h2>
           </Card.Header>
           <Card.Body className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Tên đợt</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Thời gian</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Nguồn dữ liệu</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Trạng thái</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Tỷ lệ khớp</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Người tạo</th>
-                    <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredData.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-200">
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="text-sm font-medium text-gray-800">{item.name}</div>
-                          <div className="text-xs text-gray-500 mt-1">{item.description}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {new Date(item.fromDate).toLocaleDateString('vi-VN')} - {new Date(item.toDate).toLocaleDateString('vi-VN')}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {getDataSourceLabel(item.dataSource)}
-                      </td>
-                      <td className="px-6 py-4">
-                        {getStatusBadge(item.status)}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        {item.matchRate ? `${item.matchRate}%` : '-'}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-700">
-                        <div>
-                          <div>{item.createdBy}</div>
-                          <div className="text-xs text-gray-500">{new Date(item.createdAt).toLocaleDateString('vi-VN')}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleEdit(item)}
-                            className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                          >
-                            Sửa
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
-                          >
-                            Xóa
-                          </button>
-                        </div>
-                      </td>
+            {filteredData.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                  <i className="fas fa-inbox text-gray-400 text-2xl"></i>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có dữ liệu đối soát</h3>
+                <p className="text-gray-500">Chưa có đợt đối soát nào được tạo hoặc không tìm thấy kết quả phù hợp.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Tên đợt</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Thời gian</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Nguồn dữ liệu</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Trạng thái</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Tỷ lệ khớp</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Người tạo</th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">Hành động</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {filteredData.map((item) => (
+                      <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-200">
+                        <td className="px-6 py-4">
+                          <div>
+                            <div className="text-sm font-medium text-gray-800">{item.name}</div>
+                            <div className="text-xs text-gray-500 mt-1">{item.description}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-700">
+                          {new Date(item.fromDate).toLocaleDateString('vi-VN')} - {new Date(item.toDate).toLocaleDateString('vi-VN')}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-700">
+                          {getDataSourceLabel(item.dataSource)}
+                        </td>
+                        <td className="px-6 py-4">
+                          {getStatusBadge(item.status)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-700">
+                          {item.matchRate ? `${item.matchRate}%` : '-'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-700">
+                          <div>
+                            <div>{item.createdBy}</div>
+                            <div className="text-xs text-gray-500">{new Date(item.createdAt).toLocaleDateString('vi-VN')}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleEdit(item)}
+                              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                            >
+                              Sửa
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item.id)}
+                              className="text-red-600 hover:text-red-800 text-sm font-medium"
+                            >
+                              Xóa
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </Card.Body>
         </Card>
 
