@@ -15,6 +15,7 @@ const ManageListPage: React.FC = () => {
     nganHangDoiSoat: string
     khoBacDoiSoat: string
     tongTien: number
+    note?: string
   }
 
   const [allRows] = useState<ReconcileRow[]>([
@@ -25,7 +26,8 @@ const ManageListPage: React.FC = () => {
       ngayDoiSoat: '2025-01-15',
       nganHangDoiSoat: 'Vietcombank',
       khoBacDoiSoat: 'Kho bạc HCM',
-      tongTien: 125000000
+      tongTien: 125000000,
+      note: 'Đợt đối soát đầu năm, số liệu đã được xác nhận bởi Kho bạc HCM.'
     },
     {
       lanDoiSoat: 'DS002',
@@ -34,7 +36,8 @@ const ManageListPage: React.FC = () => {
       ngayDoiSoat: '2024-12-15',
       nganHangDoiSoat: 'BIDV',
       khoBacDoiSoat: 'Kho bạc Q1',
-      tongTien: 98500000
+      tongTien: 98500000,
+      note: 'Có 2 bản ghi chờ đối soát bổ sung ở ngân hàng.'
     },
     {
       lanDoiSoat: 'DS003',
@@ -43,11 +46,14 @@ const ManageListPage: React.FC = () => {
       ngayDoiSoat: '2024-12-01',
       nganHangDoiSoat: 'VietinBank',
       khoBacDoiSoat: 'Kho bạc Q7',
-      tongTien: 245500000
+      tongTien: 245500000,
+      note: 'Đã đối chiếu 100% chứng từ. Không có lệch.'
     }
   ])
 
   const [results, setResults] = useState<ReconcileRow[]>([])
+  const [showNoteModal, setShowNoteModal] = useState(false)
+  const [currentNote, setCurrentNote] = useState<string>('')
 
   const handleSearch = () => {
     if (!fromDate && !toDate) {
@@ -149,7 +155,19 @@ const ManageListPage: React.FC = () => {
                     results.map((row, idx) => (
                       <tr key={idx} className="hover:bg-gray-50">
                         <td className="px-6 py-3 text-sm text-gray-800">{row.lanDoiSoat}</td>
-                        <td className="px-4 py-3 text-sm text-gray-800">{idx + 1}</td>
+                        <td className="px-4 py-3 text-sm text-gray-800">
+                          <button
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:border-blue-300 transition-colors"
+                            title="Xem ghi chú"
+                            onClick={() => {
+                              setCurrentNote(row.note || 'Không có ghi chú')
+                              setShowNoteModal(true)
+                            }}
+                          >
+                            <span>📝</span>
+                            <span className="hidden sm:inline">View</span>
+                          </button>
+                        </td>
                         <td className="px-6 py-3 text-sm text-gray-800">{row.soBanKhai.toLocaleString('vi-VN')}</td>
                         <td className="px-6 py-3 text-sm text-gray-800">{new Date(row.ngayBanKhai).toLocaleDateString('vi-VN')}</td>
                         <td className="px-6 py-3 text-sm text-gray-800">{new Date(row.ngayDoiSoat).toLocaleDateString('vi-VN')}</td>
@@ -164,6 +182,25 @@ const ManageListPage: React.FC = () => {
             </div>
           </Card.Body>
         </Card>
+
+        {showNoteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-800">Ghi chú đối soát</h3>
+                <button
+                  className="px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50"
+                  onClick={() => setShowNoteModal(false)}
+                >
+                  Đóng
+                </button>
+              </div>
+              <div className="text-gray-700 whitespace-pre-line leading-relaxed">
+                {currentNote}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Summary Stats - removed */}
         <div></div>
