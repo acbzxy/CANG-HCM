@@ -712,7 +712,7 @@ const UserLoginPage: React.FC = () => {
                           textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
                         }}
                       >
-                        ĐĂNG NHẬP QUẢN TRỊ
+                        ĐĂNG NHẬP HỆ THỐNG
                       </h3>
                       <p
                         style={{
@@ -1111,28 +1111,82 @@ const UserLoginPage: React.FC = () => {
                         </a>
                       </div>
 
-                      {/* User Login Link */}
+                      {/* Navigation Links */}
                       <div
                         style={{
                           textAlign: "center",
                           marginTop: "15px",
-                          fontSize: "14px",
-                          color: "#2c3e50",
+                          display: "flex",
+                          flexDirection: "row",
+                          gap: "8px",
+                          justifyContent: "center",
+                          alignItems: "center",
                         }}
                       >
+                        {/* User Login Link */}
                         <a
                           href="/login"
                           style={{
                             color: "#0db14b",
-                            fontWeight: "bold",
+                            fontWeight: "500",
                             textDecoration: "none",
+                            fontSize: "12px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "4px",
+                            padding: "6px 10px",
+                            borderRadius: "6px",
+                            transition: "all 0.2s ease",
+                            whiteSpace: "nowrap",
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              "rgba(13, 177, 75, 0.1)";
+                            e.currentTarget.style.color = "#0a8f3a";
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = "transparent";
+                            e.currentTarget.style.color = "#0db14b";
                           }}
                         >
-                          <i
-                            className="fas fa-building"
-                            style={{ marginRight: "5px" }}
-                          ></i>
-                          Chuyển sang Đăng nhập Doanh nghiệp
+                          <i className="fas fa-building"></i>
+                          <span>Đăng nhập doanh nghiệp</span>
+                        </a>
+
+                        {/* Cang Vu Login Link */}
+                        <a
+                          href="#"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            navigate("/cangvu-login");
+                          }}
+                          style={{
+                            color: "#0066b3",
+                            fontWeight: "500",
+                            textDecoration: "none",
+                            fontSize: "12px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "4px",
+                            padding: "6px 10px",
+                            borderRadius: "6px",
+                            transition: "all 0.2s ease",
+                            whiteSpace: "nowrap",
+                          }}
+                          onMouseOver={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              "rgba(0, 102, 179, 0.1)";
+                            e.currentTarget.style.color = "#004d87";
+                          }}
+                          onMouseOut={(e) => {
+                            e.currentTarget.style.backgroundColor = "transparent";
+                            e.currentTarget.style.color = "#0066b3";
+                          }}
+                        >
+                          <i className="fas fa-users"></i>
+                          <span>Đăng nhập cán bộ cảng vụ</span>
                         </a>
                       </div>
                     </div>

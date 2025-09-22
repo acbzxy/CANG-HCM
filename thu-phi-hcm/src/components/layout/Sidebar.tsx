@@ -105,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       icon: "fas fa-sync-alt",
       hasSubmenu: true,
       submenu: [
-        { path: "/data-reconciliation/initialize", label: "Khởi tạo" },
+        { path: "/data-reconciliation/initialize", label: "Đối soát" },
         {
           path: "/data-reconciliation/manage-list",
           label: "Quản lý danh sách đối soát",
@@ -171,6 +171,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       ],
     },
     {
+      path: "/getin-getout",
+      label: "GETIN/GETOUT",
+      icon: "fas fa-exchange-alt",
+    },
+    {
       path: "/system",
       label: "HỆ THỐNG",
       icon: "fas fa-cogs",
@@ -216,7 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       case 6: // Tra cứu tình trạng nộp phí của các DN XNK
         return ["/debt-management", "/debt-management/debt-status"];
       case 7: // Nhận thông tin Getin/Getout từ hệ thống
-        return ["/business-categories"];
+        return ["/getin-getout"];
       case 8: // Thêm/Tạo mới tờ khai báo nộp phí
         return ["/fee-declaration", "/fee-declaration/manage"];
       case 9: // Check danh sách tờ khai đã làm
@@ -259,6 +264,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         return ["/data-reconciliation"];
       case 28: // Quản lý lịch sử các lần đối soát
         return ["/data-reconciliation"];
+      case 33: // Báo cáo thống kê (module mới)
+        return ["/reports"];
       default:
         return [];
     }
@@ -297,6 +304,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         user.allowedFunctions.map((f) => f.funcName)
       );
       console.log("✅ Allowed menu paths:", Array.from(allowedPaths));
+      console.log("🔍 All nav items:", allNavItems.map(item => item.path));
+      console.log("🔍 Filtered nav items:", allNavItems.filter((item) => allowedPaths.has(item.path)).map(item => item.path));
 
       return allNavItems.filter((item) => allowedPaths.has(item.path));
     }
@@ -318,6 +327,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
             "/payment", // NỘP PHÍ CƠ SỞ HẠ TẦNG (funcId 5)
             "/debt-management", // Q.LÝ XỬ LÝ NỢ PHÍ (funcId 6)
             "/business-categories", // DANH MỤC NGHIỆP VỤ (funcId 7)
+            "/getin-getout", // GETIN/GETOUT (funcId 7)
             "/account", // Thông tin tài khoản
             "/password", // Đổi mật khẩu
             "/guide", // Hướng dẫn
@@ -368,12 +378,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     if (user?.userType === "custom") {
       const allowedPaths = [
         "/dashboard",
-        "/reports",
-        "/data-reconciliation",
-        "/receipt-management",
         "/fee-declaration",
+        "/receipt-management", 
+        "/payment",
+        "/debt-management",
         "/business-categories",
-        "/system",
+        "/getin-getout",
         "/account",
         "/password",
         "/guide",
@@ -386,7 +396,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         "/dashboard",
         "/payment-management",
         "/debt-management",
-        "/payment",
+        "/data-reconciliation",
+        "/reports",
+        "/business-categories",
         "/account",
         "/password",
         "/guide",
@@ -397,8 +409,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
     if (user?.userType === "mst_custom") {
       const allowedPaths = [
         "/dashboard",
-        "/payment-management",
-        "/debt-management",
         "/payment",
         "/account",
         "/password",

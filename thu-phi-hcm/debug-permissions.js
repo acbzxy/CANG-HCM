@@ -24,8 +24,6 @@ if (user) {
     console.log('\nMST Custom Permissions:');
     const allowedPaths = [
       '/dashboard',           // Trang chủ (basic)
-      '/payment-management',  // Quản lý thanh toán
-      '/debt-management',     // Q.lý xử lý nợ phí
       '/payment',             // Nộp phí cơ sở hạ tầng
       '/account',             // Thông tin tài khoản (basic)
       '/password',            // Đổi mật khẩu (basic)
@@ -39,6 +37,17 @@ if (user) {
       '/payment-management',  // Quản lý thanh toán
       '/debt-management',     // Q.lý xử lý nợ phí
       '/payment',             // Nộp phí cơ sở hạ tầng
+      '/account',             // Thông tin tài khoản (basic)
+      '/password',            // Đổi mật khẩu (basic)
+      '/guide'                // Hướng dẫn (basic)
+    ];
+    console.log('Allowed paths:', allowedPaths);
+  } else if (userData.userType === 'custom') {
+    console.log('\nCustom User Permissions:');
+    const allowedPaths = [
+      '/dashboard',           // Trang chủ (basic)
+      '/receipt-management',  // Biên lai thu phí
+      '/fee-declaration',     // Tờ khai phí
       '/account',             // Thông tin tài khoản (basic)
       '/password',            // Đổi mật khẩu (basic)
       '/guide'                // Hướng dẫn (basic)

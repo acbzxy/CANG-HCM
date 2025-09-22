@@ -11,6 +11,7 @@ import "./utils/setupPermissions";
 // Lazy load components for better performance
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const AdminLoginPage = lazy(() => import("./pages/AdminLoginPage"));
+const CangVuLoginPage = lazy(() => import("./pages/CangVuLoginPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
@@ -31,6 +32,7 @@ const DebtManagePage = lazy(() => import("./pages/DebtManagePage"));
 const CreateReceiptPage = lazy(() => import("./pages/CreateReceiptPage"));
 const ReceiptManagePage = lazy(() => import("./pages/ReceiptManagePage"));
 const ChartDemoPage = lazy(() => import("./pages/ChartDemoPage"));
+const GetinGetoutPage = lazy(() => import("./pages/GetinGetoutPage"));
 
 // Reports Pages
 const ReportsPage = lazy(() => import("./pages/reports/ReportsPage"));
@@ -117,6 +119,7 @@ function App() {
             <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/admin-login" element={<AdminLoginPage />} />
+            <Route path="/cangvu-login" element={<CangVuLoginPage />} />
             <Route path="/receipt-lookup" element={<ReceiptLookupPage />} />
             <Route path="/ecom-payment" element={<EcomPaymentPage />} />
 
@@ -126,6 +129,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/getin-getout"
+              element={
+                <ProtectedRoute>
+                  <GetinGetoutPage />
                 </ProtectedRoute>
               }
             />
