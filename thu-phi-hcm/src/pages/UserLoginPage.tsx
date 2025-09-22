@@ -1146,7 +1146,8 @@ const UserLoginPage: React.FC = () => {
                             e.currentTarget.style.color = "#0a8f3a";
                           }}
                           onMouseOut={(e) => {
-                            e.currentTarget.style.backgroundColor = "transparent";
+                            e.currentTarget.style.backgroundColor =
+                              "transparent";
                             e.currentTarget.style.color = "#0db14b";
                           }}
                         >
@@ -1181,7 +1182,8 @@ const UserLoginPage: React.FC = () => {
                             e.currentTarget.style.color = "#004d87";
                           }}
                           onMouseOut={(e) => {
-                            e.currentTarget.style.backgroundColor = "transparent";
+                            e.currentTarget.style.backgroundColor =
+                              "transparent";
                             e.currentTarget.style.color = "#0066b3";
                           }}
                         >

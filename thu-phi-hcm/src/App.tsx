@@ -83,9 +83,6 @@ const InitializePage = lazy(
 const ManageListPage = lazy(
   () => import("./pages/data-reconciliation/ManageListPage")
 );
-const CustomsReportPage = lazy(
-  () => import("./pages/data-reconciliation/CustomsReportPage")
-);
 
 //Payment Pages
 const DeclarePage = lazy(() => import("./pages/payment/declare/Declare"));
@@ -510,14 +507,6 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ManageListPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/data-reconciliation/customs-report"
-              element={
-                <ProtectedRoute>
-                  <CustomsReportPage />
                 </ProtectedRoute>
               }
             />
