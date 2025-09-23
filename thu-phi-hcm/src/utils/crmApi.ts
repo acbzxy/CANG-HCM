@@ -120,6 +120,14 @@ const CRM_ENDPOINTS = {
   GET_IN_GET_OUT_UPLOAD_EXCEL: `${CRM_API_BASE_URL}/api/get-in-get-out/upload-excel`,
   GET_IN_GET_OUT_EXPORT_EXCEL_RESULT: `${CRM_API_BASE_URL}/api/get-in-get-out/export-excel-result`,
 
+  // === ĐỐI SOÁT THỦ CÔNG ===
+  DOI_SOAT_SEARCH: `${CRM_API_BASE_URL}/api/doi-soat/search`,
+  DOI_SOAT_EXPORT: `${CRM_API_BASE_URL}/api/doi-soat/export`,
+  DOI_SOAT_EXPORT_MASTER_DETAIL: `${CRM_API_BASE_URL}/api/doi-soat/export-master-detail`,
+  DOI_SOAT_CHAY_THU_CONG: `${CRM_API_BASE_URL}/api/doi-soat/chay-thu-cong`,
+  DOI_SOAT_GET_BY_ID: `${CRM_API_BASE_URL}/api/doi-soat`,
+  DOI_SOAT_GET_ALL: `${CRM_API_BASE_URL}/api/doi-soat/all`,
+
   // === LEGACY COMPATIBILITY ===
   FEE_DECLARATIONS: `${CRM_API_BASE_URL}/api/tokhai-thongtin/all`, // redirect to real endpoint
   RECEIPTS: `${CRM_API_BASE_URL}/api/bien-lai/all`, // redirect to real endpoint
@@ -3218,6 +3226,531 @@ export class CrmApiService {
     if (match && match[1]) fileName = match[1];
 
     return { blob, fileName };
+  }
+
+  /**
+   * Tìm kiếm đối soát từ ngày đến ngày
+   * POST /api/doi-soat/search
+   * Body: { tuNgay: string, denNgay: string, nganHang?: string, nhDs?: string, kbDs?: string, trangThai?: string }
+   * Trả về: danh sách đối soát
+   */
+  static async searchDoiSoat(
+    tuNgay: string,
+    denNgay: string,
+    nganHang?: string,
+    nhDs?: string,
+    kbDs?: string,
+    trangThai?: string
+  ): Promise<ApiDataResponse<any[]> | ApiErrorResponse> {
+    try {
+      console.log("🔍 Tìm kiếm đối soát:", {
+        tuNgay,
+        denNgay,
+        nganHang,
+        nhDs,
+        kbDs,
+        trangThai,
+      });
+
+      const requestBody: any = {
+        tuNgay,
+        denNgay,
+      };
+
+      // Chỉ thêm các field optional nếu có giá trị
+      if (nganHang) requestBody.nganHang = nganHang;
+      if (nhDs) requestBody.nhDs = nhDs;
+      if (kbDs) requestBody.kbDs = kbDs;
+      if (trangThai) requestBody.trangThai = trangThai;
+
+      const response = await makeApiRequest<ApiDataResponse<any[]>>(
+        CRM_ENDPOINTS.DOI_SOAT_SEARCH,
+        {
+          method: "POST",
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      console.log("✅ Tìm kiếm đối soát thành công:", {
+        status: response.status,
+        message: response.message,
+        requestId: response.requestId,
+        executionTime: response.executionTime + "ms",
+        totalRecords: Array.isArray(response.data) ? response.data.length : 0,
+      });
+
+      return response;
+    } catch (error: any) {
+      console.error("❌ Lỗi tìm kiếm đối soát:", error);
+
+      // Nếu là HTTP error response, trả về error response structure
+      if (error.response) {
+        return error.response as ApiErrorResponse;
+      }
+
+      // Tạo error response structure cho network errors
+      const errorResponse: ApiErrorResponse = {
+        status: 500,
+        requestId: `error-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        startTime: Date.now(),
+        endTime: Date.now(),
+        executionTime: 0,
+        message: "Network error or unexpected error",
+        path: "/api/doi-soat/search",
+        data: {},
+        error: error.message || "Unknown error",
+        errors: [error.message || "Unknown error"],
+      };
+
+      return errorResponse;
+    }
+  }
+
+  /**
+   * Lấy danh sách tất cả đối soát
+   * GET /api/doi-soat/all
+   */
+  static async getAllDoiSoat(): Promise<
+    ApiDataResponse<any[]> | ApiErrorResponse
+  > {
+    try {
+      const response = await makeApiRequest<ApiDataResponse<any[]>>(
+        CRM_ENDPOINTS.DOI_SOAT_GET_ALL,
+        { method: "GET" }
+      );
+
+      return response;
+    } catch (error: any) {
+      if (error.response) return error.response as ApiErrorResponse;
+      const err: ApiErrorResponse = {
+        status: 500,
+        requestId: `error-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        startTime: Date.now(),
+        endTime: Date.now(),
+        executionTime: 0,
+        message: "Network error or unexpected error",
+        path: "/api/doi-soat/all",
+        data: {},
+        error: error.message || "Unknown error",
+        errors: [error.message || "Unknown error"],
+      };
+      return err;
+    }
+  }
+
+  /**
+   * Lấy thông tin đối soát theo ID
+   * GET /api/doi-soat/{id}
+   */
+  static async getDoiSoatById(
+    id: number
+  ): Promise<ApiDataResponse<any> | ApiErrorResponse> {
+    try {
+      console.log(`🔍 Lấy thông tin đối soát ID: ${id}...`);
+
+      const response = await makeApiRequest<ApiDataResponse<any>>(
+        `${CRM_ENDPOINTS.DOI_SOAT_GET_BY_ID}/${id}`,
+        { method: "GET" }
+      );
+
+      console.log("✅ Lấy thông tin đối soát thành công:", {
+        status: response.status,
+        message: response.message,
+        requestId: response.requestId,
+        executionTime: response.executionTime + "ms",
+        data: response.data,
+      });
+
+      return response;
+    } catch (error: any) {
+      console.error("❌ Lỗi lấy thông tin đối soát:", error);
+
+      if (error.response) return error.response as ApiErrorResponse;
+      const err: ApiErrorResponse = {
+        status: 500,
+        requestId: `error-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        startTime: Date.now(),
+        endTime: Date.now(),
+        executionTime: 0,
+        message: "Network error or unexpected error",
+        path: `/api/doi-soat/${id}`,
+        data: {},
+        error: error.message || "Unknown error",
+        errors: [error.message || "Unknown error"],
+      };
+      return err;
+    }
+  }
+
+  /**
+   * Chạy đối soát thủ công
+   * POST /api/doi-soat/chay-thu-cong
+   */
+  static async chayDoiSoatThuCong(
+    ngayDoiSoat?: string
+  ): Promise<ApiDataResponse<any> | ApiErrorResponse> {
+    try {
+      console.log(
+        `🚀 Chạy đối soát thủ công cho ngày: ${
+          ngayDoiSoat || "ngày hiện tại"
+        }...`
+      );
+
+      // Tạo query parameters
+      const queryParams = new URLSearchParams();
+      if (ngayDoiSoat) {
+        queryParams.append("ngayDoiSoat", ngayDoiSoat);
+      }
+
+      const url = queryParams.toString()
+        ? `${CRM_ENDPOINTS.DOI_SOAT_CHAY_THU_CONG}?${queryParams.toString()}`
+        : CRM_ENDPOINTS.DOI_SOAT_CHAY_THU_CONG;
+
+      const response = await makeApiRequest<ApiDataResponse<any>>(url, {
+        method: "POST",
+      });
+
+      console.log("✅ Chạy đối soát thủ công thành công:", {
+        status: response.status,
+        message: response.message,
+        requestId: response.requestId,
+        executionTime: response.executionTime + "ms",
+        data: response.data,
+      });
+
+      return response;
+    } catch (error: any) {
+      console.error("❌ Lỗi chạy đối soát thủ công:", error);
+
+      if (error.response) return error.response as ApiErrorResponse;
+      const err: ApiErrorResponse = {
+        status: 500,
+        requestId: `error-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        startTime: Date.now(),
+        endTime: Date.now(),
+        executionTime: 0,
+        message: "Network error or unexpected error",
+        path: "/api/doi-soat/chay-thu-cong",
+        data: {},
+        error: error.message || "Unknown error",
+        errors: [error.message || "Unknown error"],
+      };
+      return err;
+    }
+  }
+
+  /**
+   * Xuất dữ liệu đối soát với nhiều sheet
+   * POST /api/doi-soat/export
+   */
+  static async exportDoiSoat(
+    tuNgay: string,
+    denNgay: string,
+    nganHang?: string,
+    nhDs?: string,
+    kbDs?: string,
+    trangThai?: string
+  ): Promise<Blob | ApiErrorResponse> {
+    try {
+      console.log(`📊 Xuất dữ liệu đối soát từ ${tuNgay} đến ${denNgay}...`);
+
+      const requestBody: any = {
+        tuNgay,
+        denNgay,
+      };
+
+      // Chỉ thêm các field optional nếu có giá trị
+      if (nganHang) requestBody.nganHang = nganHang;
+      if (nhDs) requestBody.nhDs = nhDs;
+      if (kbDs) requestBody.kbDs = kbDs;
+      if (trangThai) requestBody.trangThai = trangThai;
+
+      const response = await fetch(`${CRM_API_BASE_URL}/api/doi-soat/export`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getHeaders(true),
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Lỗi xuất dữ liệu đối soát:", errorText);
+        const errorResponse: ApiErrorResponse = {
+          status: response.status,
+          requestId: `error-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          startTime: Date.now(),
+          endTime: Date.now(),
+          executionTime: 0,
+          message: `HTTP ${response.status}: ${response.statusText}`,
+          path: "/api/doi-soat/export",
+          data: {},
+          error: errorText,
+          errors: [errorText],
+        };
+        return errorResponse;
+      }
+
+      const blob = await response.blob();
+      console.log("✅ Xuất dữ liệu đối soát thành công:", {
+        size: blob.size,
+        type: blob.type,
+      });
+
+      return blob;
+    } catch (error: any) {
+      console.error("❌ Lỗi xuất dữ liệu đối soát:", error);
+
+      const errorResponse: ApiErrorResponse = {
+        status: 500,
+        requestId: `error-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        startTime: Date.now(),
+        endTime: Date.now(),
+        executionTime: 0,
+        message: "Network error or unexpected error",
+        path: "/api/doi-soat/export",
+        data: {},
+        error: error.message || "Unknown error",
+        errors: [error.message || "Unknown error"],
+      };
+      return errorResponse;
+    }
+  }
+
+  /**
+   * Xuất dữ liệu đối soát với layout master-detail
+   * POST /api/doi-soat/export-master-detail
+   */
+  static async exportDoiSoatMasterDetail(
+    tuNgay: string,
+    denNgay: string,
+    nganHang?: string,
+    nhDs?: string,
+    kbDs?: string,
+    trangThai?: string
+  ): Promise<Blob | ApiErrorResponse> {
+    try {
+      console.log(
+        `📊 Xuất dữ liệu đối soát master-detail từ ${tuNgay} đến ${denNgay}...`
+      );
+
+      const requestBody: any = {
+        tuNgay,
+        denNgay,
+      };
+
+      // Chỉ thêm các field optional nếu có giá trị
+      if (nganHang) requestBody.nganHang = nganHang;
+      if (nhDs) requestBody.nhDs = nhDs;
+      if (kbDs) requestBody.kbDs = kbDs;
+      if (trangThai) requestBody.trangThai = trangThai;
+
+      const response = await fetch(
+        `${CRM_API_BASE_URL}/api/doi-soat/export-master-detail`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getHeaders(true),
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ Lỗi xuất dữ liệu đối soát master-detail:", errorText);
+        const errorResponse: ApiErrorResponse = {
+          status: response.status,
+          requestId: `error-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          startTime: Date.now(),
+          endTime: Date.now(),
+          executionTime: 0,
+          message: `HTTP ${response.status}: ${response.statusText}`,
+          path: "/api/doi-soat/export-master-detail",
+          data: {},
+          error: errorText,
+          errors: [errorText],
+        };
+        return errorResponse;
+      }
+
+      const blob = await response.blob();
+      console.log("✅ Xuất dữ liệu đối soát master-detail thành công:", {
+        size: blob.size,
+        type: blob.type,
+      });
+
+      return blob;
+    } catch (error: any) {
+      console.error("❌ Lỗi xuất dữ liệu đối soát master-detail:", error);
+
+      const errorResponse: ApiErrorResponse = {
+        status: 500,
+        requestId: `error-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        startTime: Date.now(),
+        endTime: Date.now(),
+        executionTime: 0,
+        message: "Network error or unexpected error",
+        path: "/api/doi-soat/export-master-detail",
+        data: {},
+        error: error.message || "Unknown error",
+        errors: [error.message || "Unknown error"],
+      };
+      return errorResponse;
+    }
+  }
+
+  /**
+   * Đối soát với ngân hàng
+   * POST /api/bank-reconcile/process
+   */
+  static async processBankReconcile(
+    reconcileDate: string,
+    bankCode: string,
+    bankName: string,
+    unitCode: string,
+    unitName: string,
+    totalTransaction: number,
+    totalAmount: number,
+    transactions: Array<{
+      transId: string;
+      toKhaiId: string;
+      amount: number;
+      status: string;
+      payTime: string;
+      sendToKBNNStatus: string;
+      remark: string;
+    }>
+  ): Promise<ApiDataResponse<any> | ApiErrorResponse> {
+    try {
+      console.log(`🏦 Đối soát với ngân hàng: ${bankName} (${bankCode})...`);
+
+      const requestBody = {
+        reconcileDate,
+        bankCode,
+        bankName,
+        unitCode,
+        unitName,
+        totalTransaction,
+        totalAmount,
+        transactions,
+      };
+
+      const response = await makeApiRequest<ApiDataResponse<any>>(
+        `${CRM_API_BASE_URL}/api/bank-reconcile/process`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getHeaders(true),
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      console.log("✅ Đối soát với ngân hàng thành công:", {
+        status: response.status,
+        message: response.message,
+        requestId: response.requestId,
+        executionTime: response.executionTime + "ms",
+        data: response.data,
+      });
+
+      return response;
+    } catch (error: any) {
+      console.error("❌ Lỗi đối soát với ngân hàng:", error);
+
+      if (error.response) return error.response as ApiErrorResponse;
+      const errorResponse: ApiErrorResponse = {
+        status: 500,
+        requestId: `error-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        startTime: Date.now(),
+        endTime: Date.now(),
+        executionTime: 0,
+        message: "Network error or unexpected error",
+        path: "/api/bank-reconcile/process",
+        data: {},
+        error: error.message || "Unknown error",
+        errors: [error.message || "Unknown error"],
+      };
+      return errorResponse;
+    }
+  }
+
+  /**
+   * Đối soát với kho bạc
+   * POST /api/kb-reconcile/process
+   */
+  static async processKbReconcile(
+    reconcileDate: string,
+    totalTransaction: number,
+    totalAmount: number,
+    transactions: Array<{
+      transId: string;
+      amount: number;
+    }>
+  ): Promise<ApiDataResponse<any> | ApiErrorResponse> {
+    try {
+      console.log(`💰 Đối soát với kho bạc cho ngày: ${reconcileDate}...`);
+
+      const requestBody = {
+        reconcileDate,
+        totalTransaction,
+        totalAmount,
+        transactions,
+      };
+
+      const response = await makeApiRequest<ApiDataResponse<any>>(
+        `${CRM_API_BASE_URL}/api/kb-reconcile/process`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...getHeaders(true),
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      console.log("✅ Đối soát với kho bạc thành công:", {
+        status: response.status,
+        message: response.message,
+        requestId: response.requestId,
+        executionTime: response.executionTime + "ms",
+        data: response.data,
+      });
+
+      return response;
+    } catch (error: any) {
+      console.error("❌ Lỗi đối soát với kho bạc:", error);
+
+      if (error.response) return error.response as ApiErrorResponse;
+      const errorResponse: ApiErrorResponse = {
+        status: 500,
+        requestId: `error-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        startTime: Date.now(),
+        endTime: Date.now(),
+        executionTime: 0,
+        message: "Network error or unexpected error",
+        path: "/api/kb-reconcile/process",
+        data: {},
+        error: error.message || "Unknown error",
+        errors: [error.message || "Unknown error"],
+      };
+      return errorResponse;
+    }
   }
 }
 

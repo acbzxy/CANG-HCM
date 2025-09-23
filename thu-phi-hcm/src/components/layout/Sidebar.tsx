@@ -375,7 +375,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       const allowedPaths = [
         "/dashboard",
         "/fee-declaration",
-        "/receipt-management", 
+        "/receipt-management",
         "/payment",
         "/debt-management",
         "/business-categories",
