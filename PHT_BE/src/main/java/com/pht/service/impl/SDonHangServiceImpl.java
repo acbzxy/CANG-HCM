@@ -21,8 +21,8 @@ import com.pht.model.request.SDonHangSearchRequest;
 import com.pht.model.request.SDonHangUpdateRequest;
 import com.pht.model.response.CatalogSearchResponse;
 import com.pht.repository.SDonHangRepository;
+import com.pht.repository.ToKhaiThongTinRepository;
 import com.pht.service.SDonHangService;
-import com.pht.service.impl.BaseServiceImpl;
 import com.pht.utils.QueryUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +34,9 @@ public class SDonHangServiceImpl extends BaseServiceImpl<SDonHang, Long> impleme
 
     @Autowired
     private SDonHangRepository sDonHangRepository;
+
+    @Autowired
+    private ToKhaiThongTinRepository toKhaiThongTinRepository;
 
     @Override
     public SDonHangRepository getRepository() {
@@ -135,6 +138,19 @@ public class SDonHangServiceImpl extends BaseServiceImpl<SDonHang, Long> impleme
             }
             savedEntity.getChiTietList().addAll(chiTietList);
             savedEntity = sDonHangRepository.save(savedEntity);
+
+            // Sau khi lưu chi tiết đơn hàng, cập nhật TT_NH (trangThaiNganHang) của các tờ khai về "01"
+            List<Long> toKhaiIds = chiTietList.stream()
+                    .map(SDonHangCt::getIdTokhai)
+                    .filter(java.util.Objects::nonNull)
+                    .distinct()
+                    .collect(java.util.stream.Collectors.toList());
+            if (!toKhaiIds.isEmpty()) {
+                toKhaiThongTinRepository.findAllById(toKhaiIds).forEach(tk -> {
+                    tk.setTrangThaiNganHang("01");
+                });
+                toKhaiThongTinRepository.flush();
+            }
         }
 
         return savedEntity;

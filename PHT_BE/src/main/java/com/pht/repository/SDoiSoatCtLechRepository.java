@@ -26,3 +26,5 @@ public interface SDoiSoatCtLechRepository extends BaseRepository<SDoiSoatCtLech,
 
 
 
+
+

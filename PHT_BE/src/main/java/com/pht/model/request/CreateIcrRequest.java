@@ -10,8 +10,8 @@ public class CreateIcrRequest {
     @Schema(description = "Thông tin user")
     private Object user;
     
-    @Schema(description = "Thông tin invoice")
-    private Object inv;
+    @Schema(description = "Thông tin biên lai/receipt theo spec FPT")
+    private Object receipt;
     
     @Schema(description = "ID tờ khai thông tin để cập nhật trạng thái phát hành", example = "123")
     private Long toKhaiId;

@@ -11,4 +11,9 @@ public interface BankWebhookService {
      * @return Response trả về cho ngân hàng
      */
     BankWebhookResponse processPaymentNotification(BankWebhookRequest request);
+
+    /**
+     * Giả lập dữ liệu thanh toán và gọi xử lý webhook cho danh sách số đơn hàng
+     */
+    java.util.List<com.pht.model.response.BankWebhookResponse> simulatePaymentForOrders(java.util.List<String> soDonHangList);
 }

@@ -38,3 +38,5 @@ public class SlogNhKb {
     private String jsonData; // JSON data từ NH hoặc KB
 }
 
+
+

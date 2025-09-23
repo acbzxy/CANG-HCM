@@ -14,6 +14,8 @@ import com.pht.dto.BankReconcileRequest;
 import com.pht.dto.ReconcileResponse;
 import com.pht.exception.BusinessException;
 import com.pht.service.BankReconcileService;
+import com.pht.repository.SDoiSoatCtRepository;
+import com.pht.entity.SDoiSoatCt;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -23,6 +25,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -32,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 public class BankReconcileController {
     
     private final BankReconcileService bankReconcileService;
+    private final SDoiSoatCtRepository sDoiSoatCtRepository;
     
     @Operation(summary = "Đối soát với ngân hàng", 
                description = "Nhận JSON từ ngân hàng và lưu vào bảng SLOG_NH_KB")
@@ -70,6 +77,85 @@ public class BankReconcileController {
             log.error("Lỗi hệ thống khi xử lý yêu cầu ngân hàng: ", ex);
             return ResponseHelper.error(ex);
         }
+    }
+
+    @PostMapping("/simulate-matched")
+    @Operation(summary = "Giả lập đối soát khớp", description = "Tạo dữ liệu giao dịch SUCCESS và gọi /process")
+    public ResponseEntity<?> simulateMatched() {
+        LocalDate today = LocalDate.now();
+        List<SDoiSoatCt> details = sDoiSoatCtRepository.findByNgayDsMaxLanDs(today);
+        if (details == null || details.isEmpty()) {
+            return ResponseEntity.ok("Không có dữ liệu đối soát chi tiết cho hôm nay");
+        }
+
+        String bankCode = details.get(0).getNganHang() != null ? details.get(0).getNganHang() : "SIMBANK";
+
+        BankReconcileRequest req = new BankReconcileRequest();
+        req.setReconcileDate(today);
+        req.setBankCode(bankCode);
+        req.setBankName(bankCode);
+        req.setUnitCode("UNIT01");
+        req.setUnitName("Unit 01");
+
+        List<BankReconcileRequest.BankTransaction> txs = new ArrayList<>();
+        for (SDoiSoatCt ct : details) {
+            BankReconcileRequest.BankTransaction tx = new BankReconcileRequest.BankTransaction();
+            tx.setTransId(ct.getTransId());
+            tx.setToKhaiId(ct.getStoKhaiId() != null ? String.valueOf(ct.getStoKhaiId()) : null);
+            tx.setAmount(ct.getTongTienPhi() != null ? ct.getTongTienPhi() : BigDecimal.ZERO);
+            tx.setStatus("SUCCESS");
+            tx.setPayTime(LocalDateTime.now());
+            tx.setSendToKBNNStatus("NOT_SENT");
+            tx.setRemark("SIM matched from SDOI_SOAT_CT");
+            txs.add(tx);
+        }
+
+        req.setTransactions(txs);
+        req.setTotalTransaction(txs.size());
+        req.setTotalAmount(txs.stream().map(BankReconcileRequest.BankTransaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
+
+        processBankReconcileAsync(req);
+        return ResponseEntity.ok("Simulate matched queued");
+    }
+
+    @PostMapping("/simulate-command")
+    @Operation(summary = "Giả lập đối soát lệnh", description = "Tạo dữ liệu giao dịch FAILED và gọi /process")
+    public ResponseEntity<?> simulateCommand() {
+        LocalDate today = LocalDate.now();
+        List<SDoiSoatCt> details = sDoiSoatCtRepository.findByNgayDsMaxLanDs(today);
+        if (details == null || details.isEmpty()) {
+            return ResponseEntity.ok("Không có dữ liệu đối soát chi tiết cho hôm nay");
+        }
+
+        String bankCode = details.get(0).getNganHang() != null ? details.get(0).getNganHang() : "SIMBANK";
+
+        BankReconcileRequest req = new BankReconcileRequest();
+        req.setReconcileDate(today);
+        req.setBankCode(bankCode);
+        req.setBankName(bankCode);
+        req.setUnitCode("UNIT01");
+        req.setUnitName("Unit 01");
+
+        List<BankReconcileRequest.BankTransaction> txs = new ArrayList<>();
+        for (SDoiSoatCt ct : details) {
+            BankReconcileRequest.BankTransaction tx = new BankReconcileRequest.BankTransaction();
+            tx.setTransId(ct.getTransId());
+            tx.setToKhaiId(ct.getStoKhaiId() != null ? String.valueOf(ct.getStoKhaiId()) : null);
+            BigDecimal base = ct.getTongTienPhi() != null ? ct.getTongTienPhi() : BigDecimal.ZERO;
+            tx.setAmount(base.add(BigDecimal.ONE)); // lệch: thay đổi số tiền
+            tx.setStatus("FAILED");
+            tx.setPayTime(LocalDateTime.now());
+            tx.setSendToKBNNStatus("NOT_SENT");
+            tx.setRemark("SIM command from SDOI_SOAT_CT (amount mismatched)");
+            txs.add(tx);
+        }
+
+        req.setTransactions(txs);
+        req.setTotalTransaction(txs.size());
+        req.setTotalAmount(txs.stream().map(BankReconcileRequest.BankTransaction::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add));
+
+        processBankReconcileAsync(req);
+        return ResponseEntity.ok("Simulate command queued");
     }
     
     /**

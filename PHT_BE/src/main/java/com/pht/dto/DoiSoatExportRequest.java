@@ -11,3 +11,5 @@ public class DoiSoatExportRequest {
     private String loaiDoiSoat; // Loại đối soát: "NH" (ngân hàng), "KB" (kho bạc), null = tất cả
 }
 
+
+

@@ -20,3 +20,5 @@ public interface SysGroupFuncRepository extends BaseRepository<SysGroupFunc, Lon
 
 
 
+
+

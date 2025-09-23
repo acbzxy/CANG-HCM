@@ -49,4 +49,7 @@ public interface SDonHangRepository extends BaseRepository<SDonHang, Long> {
     // Tìm số đơn hàng lớn nhất để generate số tiếp theo
     @Query("SELECT MAX(CAST(SUBSTRING(s.soDonHang, 4) AS long)) FROM SDonHang s WHERE s.soDonHang LIKE 'DH%'")
     Long findMaxSoDonHangNumber();
+
+    @Query("SELECT DISTINCT s FROM SDonHang s, SDonHangCt c, StoKhai t WHERE c.donHangId = s.id AND t.id = c.idTokhai AND t.trangThaiNganHang = :ttnh")
+    java.util.List<SDonHang> findOrdersHavingTokhaiTrangThaiNganHang(@Param("ttnh") String ttnh);
 }

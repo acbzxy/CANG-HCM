@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import com.pht.model.request.BankWebhookRequest;
 import com.pht.model.response.BankWebhookResponse;
 import com.pht.service.BankWebhookService;
+import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -72,5 +73,13 @@ public class BankWebhookController {
             
             return ResponseEntity.ok(errorResponse);
         }
+    }
+
+    @PostMapping(value = "/simulate-payment", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "Giả lập nhận thông báo thanh toán", description = "Tìm các đơn có tờ khai TT_NH=00, tạo json mô phỏng và gọi xử lý webhook")
+    public ResponseEntity<List<BankWebhookResponse>> simulatePaymentNotifications(@RequestBody List<String> soDonHangList) {
+        log.info("Giả lập webhook cho các soDonHang: {}", soDonHangList);
+        List<BankWebhookResponse> responses = bankWebhookService.simulatePaymentForOrders(soDonHangList);
+        return ResponseEntity.ok(responses);
     }
 }

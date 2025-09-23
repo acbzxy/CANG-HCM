@@ -3,15 +3,18 @@ package com.pht.service.impl;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pht.entity.StoKhai;
+import com.pht.entity.SDonHang;
+import com.pht.entity.SDonHangCt;
 import com.pht.model.request.BankWebhookRequest;
 import com.pht.model.response.BankWebhookResponse;
+import com.pht.repository.SDonHangRepository;
 import com.pht.repository.ToKhaiThongTinRepository;
 import com.pht.service.BankWebhookService;
 
@@ -28,6 +31,9 @@ public class BankWebhookServiceImpl implements BankWebhookService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private SDonHangRepository sDonHangRepository;
+
     @Override
     public BankWebhookResponse processPaymentNotification(BankWebhookRequest request) {
         log.info("Nhận webhook từ ngân hàng: transId={}, amount={}, remark={}", 
@@ -38,42 +44,46 @@ public class BankWebhookServiceImpl implements BankWebhookService {
             String tvsdJson = objectMapper.writeValueAsString(request);
             log.info("Đã chuyển đổi request thành JSON: {}", tvsdJson);
             
-            // Bóc tách remark để tìm mã doanh nghiệp và số tờ khai
-            String[] remarkParts = parseRemark(request.getRemark());
-            String maDoanhNghiep = remarkParts[0];
-            String soToKhai = remarkParts[1];
-            
-            log.info("Bóc tách remark: maDoanhNghiep={}, soToKhai={}", maDoanhNghiep, soToKhai);
-            
-            // Tìm tờ khai theo mã doanh nghiệp và số tờ khai
-            List<StoKhai> toKhaiList = toKhaiThongTinRepository.findByMaDoanhNghiepKhaiPhiAndSoToKhai(maDoanhNghiep, soToKhai);
-            
-            if (toKhaiList.isEmpty()) {
-                log.warn("Không tìm thấy tờ khai với maDoanhNghiep={} và soToKhai={}", maDoanhNghiep, soToKhai);
-                return createErrorResponse(request.getTransId(), request.getProviderId(), "01", "Không tìm thấy tờ khai");
+            // Lấy số đơn hàng từ remark
+            String soDonHang = extractSoDonHangFromRemark(request.getRemark());
+            log.info("Bóc tách remark: soDonHang={}", soDonHang);
+
+            // Tìm đơn hàng theo số đơn hàng
+            SDonHang donHang = sDonHangRepository.findBySoDonHang(soDonHang);
+            if (donHang == null) {
+                log.warn("Không tìm thấy đơn hàng với soDonHang={}", soDonHang);
+                return createErrorResponse(request.getTransId(), request.getProviderId(), "01", "Không tìm thấy đơn hàng");
             }
-            
-            // Cập nhật tờ khai đầu tiên tìm được
-            StoKhai toKhai = toKhaiList.get(0);
-            log.info("Tìm thấy tờ khai ID: {}, đang cập nhật...", toKhai.getId());
-            
-            // Cập nhật thông tin từ webhook
-            toKhai.setTvsdJson(tvsdJson);
-            toKhai.setTransId(request.getTransId());
-            toKhai.setTrangThai("04"); // Trạng thái đã thanh toán
-            toKhai.setTrangThaiNganHang("02"); // TTNH = 02
-            
+
             // Parse transTime và lưu vào ngay_tt
             LocalDateTime ngayThanhToan = parseTransTime(request.getTransTime());
-            toKhai.setNgayTt(ngayThanhToan);
-            
-            // Lưu vào database
-            StoKhai savedToKhai = toKhaiThongTinRepository.save(toKhai);
-            
-            log.info("✅ Đã cập nhật tờ khai ID: {} thành công. Ngày thanh toán: {}, TransTime: '{}'", 
-                    savedToKhai.getId(), savedToKhai.getNgayTt(), request.getTransTime());
-            
-            // Trả về response thành công
+
+            // Cập nhật tất cả tờ khai liên quan (từ chi tiết đơn hàng) TT_NH = "02"
+            if (donHang.getChiTietList() != null && !donHang.getChiTietList().isEmpty()) {
+                List<Long> toKhaiIds = donHang.getChiTietList().stream()
+                        .map(SDonHangCt::getIdTokhai)
+                        .filter(Objects::nonNull)
+                        .distinct()
+                        .toList();
+
+                if (!toKhaiIds.isEmpty()) {
+                    toKhaiThongTinRepository.findAllById(toKhaiIds).forEach(tk -> {
+                        tk.setTvsdJson(tvsdJson);
+                        tk.setTransId(request.getTransId());
+                        tk.setTrangThai("04"); // Đã thanh toán
+                        tk.setTrangThaiNganHang("02"); // TTNH = 02
+                        tk.setNgayTt(ngayThanhToan);
+                    });
+                    toKhaiThongTinRepository.flush();
+                }
+            }
+
+            // Cập nhật trạng thái đơn hàng thành "01"
+            donHang.setTrangThai("01");
+            sDonHangRepository.save(donHang);
+
+            log.info("✅ Đã cập nhật trạng thái TT_NH=02 cho các tờ khai liên quan và trạng thái đơn hàng=01 cho soDonHang={}", soDonHang);
+
             return createSuccessResponse(request.getTransId(), request.getProviderId());
             
         } catch (Exception e) {
@@ -81,22 +91,56 @@ public class BankWebhookServiceImpl implements BankWebhookService {
             return createErrorResponse(request.getTransId(), request.getProviderId(), "99", "Lỗi hệ thống: " + e.getMessage());
         }
     }
+
+    @Override
+    public java.util.List<BankWebhookResponse> simulatePaymentForOrders(java.util.List<String> soDonHangList) {
+        java.util.List<BankWebhookResponse> responses = new java.util.ArrayList<>();
+
+        // Nếu không truyền danh sách, tự tìm các đơn có tờ khai TT_NH = "00"
+        if (soDonHangList == null || soDonHangList.isEmpty()) {
+            List<SDonHang> orders = sDonHangRepository.findOrdersHavingTokhaiTrangThaiNganHang("00");
+            soDonHangList = orders.stream().map(SDonHang::getSoDonHang).distinct().toList();
+        }
+
+        for (String soDonHang : soDonHangList) {
+            try {
+                // Tạo request giả lập
+                BankWebhookRequest req = new BankWebhookRequest();
+                req.setMsgId("SIM-" + System.currentTimeMillis());
+                req.setProviderId("SIM");
+                req.setTransId("SIMTX-" + soDonHang + "-" + System.nanoTime());
+                req.setTransTime(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss").format(java.time.LocalDateTime.now()));
+                req.setTransType("PAYMENT");
+                req.setAmount("100000");
+                req.setRemark(soDonHang); // remark là số đơn hàng
+                req.setCurrencyCode("VND");
+                req.setSignature("");
+
+                // Gọi xử lý như webhook thật
+                BankWebhookResponse resp = processPaymentNotification(req);
+                responses.add(resp);
+            } catch (Exception e) {
+                BankWebhookResponse error = new BankWebhookResponse();
+                error.setTransId(soDonHang);
+                error.setProviderId("SIM");
+                error.setErrorCode("99");
+                error.setErrorDesc("Simulate error: " + e.getMessage());
+                error.setSignature("");
+                responses.add(error);
+            }
+        }
+        return responses;
+    }
     
     /**
      * Bóc tách remark để lấy mã doanh nghiệp và số tờ khai
      * Format: "maDoanhNghiep_soToKhai"
      */
-    private String[] parseRemark(String remark) {
-        if (remark == null || remark.isEmpty()) {
+    private String extractSoDonHangFromRemark(String remark) {
+        if (remark == null || remark.trim().isEmpty()) {
             throw new IllegalArgumentException("Remark không được để trống");
         }
-        
-        String[] parts = remark.split("_");
-        if (parts.length != 2) {
-            throw new IllegalArgumentException("Format remark không đúng. Mong đợi: maDoanhNghiep_soToKhai");
-        }
-        
-        return parts;
+        return remark.trim();
     }
     
     /**

@@ -441,10 +441,10 @@ public class FptEInvoiceController {
         try {
             HttpHeaders headers = createBasicAuthHeaders();
 
-            // Tạo request body không bao gồm toKhaiId (chỉ gửi user và inv sang FPT)
+            // Tạo request body không bao gồm toKhaiId (chỉ gửi user và receipt sang FPT)
             java.util.Map<String, Object> fptRequest = new java.util.HashMap<>();
             fptRequest.put("user", request.getUser());
-            fptRequest.put("inv", request.getInv());
+            fptRequest.put("receipt", request.getReceipt());
             
             String requestBody = objectMapper.writeValueAsString(fptRequest);
             HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
@@ -462,10 +462,10 @@ public class FptEInvoiceController {
         try {
             HttpHeaders headers = createBasicAuthHeaders();
 
-            // Tạo request body không bao gồm toKhaiId (chỉ gửi user và inv sang FPT)
+            // Tạo request body không bao gồm toKhaiId (chỉ gửi user và receipt sang FPT)
             java.util.Map<String, Object> fptRequest = new java.util.HashMap<>();
             fptRequest.put("user", request.getUser());
-            fptRequest.put("inv", request.getInv());
+            fptRequest.put("receipt", request.getReceipt());
             
             String requestBody = objectMapper.writeValueAsString(fptRequest);
             HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
@@ -494,12 +494,17 @@ public class FptEInvoiceController {
                 java.util.Map<String, Object> responseMap = (java.util.Map<String, Object>) responseObj;
                 Object statusObj = responseMap.get("status");
                 Object sidObj = responseMap.get("sid");
+                Object secObj = responseMap.get("sec");
+                Object seqObj = responseMap.get("seq");
+                Object serialObj = responseMap.get("serial");
+                Object formObj = responseMap.get("form");
+                Object idtObj = responseMap.get("idt");
                 
                 if (statusObj != null) {
                     int status = Integer.parseInt(statusObj.toString());
                     
-                    if (status == 6) {
-                        log.info("FPT response thành công (status=6), cập nhật trạng thái phát hành cho tờ khai ID: {}", toKhaiId);
+                    if (status == 3) {
+                        log.info("FPT response thành công (status=3), cập nhật trạng thái phát hành cho tờ khai ID: {}", toKhaiId);
                         
                         // Lấy sid từ response
                         String sid = sidObj != null ? sidObj.toString() : null;
@@ -509,8 +514,8 @@ public class FptEInvoiceController {
                             log.warn("Không tìm thấy field 'sid' trong FPT response cho tờ khai ID: {}", toKhaiId);
                         }
                         
-                        // Cập nhật trạng thái phát hành về "01" và idPhatHanh
-                        updateStoKhaiAfterSuccess(toKhaiId, sid);
+                        // Cập nhật trạng thái phát hành về "01" và các thông tin trả về
+                        updateStoKhaiAfterSuccess(toKhaiId, sid, secObj, seqObj, serialObj, formObj, idtObj);
                         
                         log.info("Đã cập nhật trạng thái phát hành thành '01' và idPhatHanh cho tờ khai ID: {}", toKhaiId);
                     } else {
@@ -533,6 +538,10 @@ public class FptEInvoiceController {
      * Cập nhật tờ khai thông tin sau khi FPT response thành công
      */
     private void updateStoKhaiAfterSuccess(Long toKhaiId, String sid) {
+        updateStoKhaiAfterSuccess(toKhaiId, sid, null, null, null, null, null);
+    }
+
+    private void updateStoKhaiAfterSuccess(Long toKhaiId, String sid, Object secObj, Object seqObj, Object serialObj, Object formObj, Object idtObj) {
         try {
             // Lấy tờ khai hiện tại
             com.pht.entity.StoKhai toKhai = toKhaiThongTinService.getToKhaiThongTinById(toKhaiId);
@@ -542,14 +551,94 @@ public class FptEInvoiceController {
             if (sid != null) {
                 toKhai.setIdPhatHanh(sid);
             }
+
+            // Cập nhật các field liên quan từ response
+            if (secObj != null) {
+                toKhai.setMaTraCuuBienLai(secObj.toString());
+            }
+            if (seqObj != null) {
+                toKhai.setSoBienLai(seqObj.toString());
+            }
+            if (serialObj != null && seqObj != null) {
+                toKhai.setKyHieuBienLai(serialObj.toString() +"_"+ seqObj.toString());
+            }
+            if (formObj != null) {
+                toKhai.setMauBienLai(formObj.toString());
+            }
+            if (idtObj != null) {
+                try {
+                    // idt ví dụ: "2025-09-23 10:23:13" -> lấy phần ngày
+                    String idt = idtObj.toString();
+                    String datePart = idt.length() >= 10 ? idt.substring(0, 10) : idt;
+                    java.time.LocalDate parsed = java.time.LocalDate.parse(datePart);
+                    toKhai.setNgayBienLai(parsed);
+                } catch (Exception ignore) {
+                    // Bỏ qua nếu parse lỗi
+                }
+            }
             
             // Lưu vào database
             toKhaiThongTinService.save(toKhai);
+            
+            // Cập nhật biên lai liên kết nếu có
+            if (toKhai.getIdBienLai() != null) {
+                updateBienLaiFromFptResponse(toKhai.getIdBienLai(), secObj, seqObj, serialObj, formObj, idtObj, sid);
+            }
             
             log.info("Đã cập nhật tờ khai ID: {} - trangThaiPhatHanh: 01, idPhatHanh: {}", toKhaiId, sid);
         } catch (Exception e) {
             log.error("Lỗi khi cập nhật tờ khai thông tin ID {}: ", toKhaiId, e);
             throw new RuntimeException("Lỗi khi cập nhật tờ khai thông tin: " + e.getMessage(), e);
+        }
+    }
+
+
+    /**
+     * Cập nhật biên lai từ FPT response
+     */
+    private void updateBienLaiFromFptResponse(Long bienLaiId, Object secObj, Object seqObj, Object serialObj, Object formObj, Object idtObj, String sid) {
+        try {
+            log.info("Cập nhật biên lai ID: {} từ FPT response", bienLaiId);
+            
+            // Lấy biên lai hiện tại
+            com.pht.entity.SBienLai bienLai = sBienLaiService.getBienLaiById(bienLaiId);
+            
+            // Cập nhật các thông tin từ FPT response
+            if (secObj != null) {
+                // Có thể lưu vào ghiChu hoặc tạo field mới nếu cần
+                bienLai.setGhiChu("FPT SEC: " + secObj.toString());
+            }
+            if (seqObj != null) {
+                bienLai.setSoBl(seqObj.toString());
+            }
+            if (serialObj != null && seqObj != null) {
+                bienLai.setMaBl(serialObj.toString() + "_" + seqObj.toString());
+            }
+            if (formObj != null) {
+                // Có thể lưu vào loaiCtiet hoặc tạo field mới nếu cần
+                bienLai.setLoaiCtiet("FPT FORM: " + formObj.toString());
+            }
+            if (idtObj != null) {
+                try {
+                    String idt = idtObj.toString();
+                    String datePart = idt.length() >= 10 ? idt.substring(0, 10) : idt;
+                    java.time.LocalDate parsed = java.time.LocalDate.parse(datePart);
+                    bienLai.setNgayBl(parsed.atStartOfDay());
+                } catch (Exception ignore) {
+                    // Bỏ qua nếu parse lỗi
+                }
+            }
+            if (sid != null) {
+                bienLai.setIdPhatHanh(sid);
+            }
+            
+            // Lưu biên lai
+            sBienLaiService.save(bienLai);
+            
+            log.info("Đã cập nhật biên lai ID: {} với thông tin từ FPT response", bienLaiId);
+        } catch (Exception e) {
+            log.error("Lỗi khi cập nhật biên lai ID {} từ FPT response: ", bienLaiId, e);
+            // Không throw exception để không ảnh hưởng đến luồng chính
         }
     }
 

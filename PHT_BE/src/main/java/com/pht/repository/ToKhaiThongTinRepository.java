@@ -49,5 +49,10 @@ public interface ToKhaiThongTinRepository extends BaseRepository<StoKhai, Long> 
      * Tìm tờ khai theo mã doanh nghiệp khai phí và số tờ khai
      */
     List<StoKhai> findByMaDoanhNghiepKhaiPhiAndSoToKhai(String maDoanhNghiepKhaiPhi, String soToKhai);
+
+    /**
+     * Lấy danh sách tờ khai theo trạng thái ngân hàng (TT_NH)
+     */
+    List<StoKhai> findByTrangThaiNganHang(String trangThaiNganHang);
     
 }

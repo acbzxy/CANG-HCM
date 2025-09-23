@@ -14,3 +14,5 @@ public class DoiSoatSearchRequest {
     private String trangThai; // Trạng thái tổng thể: "00", "01", "02"
 }
 
+
+

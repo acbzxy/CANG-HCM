@@ -17,3 +17,5 @@ public interface SysUserRepository extends BaseRepository<SysUser, Long> {
 
 
 
+
+

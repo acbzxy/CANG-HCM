@@ -13,3 +13,5 @@ public interface SysFuncRepository extends BaseRepository<SysFunc, Long> {
 
 
 
+
+
