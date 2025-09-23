@@ -663,9 +663,9 @@ const CreateReceiptPage: React.FC = () => {
     } catch (error) {
       console.error('❌ Error saving receipt to system:', error);
       console.error('❌ Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: (error as Error).message,
+        stack: (error as Error).stack,
+        name: (error as Error).name
       });
       // Don't show error to user as this is additional save
       // The main E-Invoice save was already successful
@@ -776,33 +776,20 @@ const CreateReceiptPage: React.FC = () => {
           if (currentTrangThaiPhatHanh === '00') {
             setCurrentTrangThaiPhatHanh('01'); // Update to "Bản nháp" after successful save
           }
-          console.log('🔔 Calling showSuccess with message: Lưu biên lai thành công! (Mock)');
-          showSuccess('Lưu biên lai thành công! (Chế độ phát triển)', 'Lưu biên lai');
-          console.log('🔔 showSuccess called successfully');
           
-          // Store mock data for later use
+          // Store E-Invoice data for later use
           localStorage.setItem('eInvoiceData', JSON.stringify(responseData));
           
-          // Call additional API to save receipt data (even in mock mode)
+          // Call additional API to save receipt data
           await saveReceiptToSystem(currentSid);
-          
-          // Update localStorage with system receipt ID (mock mode)
-          if (systemReceiptId) {
-            const existingUpdates = JSON.parse(localStorage.getItem('feeDeclarationUpdates') || '[]');
-            const updatedUpdates = existingUpdates.map((update: any) => 
-              update.id === selectedItem?.id 
-                ? { ...update, systemReceiptId: systemReceiptId }
-                : update
-            );
-            localStorage.setItem('feeDeclarationUpdates', JSON.stringify(updatedUpdates));
-            console.log('✅ Updated localStorage with systemReceiptId (mock):', systemReceiptId);
-          }
           
           // Auto-generate receipt code for next time
           if (responseData.id) {
             const nextNumber = parseInt(receiptNumber) + 1;
             setReceiptNumber(String(nextNumber).padStart(7, '0'));
           }
+        } else {
+          showError('Tạo hóa đơn điện tử (mock) thất bại. Status: ' + responseData.status);
         }
         return;
       }
