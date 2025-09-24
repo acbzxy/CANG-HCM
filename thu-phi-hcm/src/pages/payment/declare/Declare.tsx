@@ -76,7 +76,7 @@ const Declare: React.FC = () => {
               ? { 
                   ...item, 
                   thongBao: 'Đã lấy', 
-                  trangThai: 'Đã lấy thông báo',
+                  trangThai: 'Đã tính phí',
                   soTB: notificationNumber || item.soTB // Giữ nguyên nếu không có từ API
                 }
               : item
@@ -88,7 +88,7 @@ const Declare: React.FC = () => {
               ? { 
                   ...item, 
                   thongBao: 'Đã lấy', 
-                  trangThai: 'Đã lấy thông báo',
+                  trangThai: 'Đã tính phí',
                   soTB: notificationNumber || item.soTB // Giữ nguyên nếu không có từ API
                 }
               : item
@@ -947,6 +947,8 @@ const Declare: React.FC = () => {
                 </th>
                 <th className="sticky-header w-[50px] table-header">#</th>
                 <th className="sticky-header table-header">Doanh nghiệp</th>
+                <th className="sticky-header w-[120px] table-header">Tính phí</th>
+                <th className="sticky-header table-header">Trạng thái</th>
                 <th className="sticky-header w-[100px] table-header">
                   TK hải quan
                 </th>
@@ -959,18 +961,14 @@ const Declare: React.FC = () => {
                 <th className="sticky-header w-[100px] table-header">
                   Loại tờ khai
                 </th>
-                <th className="sticky-header w-[120px] table-header">
-                  Lấy thông báo
-                </th>
                 <th className="sticky-header table-header">Số thông báo</th>
-                <th className="sticky-header table-header">Trạng thái</th>
                 <th className="sticky-header w-[100px]">Thành tiền</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={11} className="text-center text-blue-600">
+                  <td colSpan={12} className="text-center text-blue-600">
                     Đang tải dữ liệu...
                   </td>
                 </tr>
@@ -1001,30 +999,29 @@ const Declare: React.FC = () => {
                       </button>
                     </td>
                     <td>{row.doanhNghiepKB || row.doanhNghiepXNK || 'Công ty TNHH Vận Tải Biển Đông'}</td>
-                    <td>{row.maHQ}</td>
-                    <td>{row.ngayHQ}</td>
-                    <td>{row.ngayPhi}</td>
-                    <td>{row.loai}</td>
+                    {/* Tính phí action moved here */}
                     <td className="text-center">
-                      {row.trangThai === 'Đã ký số' ? (
-                        <button
-                          onClick={() => handleGetNotification(row)}
-                          disabled={loading || row.thongBao === 'Đã lấy'}
-                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                            row.thongBao === 'Đã lấy'
-                              ? 'bg-green-100 text-green-800 border border-green-300 cursor-not-allowed'
-                              : 'bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer'
-                          } disabled:opacity-50 disabled:cursor-not-allowed`}
-                        >
-                          {loading ? 'Đang xử lý...' : (row.thongBao === 'Đã lấy' ? 'Đã lấy' : 'Lấy thông báo')}
-                        </button>
-                      ) : (
-                        <span className="text-gray-500 text-xs">
-                          Chưa ký số
-                        </span>
-                      )}
+                      {(() => {
+                        const isCalculated = row.thongBao === 'Đã lấy' || row.trangThai === 'Đã tính phí';
+                        const isEnabled = row.trangThai === 'Đã ký số' && !isCalculated && !loading;
+                        const label = isCalculated ? 'Đã tính phí' : (loading ? 'Đang xử lý...' : 'Tính phí');
+                        const className = isCalculated
+                          ? 'bg-green-100 text-green-800 border border-green-300 cursor-not-allowed'
+                          : isEnabled
+                          ? 'bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer'
+                          : 'bg-gray-200 text-gray-500 border border-gray-300 cursor-not-allowed';
+                        return (
+                          <button
+                            onClick={() => handleGetNotification(row)}
+                            disabled={!isEnabled}
+                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${className} disabled:opacity-70 disabled:cursor-not-allowed`}
+                          >
+                            {label}
+                          </button>
+                        );
+                      })()}
                     </td>
-                    <td>{row.soTB}</td>
+                    {/* Trạng thái moved here */}
                     <td className="text-center">
                       <span 
                         className={`px-2 py-1 rounded text-xs font-medium ${
@@ -1044,6 +1041,11 @@ const Declare: React.FC = () => {
                         {row.trangThai}
                       </span>
                     </td>
+                    <td>{row.maHQ}</td>
+                    <td>{row.ngayHQ}</td>
+                    <td>{row.ngayPhi}</td>
+                    <td>{row.loai}</td>
+                    <td>{row.soTB}</td>
                     <td className="text-right">
                       {row.thanhTien.toLocaleString()} đ
                     </td>
