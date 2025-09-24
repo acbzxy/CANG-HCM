@@ -575,14 +575,27 @@ const CreateReceiptPage: React.FC = () => {
       console.log('🔍 Are they the same?', (sidToUse || createdSid) === finalIdPhatHanh);
       console.log('🔍 ===== END CONSISTENCY CHECK =====');
       
+      // Read latest E-Invoice response from localStorage to map maBl/soBl
+      let lastEInvoice: any = null;
+      try {
+        const stored = localStorage.getItem('eInvoiceData');
+        lastEInvoice = stored ? JSON.parse(stored) : null;
+      } catch (_) {}
+      const serialFromInvoice = lastEInvoice?.serial || '';
+      const seqFromInvoice = lastEInvoice?.seq || '';
+      const maBlFromInvoice = serialFromInvoice && seqFromInvoice 
+        ? `${serialFromInvoice}_${seqFromInvoice}`
+        : '';
+      console.log('🔍 Mapping maBl/soBl from eInvoiceData:', { serialFromInvoice, seqFromInvoice, maBlFromInvoice });
+      
       const baseData = {
         mst: companyCode,
         tenDvi: companyName,
         diaChi: companyAddress,
         email: payerEmail,
         sdt: payerIdNumber,
-        maBl: receiptCode,
-        soBl: receiptNumber,
+        maBl: maBlFromInvoice,
+        soBl: seqFromInvoice,
         hthucTtoan: paymentMethod,
         ngayBl: new Date(receiptDate).toISOString(),
         loaiCtiet: "01", // Default type
@@ -663,9 +676,9 @@ const CreateReceiptPage: React.FC = () => {
     } catch (error) {
       console.error('❌ Error saving receipt to system:', error);
       console.error('❌ Error details:', {
-        message: (error as Error).message,
-        stack: (error as Error).stack,
-        name: (error as Error).name
+        message: error.message,
+        stack: error.stack,
+        name: error.name
       });
       // Don't show error to user as this is additional save
       // The main E-Invoice save was already successful
@@ -700,26 +713,7 @@ const CreateReceiptPage: React.FC = () => {
       console.log('Validation passed: currentTrangThaiPhatHanh =', currentTrangThaiPhatHanh);
       
       // Validate required fields
-      if (!receiptCode.trim()) {
-        console.log('Validation failed: receiptCode is empty');
-        showError('Vui lòng nhập mã biên lai');
-        return;
-      }
-      console.log('Validation passed: receiptCode =', receiptCode);
-      
-      if (!payerName.trim()) {
-        console.log('Validation failed: payerName is empty');
-        showError('Vui lòng nhập tên người nộp phí');
-        return;
-      }
-      console.log('Validation passed: payerName =', payerName);
-      
-      if (!payerEmail.trim()) {
-        console.log('Validation failed: payerEmail is empty');
-        showError('Vui lòng nhập email người nộp phí');
-        return;
-      }
-      console.log('Validation passed: payerEmail =', payerEmail);
+     
       
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -735,9 +729,9 @@ const CreateReceiptPage: React.FC = () => {
       const eInvoiceRequest = mapToFPTEInvoiceRequest(currentSid);
       console.log('🔍 Backend E-Invoice request:', eInvoiceRequest);
       console.log('🔍 ===== SID CONSISTENCY CHECK =====');
-      console.log('🔍 FPT E-Invoice API sid:', eInvoiceRequest.inv.sid);
+      console.log('🔍 FPT E-Invoice API sid:', eInvoiceRequest.receipt.sid);
       console.log('🔍 Bien-lai API will use idPhatHanh:', currentSid);
-      console.log('🔍 Are they the same?', eInvoiceRequest.inv.sid === currentSid);
+      console.log('🔍 Are they the same?', eInvoiceRequest.receipt.sid === currentSid);
       console.log('🔍 ===== END SID CONSISTENCY CHECK =====');
       
       const eInvoiceResponse = await fptEInvoiceService.createICR(eInvoiceRequest);
@@ -754,7 +748,7 @@ const CreateReceiptPage: React.FC = () => {
           success: true,
           data: {
             id: Date.now().toString(),
-            status: 6,
+            status: 3,
             message: 'Mock receipt created successfully'
           }
         };
@@ -765,9 +759,9 @@ const CreateReceiptPage: React.FC = () => {
         const responseData = mockResponse.data;
         console.log('✅ Mock E-Invoice created successfully, status:', responseData.status);
         
-        if (responseData.status === 6) {
+        if (responseData.status === 3) {
           // Success - set states
-          console.log('🎉 SUCCESS: Mock responseData.status === 6, showing success message');
+          console.log('🎉 SUCCESS: Mock responseData.status === 3, showing success message');
           setIsSaved(true);
           console.log('✅ Set isSaved = true from Mock E-Invoice success');
           setSavedReceiptId(parseInt(responseData.id) || Date.now());
@@ -798,9 +792,9 @@ const CreateReceiptPage: React.FC = () => {
         const responseData = eInvoiceResponse.data;
         console.log('✅ E-Invoice created successfully, status:', responseData.status);
         
-        if (responseData.status === 6) {
+        if (responseData.status === 3) {
           // Success - set states
-          console.log('🎉 SUCCESS: responseData.status === 6, showing success message');
+          console.log('🎉 SUCCESS: responseData.status === 3, showing success message');
           setIsSaved(true);
           console.log('✅ Set isSaved = true from E-Invoice success');
           setSavedReceiptId(parseInt(responseData.id) || Date.now());
@@ -876,6 +870,12 @@ const CreateReceiptPage: React.FC = () => {
       console.log('🔍 Using sid:', finalSid);
     }
     
+    // Ensure finalSid is never undefined
+    if (!finalSid) {
+      console.error('🔍 ERROR: finalSid is undefined!');
+      throw new Error('SID is required but not available');
+    }
+    
     console.log('🔍 Mapping to FPT E-Invoice request:');
     console.log('🔍 selectedItem.id (toKhaiId):', selectedItem?.id);
     console.log('🔍 companyName:', companyName);
@@ -903,58 +903,48 @@ const CreateReceiptPage: React.FC = () => {
     };
 
     return {
-      lang: "vi",
       user: {
         username: "0304126484.bl",
         password: "Api@123456"
       },
-      toKhaiId: toKhaiId, // Use toKhaiId state
-      inv: {
-        sid: finalSid, // Use consistent sid
+      toKhaiId: toKhaiId,
+      receipt: {
+        sid: finalSid,
         idt: "",
-        type: "01/MTT",
-        form: "1",
-        serial: "C25MTT",
-       // aun: 1,                         // << thêm: bạn tự cấp số từ MTT
-       // seq: receiptCode,
+        type: "01BLP",
+        form: "EBL01",
+        serial: "25T",
         seq: "",
-        ma_cqthu: "",
         bname: companyName,
-        btax: '0304126484',
-        btel: '',
-        bmail: '',
-        idnumber: '',
+        btax: "0304126484",
+        buyer: payerName,
+        bcode: "KH001",
+        baddr: companyAddress,
+        btel: payerIdNumber,
+        bmail: payerEmail,
+        paym: "CK",
+        curr: "VND",
+        exrt: 1,
         note: notes,
         sumv: totalAmountValue,
         sum: totalAmountValue,
-        vatv: vatAmountValue,
-        vat: vatAmountValue,
-        word: numberToWords(grandTotal),
         totalv: grandTotal,
         total: grandTotal,
-        tradeamount: 0,
-        discount: "",
-        type_ref: 1,
-        notsendmail: 1,
+        word: numberToWords(grandTotal),
+        aun: 2,
+        notsendmail: 0,
         sendfile: 1,
         sec: "",
-        paym: "CK",
         items: feeDetails.map((detail, index) => ({
           line: index + 1,
-          type: "",
-          vrt: "10", // 10% VAT
           code: `HH${index + 1}`,
           name: detail.content,
           unit: detail.unit,
           price: detail.price,
           quantity: detail.quantity,
-          perdiscount: 0,
-          amtdiscount: 0,
-          amount: detail.total,
-          vat: Math.round(detail.total * 0.1), // 10% VAT
-          total: detail.total + Math.round(detail.total * 0.1)
+          amount: detail.total
         })),
-        stax: '0304126484'
+        stax: "0304126484"
       }
     };
   };

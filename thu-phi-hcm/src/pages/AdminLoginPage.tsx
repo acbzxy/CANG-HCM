@@ -655,7 +655,7 @@ const AdminLoginPage: React.FC = () => {
                       background: "rgba(255, 255, 255, 0.95)",
                       backdropFilter: "blur(25px)",
                       borderRadius: "24px",
-                      padding: "40px",
+                      padding: "44px",
                       border: "1px solid rgba(255, 255, 255, 0.4)",
                       boxShadow: "0 25px 60px rgba(0, 0, 0, 0.15)",
                       minWidth: "400px",

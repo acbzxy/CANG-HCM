@@ -3,6 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import { CrmApiService } from "../utils/crmApi";
+<script data-name-bot="bot-demo"
+	src="https://app.preny.ai/embed-global.js"
+	data-button-style="width:300px;height:300px;"
+	data-language="vi"
+	async
+	defer
+	data-preny-bot-id="68d2867bbdfab5c58371fdf7"
+></script>
 
 // Import background image
 const backgroundImage = "/tphcm-bkg.jpg";
