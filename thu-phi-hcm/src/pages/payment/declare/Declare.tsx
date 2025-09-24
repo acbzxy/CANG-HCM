@@ -70,30 +70,30 @@ const Declare: React.FC = () => {
         console.log('📄 Notification number from DB:', notificationNumber);
         
         // Update the notification status and number
-        setFilteredData(prevData =>
-          prevData.map(item =>
-            item.id === row.id
+      setFilteredData(prevData =>
+        prevData.map(item =>
+          item.id === row.id
               ? { 
                   ...item, 
                   thongBao: 'Đã lấy', 
                   trangThai: 'Đã tính phí',
                   soTB: notificationNumber || item.soTB // Giữ nguyên nếu không có từ API
                 }
-              : item
-          )
-        );
-        setAllData(prevData =>
-          prevData.map(item =>
-            item.id === row.id
+            : item
+        )
+      );
+      setAllData(prevData =>
+        prevData.map(item =>
+          item.id === row.id
               ? { 
                   ...item, 
                   thongBao: 'Đã lấy', 
                   trangThai: 'Đã tính phí',
                   soTB: notificationNumber || item.soTB // Giữ nguyên nếu không có từ API
                 }
-              : item
-          )
-        );
+            : item
+        )
+      );
         
         showSuccess(`Đã lấy thông báo thành công! Số TB: ${notificationNumber || 'N/A'}`, 'Thành công');
         console.log('✅ Notification retrieved successfully for item:', row.id, 'Notification number:', notificationNumber);

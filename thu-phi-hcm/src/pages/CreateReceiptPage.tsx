@@ -713,13 +713,65 @@ const CreateReceiptPage: React.FC = () => {
       console.log('Validation passed: currentTrangThaiPhatHanh =', currentTrangThaiPhatHanh);
       
       // Validate required fields
-     
+      if (!companyCode || !companyCode.trim()) {
+        showError('Vui lòng nhập Đơn vị được ủy quyền');
+        return;
+      }
+      if (!companyName || !companyName.trim()) {
+        showError('Vui lòng nhập Tên đơn vị được ủy quyền');
+        return;
+      }
+      if (!companyAddress || !companyAddress.trim()) {
+        showError('Vui lòng nhập Địa chỉ đơn vị được ủy quyền');
+        return;
+      }
+      if (!receivingCompanyCode || !receivingCompanyCode.trim()) {
+        showError('Vui lòng nhập Đơn vị trên tờ khai (mã)');
+        return;
+      }
+      if (!receivingCompanyName || !receivingCompanyName.trim()) {
+        showError('Vui lòng nhập Đơn vị trên tờ khai (tên)');
+        return;
+      }
+      if (!payerName || !payerName.trim()) {
+        showError('Vui lòng nhập Tên người nộp phí');
+        return;
+      }
+      if (!payerEmail || !payerEmail.trim()) {
+        showError('Vui lòng nhập Email nộp phí');
+        return;
+      }
+      if (!payerIdNumber || !payerIdNumber.trim()) {
+        showError('Vui lòng nhập Số cmt/điện thoại');
+        return;
+      }
       
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(payerEmail.trim())) {
         console.log('Validation failed: payerEmail format is invalid');
         showError('Vui lòng nhập địa chỉ email hợp lệ');
+        return;
+      }
+      // Validate declaration info required fields
+      if (!stbNumber || !stbNumber.trim()) {
+        showError('Vui lòng nhập STB nhập nộp phí');
+        return;
+      }
+      if (!declarationDate || !declarationDate.trim()) {
+        showError('Vui lòng chọn Ngày tờ khai nộp phí');
+        return;
+      }
+      if (!storageLocationCode || !storageLocationCode.trim()) {
+        showError('Vui lòng nhập Mã địa điểm lưu kho');
+        return;
+      }
+      if (!customsDeclarationNumber || !customsDeclarationNumber.trim()) {
+        showError('Vui lòng nhập Số tờ khai HQ');
+        return;
+      }
+      if (!customsDeclarationDate || !customsDeclarationDate.trim()) {
+        showError('Vui lòng chọn Ngày tờ khai HQ');
         return;
       }
       console.log('Validation passed: payerEmail format is valid');
@@ -1208,7 +1260,7 @@ const CreateReceiptPage: React.FC = () => {
             <div>
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
-                  Đơn vị được ủy quyền:
+                  Đơn vị được ủy quyền: <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -1241,7 +1293,7 @@ const CreateReceiptPage: React.FC = () => {
               </div>
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
-                  Địa chỉ đơn vị được ủy quyền:
+                  Địa chỉ đơn vị được ủy quyền: <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <textarea
                   value={companyAddress}
@@ -1257,10 +1309,10 @@ const CreateReceiptPage: React.FC = () => {
                   }}
                 />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
-                    Đơn vị trên tờ khai:
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                    Đơn vị trên tờ khai: <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -1276,6 +1328,9 @@ const CreateReceiptPage: React.FC = () => {
                   />
                 </div>
                 <div>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500, visibility: 'hidden' }}>
+                    placeholder
+                  </label>
                   <input
                     type="text"
                     value={receivingCompanyName}
@@ -1287,8 +1342,7 @@ const CreateReceiptPage: React.FC = () => {
                       borderRadius: '4px',
                       fontSize: '13px',
                       color: '#007bff',
-                      fontWeight: 'bold',
-                      marginTop: '22px' // Align with the input on the left
+                      fontWeight: 'bold'
                     }}
                   />
                 </div>
@@ -1298,7 +1352,7 @@ const CreateReceiptPage: React.FC = () => {
             <div>
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
-                  Tên người nộp phí:
+                  Tên người nộp phí: <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -1315,7 +1369,7 @@ const CreateReceiptPage: React.FC = () => {
               </div>
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
-                  Email nộp phí:
+                  Email nộp phí: <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
                   type="email"
@@ -1332,7 +1386,7 @@ const CreateReceiptPage: React.FC = () => {
               </div>
               <div style={{ marginBottom: '15px' }}>
                 <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
-                  Số cmt/điện thoại:
+                  Số cmt/điện thoại: <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
                   type="text"
@@ -1487,7 +1541,7 @@ const CreateReceiptPage: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
-                STB nhập nộp phí:
+                STB nhập nộp phí: <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <input
                 type="text"
@@ -1505,7 +1559,7 @@ const CreateReceiptPage: React.FC = () => {
             
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
-                Ngày tờ khai nộp phí:
+                Ngày tờ khai nộp phí: <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <input
                 type="date"
@@ -1523,7 +1577,7 @@ const CreateReceiptPage: React.FC = () => {
             
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
-                Mã địa điểm lưu kho:
+                Mã địa điểm lưu kho: <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <input
                 type="text"
@@ -1543,7 +1597,7 @@ const CreateReceiptPage: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px', marginTop: '15px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
-                Số tờ khai HQ:
+                Số tờ khai HQ: <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <input
                 type="text"
@@ -1561,7 +1615,7 @@ const CreateReceiptPage: React.FC = () => {
             
             <div>
               <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
-                Ngày tờ khai HQ:
+                Ngày tờ khai HQ: <span style={{ color: '#ef4444' }}>*</span>
               </label>
               <input
                 type="date"
