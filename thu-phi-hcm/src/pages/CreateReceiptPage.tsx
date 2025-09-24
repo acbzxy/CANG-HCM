@@ -3,10 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 // import { ReceiptService } from '../utils/receiptApi';
 import { fptEInvoiceService, FPTEInvoiceRequest, FPTEInvoiceSearchRequest, FPTEInvoiceUpdateStatusRequest } from '../services/fptEInvoiceService';
 import { useNotification } from '../context/NotificationContext';
+import { useAuth } from '../context/AuthContext';
 
 const CreateReceiptPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const selectedItem = location.state?.selectedItem; // Can be either fee declaration or receipt data
   const isEditMode = location.state?.isEditMode || false;
   const passedToKhaiId = location.state?.toKhaiId; // toKhaiId passed from parent component
@@ -233,13 +235,8 @@ const CreateReceiptPage: React.FC = () => {
           setCustomsDeclarationDate(selectedItem.arrivalDate);
         }
         
-        // Generate receipt code based on declaration number
-        const declarationNumber = selectedItem.soToKhai || selectedItem.declarationNumber;
-        if (declarationNumber) {
-          const lastFourDigits = declarationNumber.slice(-4);
-          const receiptCodeGenerated = `BL${lastFourDigits.padStart(6, '0')}`;
-          setReceiptCode(receiptCodeGenerated);
-        }
+        // Do not auto-generate receipt code per requirement - keep empty until user/system sets later
+        setReceiptCode('');
         
         // Set current date for receipt
         setReceiptDate(new Date().toISOString().split('T')[0]);
@@ -378,8 +375,8 @@ const CreateReceiptPage: React.FC = () => {
   // };
 
   // Form states
-  const [receiptCode, setReceiptCode] = useState('BL000001');
-  const [receiptNumber, setReceiptNumber] = useState('000000001');
+  const [receiptCode, setReceiptCode] = useState('');
+  const [receiptNumber, setReceiptNumber] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('Chuyển khoản');
   const [receiptDate, setReceiptDate] = useState('2021-08-21');
   const [notes, setNotes] = useState('');
@@ -396,7 +393,7 @@ const CreateReceiptPage: React.FC = () => {
   const [receivingCompanyCode, setReceivingCompanyCode] = useState('0314308155');
   const [receivingCompanyName, setReceivingCompanyName] = useState('CÔNG TY TNHH DELVNETS VIETNAM');
   const [payerName, setPayerName] = useState('0314308153');
-  const [payerEmail, setPayerEmail] = useState('logistics.hq@delvnetsvietnam.com');
+  const [payerEmail, setPayerEmail] = useState('');
   const [payerIdNumber, setPayerIdNumber] = useState('036734867');
 
   // Checkbox states
@@ -442,6 +439,15 @@ const CreateReceiptPage: React.FC = () => {
 
   // Update fee details when selected fee declaration changes
   React.useEffect(() => {
+    // Prefill payerEmail from logged-in user info
+    try {
+      if (!payerEmail) {
+        const sessionUser = user || JSON.parse(sessionStorage.getItem('user') || 'null');
+        if (sessionUser?.email) {
+          setPayerEmail(sessionUser.email);
+        }
+      }
+    } catch (_) {}
     if (selectedItem) {
       // Map fee details from chiTietList if available, otherwise generate default
       console.log('🗂️ Checking chiTietList condition...');
@@ -1631,21 +1637,7 @@ const CreateReceiptPage: React.FC = () => {
               />
             </div>
             
-            <div style={{ display: 'flex', alignItems: 'end' }}>
-              <button
-                style={{
-                  padding: '6px 12px',
-                  backgroundColor: '#17a2b8',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                Xem thêm...
-              </button>
-            </div>
+            {/* Removed 'Xem thêm...' button per requirement */}
           </div>
         </div>
 
