@@ -172,6 +172,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       icon: "fas fa-exchange-alt",
     },
     {
+      path: "/user-receipt-lookup",
+      label: "TRA CỨU BIÊN LAI",
+      icon: "fas fa-search",
+    },
+    {
       path: "/system",
       label: "HỆ THỐNG",
       icon: "fas fa-cogs",
@@ -288,12 +293,27 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       allowedPaths.add("/account");
       allowedPaths.add("/password");
       allowedPaths.add("/guide");
+      
+      // Thêm menu tra cứu biên lai cho tài khoản user/123456
+      if (user?.username === "user") {
+        allowedPaths.add("/user-receipt-lookup");
+      }
 
       // Thêm menu dựa trên quyền
       user.allowedFunctions.forEach((func: FunctionDto) => {
         const menuPaths = getMenuPathsByFuncId(func.funcId);
         menuPaths.forEach((path) => allowedPaths.add(path));
       });
+
+      // Override đặc thù theo tài khoản
+      // Chuyển các module sang cho admin/123456 (ngoại trừ /payment theo yêu cầu)
+      if (user?.username === "admin") {
+        [
+          "/fee-declaration",
+          "/receipt-management",
+          "/debt-management",
+        ].forEach((p) => allowedPaths.add(p));
+      }
 
       console.log(
         "✅ User permissions:",
@@ -303,7 +323,33 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       console.log("🔍 All nav items:", allNavItems.map(item => item.path));
       console.log("🔍 Filtered nav items:", allNavItems.filter((item) => allowedPaths.has(item.path)).map(item => item.path));
 
-      return allNavItems.filter((item) => allowedPaths.has(item.path));
+      // Loại bỏ module GETIN/GETOUT cho tài khoản admin/123456
+      const filteredItems = allNavItems.filter((item) => {
+        // Kiểm tra nếu là tài khoản admin/123456 và module GETIN/GETOUT
+        if (user?.username === "admin" && item.path === "/getin-getout") {
+          console.log("🚫 Removing GETIN/GETOUT module for admin user");
+          return false;
+        }
+        // Loại bỏ module NỘP PHÍ CƠ SỞ HẠ TẦNG cho admin/123456
+        if (user?.username === "admin" && item.path === "/payment") {
+          return false;
+        }
+        // Loại bỏ các module khỏi tài khoản user/123456
+        if (
+          user?.username === "user" &&
+          [
+            "/fee-declaration",
+            "/receipt-management",
+            "/payment",
+            "/debt-management",
+          ].includes(item.path)
+        ) {
+          return false;
+        }
+        return allowedPaths.has(item.path);
+      });
+
+      return filteredItems;
     }
 
     console.log(
@@ -399,7 +445,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         "/password",
         "/guide",
       ];
-      return allNavItems.filter((item) => allowedPaths.includes(item.path));
+      
+      // Loại bỏ module GETIN/GETOUT cho tài khoản admin/123456
+      return allNavItems.filter((item) => {
+        // Kiểm tra nếu là tài khoản admin/123456 và module GETIN/GETOUT
+        if (user?.username === "admin" && item.path === "/getin-getout") {
+          console.log("🚫 Removing GETIN/GETOUT module for admin user (fallback logic)");
+          return false;
+        }
+        return allowedPaths.includes(item.path);
+      });
     }
 
     if (user?.userType === "mst_custom") {

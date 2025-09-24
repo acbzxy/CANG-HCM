@@ -1123,8 +1123,8 @@ const FeeDeclarationManagePage: React.FC = () => {
               <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '12px', fontWeight: 'bold', width: '100px' }}>
                 Trạng thái
               </th>
-                             <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '12px', fontWeight: 'bold', width: '120px' }}>
-                 Thông báo
+              <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '12px', fontWeight: 'bold', width: '120px' }}>
+                 Tính phí
                </th>
                <th style={{ padding: '12px 8px', textAlign: 'center', fontSize: '12px', fontWeight: 'bold', width: '100px' }}>
                  Hành động
@@ -1206,7 +1206,7 @@ const FeeDeclarationManagePage: React.FC = () => {
                       fontSize: '11px',
                       fontWeight: 'bold'
                     }}>
-                      ✓ Lấy thông báo
+                      ✓ Tính phí
                     </span>
                   ) : (
                     <span style={{
@@ -1245,10 +1245,10 @@ const FeeDeclarationManagePage: React.FC = () => {
                       e.currentTarget.style.backgroundColor = '#007bff';
                     }}
                     onClick={() => handleGetNotification(item)}
-                    title="Lấy thông báo"
+                    title="Tính phí"
                   >
                     <span style={{ fontSize: '10px', color: '#ffffff' }}>✓</span>
-                    Lấy thông báo
+                    Tính phí
                   </button>
                 </td>
                                  <td style={{ padding: '8px', textAlign: 'center', fontSize: '12px' }}>
@@ -1624,7 +1624,7 @@ const FeeDeclarationManagePage: React.FC = () => {
                       }}
                       onClick={() => handleGetNotification(selectedItem)}
                     >
-                      <span style={{ color: '#ffffff' }}>✓</span> Lấy thông báo
+                      <span style={{ color: '#ffffff' }}>✓</span> Tính phí
                     </button>
                     
                     <button
@@ -2044,10 +2044,10 @@ const FeeDeclarationManagePage: React.FC = () => {
                 fontWeight: '500'
               }}>
                 <span style={{ marginRight: '8px', fontSize: '16px' }}>✓</span>
-                Lấy thông báo nộp phí thành công.
+                Tính phí thành công.
               </div>
               <div>
-                Vui lòng kiểm tra Thông báo nộp phí trong thư mục download của bạn. Xin cảm ơn!
+                Vui lòng kiểm tra kết quả tính phí trong thư mục download của bạn. Xin cảm ơn!
               </div>
             </div>
 
