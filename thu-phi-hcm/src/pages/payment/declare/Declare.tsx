@@ -3,6 +3,7 @@ import { PencilSquareIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import FeeInformationFormModal from "./components/FeeInformationFormModal";
 import { CrmApiService, type CrmFeeDeclarationSearchParams, type ChuKySoInfo, ToKhaiStatusHelper, TOKHAI_STATUS } from "../../../utils/crmApi";
+import { CrmApiService, type CrmFeeDeclarationSearchParams, type ChuKySoInfo, ToKhaiStatusHelper, TOKHAI_STATUS } from "../../../utils/crmApi";
 import { useNotification } from "../../../context/NotificationContext";
 import NetworkDiagnosticPanel from "../../../components/NetworkDiagnosticPanel";
 // import { useAuth } from "../../../context/AuthContext"; // Unused import
@@ -41,6 +42,7 @@ const Declare: React.FC = () => {
   
   const { showError, showSuccess, showInfo } = useNotification();
   // === STATE CHỌN CHỮ KÝ SỐ ===
+  const [availableCertificates, setAvailableCertificates] = useState<ChuKySoInfo[]>([]);
   const [availableCertificates, setAvailableCertificates] = useState<ChuKySoInfo[]>([]);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [selectedCertificateSerial, setSelectedCertificateSerial] = useState<string>('');
@@ -194,6 +196,14 @@ const Declare: React.FC = () => {
       setAvailableCertificates(certificatesResult.data);
       setSelectedCertificateSerial(certificatesResult.data[0]?.serialNumber || '');
       setShowCertificateModal(true);
+      // Tải danh sách chứng chỉ và mở modal lựa chọn
+      const certificatesResult = await CrmApiService.getDanhSachChuKySo();
+      if (certificatesResult.status !== 200 || !certificatesResult.data || certificatesResult.data.length === 0) {
+        throw new Error('Không có chứng chỉ số nào khả dụng. Vui lòng cấu hình chứng chỉ số trước.');
+      }
+      setAvailableCertificates(certificatesResult.data);
+      setSelectedCertificateSerial(certificatesResult.data[0]?.serialNumber || '');
+      setShowCertificateModal(true);
       setShowSignConfirmModal(false);
     } catch (error: any) {
       console.error('💥 Digital signature failed:', error);
@@ -211,6 +221,13 @@ const Declare: React.FC = () => {
     }
     try {
       setLoading(true);
+      const results = await Promise.all(
+        selectedItems.map((declarationId) => {
+          const signData = { toKhaiId: declarationId, lanKy: 1, serialNumber: selectedCertificateSerial };
+          return CrmApiService.kyTenSoToKhai(signData);
+        })
+      );
+      const successCount = results.filter(r => r && (r as any).status === 200).length;
       const results = await Promise.all(
         selectedItems.map((declarationId) => {
           const signData = { toKhaiId: declarationId, lanKy: 1, serialNumber: selectedCertificateSerial };
@@ -282,6 +299,28 @@ const Declare: React.FC = () => {
         setFilteredData([]);
         showInfo('Không tìm thấy dữ liệu phù hợp', 'Kết quả');
       }
+      const searchParams: CrmFeeDeclarationSearchParams = {
+        page: 0,
+        size: 100,
+        sortBy: 'createdAt',
+        sortDir: 'desc',
+        fromDate: searchFilters.fromDate,
+        toDate: searchFilters.toDate,
+        declarationNumber: searchFilters.declarationNumber || undefined,
+        status: searchFilters.status !== '-3' ? searchFilters.status : undefined
+      };
+
+      const response = await CrmApiService.searchFeeDeclarations(searchParams);
+      
+      if (response && response.data) {
+        const transformedData = transformApiDataToDisplayFormat(response.data.content || response.data);
+        setFilteredData(transformedData);
+        setAllData(transformedData);
+        showSuccess(`Tìm thấy ${transformedData.length} tờ khai phù hợp`, 'Kết quả');
+      } else {
+        setFilteredData([]);
+        showInfo('Không tìm thấy dữ liệu phù hợp', 'Kết quả');
+      }
     } catch (error: any) {
       console.error('🔍 Search failed:', error);
       showError(`Lỗi tìm kiếm: ${error.message}`, 'Lỗi');
@@ -327,9 +366,44 @@ const Declare: React.FC = () => {
       console.warn('⚠️ Failed to load supporting data:', error);
       // Non-critical error, continue with empty arrays
     }
+    try {
+      // Load companies for dropdown
+      const companiesResponse = await CrmApiService.getAllCompanies();
+      if (companiesResponse && companiesResponse.data) {
+        setCompanies(companiesResponse.data);
+      }
+
+      // Load fee types for dropdown - temporarily disabled  
+      // const feeTypesResponse = await CrmApiService.getAllFeeTypes();
+      // if (feeTypesResponse && feeTypesResponse.data) {
+      //   setFeeTypes(feeTypesResponse.data);
+      // }
+    } catch (error) {
+      console.warn('⚠️ Failed to load supporting data:', error);
+      // Non-critical error, continue with empty arrays
+    }
   };
 
   // Transform API data to display format
+  const transformApiDataToDisplayFormat = (apiData: any[]) => {
+    return apiData.map((item: any, index: number) => ({
+      id: item.id,
+      doanhNghiepKB: item.companyName || item.tenDoanhNghiepKhaiPhi || 'Công ty TNHH Vận Tải Biển Đông',
+      doanhNghiepXNK: item.companyName || item.tenDoanhNghiepXuatNhapKhau || 'Công ty TNHH Vận Tải Biển Đông',
+      maHQ: item.declarationNumber || item.soToKhai || `${Math.floor(100000000 + Math.random() * 900000000)}`,
+      ngayHQ: item.createdAt ? new Date(item.createdAt).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
+      ngayPhi: item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
+      loai: item.feeType || item.loaiToKhai || 'Chưa ký',
+      thongBao: item.status === 'COMPLETED' ? 'Đã lấy' : `TB${item.id || (index + 25)}`,
+      soTB: `TB${item.id || (index + 25)}`,
+      trangThai: getStatusDisplay(item.status || item.trangThai),
+      thanhTien: item.feeAmount || item.tongTienPhi || 500000,
+      // Additional fields from backend
+      maDoanhNghiepKhaiPhi: item.maDoanhNghiepKhaiPhi || '0201399999',
+      nguonTK: item.nguonTK,
+      rawData: item // Keep original data for detail view
+    }));
+  };
   const transformApiDataToDisplayFormat = (apiData: any[]) => {
     return apiData.map((item: any, index: number) => ({
       id: item.id,
@@ -355,6 +429,244 @@ const Declare: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+
+      // Test API connection first with enhanced diagnostics
+      console.log('🔗 Testing CRM API connection...');
+      const connectionResult = await CrmApiService.testConnection(10000); // 10 second timeout
+      setIsApiConnected(connectionResult.connected);
+      setConnectionDetails(connectionResult.details);
+
+      // Kết nối với CRM API thật  
+      if (connectionResult.connected) {
+        console.log('✅ CRM API connected, loading fee declarations...');
+        
+        // Load fee declarations from CRM API
+        const searchParams: CrmFeeDeclarationSearchParams = {
+          page: 0,
+          size: 20,
+          sortBy: 'createdAt',
+          sortDir: 'desc'
+        };
+        
+        const response = await CrmApiService.searchFeeDeclarations(searchParams);
+        
+        if (response && response.data) {
+          // Transform CRM data to display format using new function
+          const transformedData = transformApiDataToDisplayFormat(response.data.content || response.data);
+          
+          setFilteredData(transformedData);
+          setAllData(transformedData);
+          console.log(`✅ Đã tải ${transformedData.length} tờ khai từ CRM API`);
+        } else {
+          throw new Error('Invalid response format from CRM API');
+        }
+      } else {
+        console.warn('❌ CRM API not available, using fallback mock data');
+        
+        // Fallback to mock data
+        setFilteredData([
+          {
+            id: 1,
+            doanhNghiepKB: "Công ty TNHH Xuất Nhập Khẩu ABC",
+            doanhNghiepXNK: "Công ty TNHH Xuất Nhập Khẩu ABC",
+            tenDoanhNghiep: "Công ty TNHH Xuất Nhập Khẩu ABC",
+            maDoanhNghiep: "0201392117",
+            soToKhai: "123456789",
+            maHQ: "100200300",
+            ngayHQ: "08/09/2025",
+            ngayToKhai: "08/09/2025",
+            ngayPhi: "08/09/2025",
+            loai: "Lấy thông báo",
+            loaiHinhKinhDoanh: "Container", 
+            thongBao: "Chưa lấy",
+            soTB: "",
+            trangThai: "Đã ký số",
+            thanhTien: 12500000,
+            ghiChu: "Tờ khai phí container xuất khẩu",
+            createdAt: "2025-09-08T08:00:00.000Z"
+          },
+          {
+            id: 2,
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông", 
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông",
+            maDoanhNghiep: "0201398888",
+            soToKhai: "234567890",
+            maHQ: "200300400",
+            ngayHQ: "08/09/2025",
+            ngayToKhai: "08/09/2025", 
+            ngayPhi: "08/09/2025",
+            loai: "Chưa ký",
+            loaiHinhKinhDoanh: "Container",
+            thongBao: "Chưa lấy",
+            soTB: "",
+            trangThai: "Mới tạo", 
+            thanhTien: 500000,
+            ghiChu: "Tờ khai phí container nhập khẩu",
+            createdAt: "2025-09-08T09:00:00.000Z"
+          },
+          {
+            id: 3,
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
+            maDoanhNghiep: "0201399999",
+            soToKhai: "345678901",
+            maHQ: "345678901",
+            ngayHQ: "08/09/2025",
+            ngayToKhai: "08/09/2025",
+            ngayPhi: "08/09/2025", 
+            loai: "Chưa ký",
+            loaiHinhKinhDoanh: "Container",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
+            thanhTien: 500000,
+            ghiChu: "Tờ khai phí container",
+            createdAt: "2025-09-08T10:00:00.000Z"
+          },
+          {
+            id: 4,
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
+            maDoanhNghiep: "0201399999",
+            soToKhai: "456789012",
+            maHQ: "300400500",
+            ngayHQ: "08/09/2025",
+            ngayToKhai: "08/09/2025",
+            ngayPhi: "08/09/2025", 
+            loai: "Chưa ký",
+            loaiHinhKinhDoanh: "Container",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
+            thanhTien: 0,
+            ghiChu: "Tờ khai phí container",
+            createdAt: "2025-09-08T11:00:00.000Z"
+          },
+          {
+            id: 5,
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
+            maDoanhNghiep: "0201399999",
+            soToKhai: "567890123",
+            maHQ: "567890123",
+            ngayHQ: "08/09/2025",
+            ngayToKhai: "08/09/2025",
+            ngayPhi: "08/09/2025", 
+            loai: "Chưa ký",
+            loaiHinhKinhDoanh: "Container",
+            thongBao: "Đã lấy",
+            soTB: "TB001", 
+            trangThai: "Đã lấy thông báo",
+            thanhTien: 500000,
+            ghiChu: "Tờ khai phí container",
+            createdAt: "2025-09-08T12:00:00.000Z"
+          },
+          {
+            id: 6,
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
+            maDoanhNghiep: "0201399999",
+            soToKhai: "678901234",
+            maHQ: "678901234",
+            ngayHQ: "08/09/2025",
+            ngayToKhai: "08/09/2025",
+            ngayPhi: "08/09/2025", 
+            loai: "Chưa ký",
+            loaiHinhKinhDoanh: "Container",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
+            thanhTien: 500000,
+            ghiChu: "Tờ khai phí container",
+            createdAt: "2025-09-08T13:00:00.000Z"
+          },
+          {
+            id: 7,
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
+            maDoanhNghiep: "0201399999",
+            soToKhai: "789012345",
+            maHQ: "789012345",
+            ngayHQ: "08/09/2025",
+            ngayToKhai: "08/09/2025",
+            ngayPhi: "08/09/2025", 
+            loai: "Chưa ký",
+            loaiHinhKinhDoanh: "Container",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
+            thanhTien: 500000,
+            ghiChu: "Tờ khai phí container",
+            createdAt: "2025-09-08T14:00:00.000Z"
+          },
+          {
+            id: 8,
+            doanhNghiepKB: "Công ty TNHH Xuất Nhập Khẩu ABC",
+            doanhNghiepXNK: "Công ty TNHH Xuất Nhập Khẩu ABC",
+            tenDoanhNghiep: "Công ty TNHH Xuất Nhập Khẩu ABC", 
+            maDoanhNghiep: "0201392117",
+            soToKhai: "890123456",
+            maHQ: "400500600",
+            ngayHQ: "08/09/2025",
+            ngayToKhai: "08/09/2025",
+            ngayPhi: "08/09/2025", 
+            loai: "Chưa ký",
+            loaiHinhKinhDoanh: "Container",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Mới tạo",
+            thanhTien: 2500000,
+            ghiChu: "Tờ khai phí container xuất khẩu",
+            createdAt: "2025-09-08T15:00:00.000Z"
+          },
+          {
+            id: 9,
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
+            maDoanhNghiep: "0201399999",
+            soToKhai: "901234567",
+            maHQ: "901234567",
+            ngayHQ: "08/09/2025",
+            ngayToKhai: "08/09/2025",
+            ngayPhi: "08/09/2025", 
+            loai: "Chưa ký",
+            loaiHinhKinhDoanh: "Container",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
+            thanhTien: 500000,
+            ghiChu: "Tờ khai phí container",
+            createdAt: "2025-09-08T16:00:00.000Z"
+          },
+          {
+            id: 10,
+            doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+            doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+            tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông", 
+            maDoanhNghiep: "0201399999",
+            soToKhai: "012345678",
+            maHQ: "012345678",
+            ngayHQ: "08/09/2025",
+            ngayToKhai: "08/09/2025",
+            ngayPhi: "08/09/2025", 
+            loai: "Chưa ký",
+            loaiHinhKinhDoanh: "Container",
+            thongBao: "Chưa lấy",
+            soTB: "", 
+            trangThai: "Đã ký số",
+            thanhTien: 500000,
+            ghiChu: "Tờ khai phí container",
+            createdAt: "2025-09-08T17:00:00.000Z"
+          }
+        ]);
+      }
 
       // Test API connection first with enhanced diagnostics
       console.log('🔗 Testing CRM API connection...');
@@ -641,12 +953,56 @@ const Declare: React.FC = () => {
           createdAt: "2025-09-08T09:00:00.000Z"
         },
       ]);
+      // Fallback to mock data on error
+      setFilteredData([
+        {
+          id: 1,
+          doanhNghiepKB: "Công ty TNHH Xuất Nhập Khẩu ABC",
+          doanhNghiepXNK: "Công ty TNHH Xuất Nhập Khẩu ABC",
+          tenDoanhNghiep: "Công ty TNHH Xuất Nhập Khẩu ABC",
+          maDoanhNghiep: "0201392117",
+          soToKhai: "111222333",
+          maHQ: "500600700",
+          ngayHQ: "08/09/2025",
+          ngayToKhai: "08/09/2025",
+          ngayPhi: "08/09/2025",
+          loai: "Lấy thông báo",
+          loaiHinhKinhDoanh: "Container", 
+          thongBao: "TB25",
+          soTB: "TB25",
+          trangThai: "Mới tạo",
+          thanhTien: 12500000,
+          ghiChu: "Dữ liệu mẫu khi có lỗi API",
+          createdAt: "2025-09-08T08:00:00.000Z"
+        },
+        {
+          id: 2,
+          doanhNghiepKB: "Công ty TNHH Vận Tải Biển Đông",
+          doanhNghiepXNK: "Công ty TNHH Vận Tải Biển Đông",
+          tenDoanhNghiep: "Công ty TNHH Vận Tải Biển Đông",
+          maDoanhNghiep: "0201398888",
+          soToKhai: "444555666",
+          maHQ: "444555666",
+          ngayHQ: "08/09/2025",
+          ngayToKhai: "08/09/2025",
+          ngayPhi: "08/09/2025",
+          loai: "Chưa ký",
+          loaiHinhKinhDoanh: "Container", 
+            thongBao: "Chưa lấy",
+            soTB: "",
+          trangThai: "Đã ký",
+          thanhTien: 500000,
+          ghiChu: "Dữ liệu mẫu khi có lỗi API",
+          createdAt: "2025-09-08T09:00:00.000Z"
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
   // Helper function to display status
+  const getStatusDisplay = (status: string) => {
   const getStatusDisplay = (status: string) => {
     const statusMap: Record<string, string> = {
       'DRAFT': 'Mới tạo',
@@ -660,6 +1016,7 @@ const Declare: React.FC = () => {
       'PENDING': 'Mới tạo',
     };
     return statusMap[status] || (status ? 'Mới tạo' : 'Mới tạo');
+  };
   };
 
   useEffect(() => {
@@ -962,6 +1319,7 @@ const Declare: React.FC = () => {
                   Loại tờ khai
                 </th>
                 <th className="sticky-header table-header">Số thông báo</th>
+                <th className="sticky-header table-header">Trạng thái</th>
                 <th className="sticky-header w-[100px]">Thành tiền</th>
               </tr>
             </thead>
@@ -1543,6 +1901,7 @@ const Declare: React.FC = () => {
                             value={cert.serialNumber}
                             checked={selectedCertificateSerial === cert.serialNumber}
                             onChange={() => setSelectedCertificateSerial(cert.serialNumber)}
+                            onChange={() => setSelectedCertificateSerial(cert.serialNumber)}
                             style={{ marginTop: '3px' }}
                           />
                           <div>
@@ -1682,6 +2041,16 @@ const Declare: React.FC = () => {
                   </h4>
                   <button
                     onClick={async () => {
+                      try {
+                        showInfo('Đang tải danh sách công ty...', 'Xử lý');
+                        const response = await CrmApiService.getAllCompanies();
+                        if (response && response.data) {
+                          setCompanies(response.data);
+                          showSuccess(`Đã tải ${response.data.length} công ty`, 'Thành công');
+                        }
+                      } catch (error: any) {
+                        showError(`Lỗi tải công ty: ${error.message}`, 'Lỗi');
+                      }
                       try {
                         showInfo('Đang tải danh sách công ty...', 'Xử lý');
                         const response = await CrmApiService.getAllCompanies();

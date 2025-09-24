@@ -1259,8 +1259,8 @@ const CreateReceiptPage: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', fontSize: '13px' }}>
             <div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
-                  Đơn vị được ủy quyền: <span style={{ color: '#ef4444' }}>*</span>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                  Đơn vị được ủy quyền:
                 </label>
                 <input
                   type="text"
@@ -1292,8 +1292,8 @@ const CreateReceiptPage: React.FC = () => {
                 />
               </div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
-                  Địa chỉ đơn vị được ủy quyền: <span style={{ color: '#ef4444' }}>*</span>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                  Địa chỉ đơn vị được ủy quyền:
                 </label>
                 <textarea
                   value={companyAddress}
@@ -1311,8 +1311,8 @@ const CreateReceiptPage: React.FC = () => {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                    Đơn vị trên tờ khai: <span style={{ color: '#ef4444' }}>*</span>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                    Đơn vị trên tờ khai:
                   </label>
                   <input
                     type="text"
@@ -1351,8 +1351,8 @@ const CreateReceiptPage: React.FC = () => {
             
             <div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
-                  Tên người nộp phí: <span style={{ color: '#ef4444' }}>*</span>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                  Tên người nộp phí:
                 </label>
                 <input
                   type="text"
@@ -1368,8 +1368,8 @@ const CreateReceiptPage: React.FC = () => {
                 />
               </div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
-                  Email nộp phí: <span style={{ color: '#ef4444' }}>*</span>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                  Email nộp phí:
                 </label>
                 <input
                   type="email"
@@ -1385,8 +1385,8 @@ const CreateReceiptPage: React.FC = () => {
                 />
               </div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
-                  Số cmt/điện thoại: <span style={{ color: '#ef4444' }}>*</span>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                  Số cmt/điện thoại:
                 </label>
                 <input
                   type="text"
