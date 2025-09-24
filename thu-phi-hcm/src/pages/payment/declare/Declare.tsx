@@ -3,7 +3,6 @@ import { PencilSquareIcon, PlusCircleIcon } from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import FeeInformationFormModal from "./components/FeeInformationFormModal";
 import { CrmApiService, type CrmFeeDeclarationSearchParams, type ChuKySoInfo, ToKhaiStatusHelper, TOKHAI_STATUS } from "../../../utils/crmApi";
-import { CrmApiService, type CrmFeeDeclarationSearchParams, type ChuKySoInfo, ToKhaiStatusHelper, TOKHAI_STATUS } from "../../../utils/crmApi";
 import { useNotification } from "../../../context/NotificationContext";
 import NetworkDiagnosticPanel from "../../../components/NetworkDiagnosticPanel";
 // import { useAuth } from "../../../context/AuthContext"; // Unused import
@@ -42,7 +41,6 @@ const Declare: React.FC = () => {
   
   const { showError, showSuccess, showInfo } = useNotification();
   // === STATE CHỌN CHỮ KÝ SỐ ===
-  const [availableCertificates, setAvailableCertificates] = useState<ChuKySoInfo[]>([]);
   const [availableCertificates, setAvailableCertificates] = useState<ChuKySoInfo[]>([]);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
   const [selectedCertificateSerial, setSelectedCertificateSerial] = useState<string>('');
@@ -196,14 +194,6 @@ const Declare: React.FC = () => {
       setAvailableCertificates(certificatesResult.data);
       setSelectedCertificateSerial(certificatesResult.data[0]?.serialNumber || '');
       setShowCertificateModal(true);
-      // Tải danh sách chứng chỉ và mở modal lựa chọn
-      const certificatesResult = await CrmApiService.getDanhSachChuKySo();
-      if (certificatesResult.status !== 200 || !certificatesResult.data || certificatesResult.data.length === 0) {
-        throw new Error('Không có chứng chỉ số nào khả dụng. Vui lòng cấu hình chứng chỉ số trước.');
-      }
-      setAvailableCertificates(certificatesResult.data);
-      setSelectedCertificateSerial(certificatesResult.data[0]?.serialNumber || '');
-      setShowCertificateModal(true);
       setShowSignConfirmModal(false);
     } catch (error: any) {
       console.error('💥 Digital signature failed:', error);
@@ -221,13 +211,6 @@ const Declare: React.FC = () => {
     }
     try {
       setLoading(true);
-      const results = await Promise.all(
-        selectedItems.map((declarationId) => {
-          const signData = { toKhaiId: declarationId, lanKy: 1, serialNumber: selectedCertificateSerial };
-          return CrmApiService.kyTenSoToKhai(signData);
-        })
-      );
-      const successCount = results.filter(r => r && (r as any).status === 200).length;
       const results = await Promise.all(
         selectedItems.map((declarationId) => {
           const signData = { toKhaiId: declarationId, lanKy: 1, serialNumber: selectedCertificateSerial };
@@ -277,28 +260,6 @@ const Declare: React.FC = () => {
       setLoading(true);
       showInfo('Đang tìm kiếm...', 'Xử lý');
 
-      const searchParams: CrmFeeDeclarationSearchParams = {
-        page: 0,
-        size: 100,
-        sortBy: 'createdAt',
-        sortDir: 'desc',
-        fromDate: searchFilters.fromDate,
-        toDate: searchFilters.toDate,
-        declarationNumber: searchFilters.declarationNumber || undefined,
-        status: searchFilters.status !== '-3' ? searchFilters.status : undefined
-      };
-
-      const response = await CrmApiService.searchFeeDeclarations(searchParams);
-      
-      if (response && response.data) {
-        const transformedData = transformApiDataToDisplayFormat(response.data.content || response.data);
-        setFilteredData(transformedData);
-        setAllData(transformedData);
-        showSuccess(`Tìm thấy ${transformedData.length} tờ khai phù hợp`, 'Kết quả');
-      } else {
-        setFilteredData([]);
-        showInfo('Không tìm thấy dữ liệu phù hợp', 'Kết quả');
-      }
       const searchParams: CrmFeeDeclarationSearchParams = {
         page: 0,
         size: 100,
@@ -404,25 +365,7 @@ const Declare: React.FC = () => {
       rawData: item // Keep original data for detail view
     }));
   };
-  const transformApiDataToDisplayFormat = (apiData: any[]) => {
-    return apiData.map((item: any, index: number) => ({
-      id: item.id,
-      doanhNghiepKB: item.companyName || item.tenDoanhNghiepKhaiPhi || 'Công ty TNHH Vận Tải Biển Đông',
-      doanhNghiepXNK: item.companyName || item.tenDoanhNghiepXuatNhapKhau || 'Công ty TNHH Vận Tải Biển Đông',
-      maHQ: item.declarationNumber || item.soToKhai || `${Math.floor(100000000 + Math.random() * 900000000)}`,
-      ngayHQ: item.createdAt ? new Date(item.createdAt).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
-      ngayPhi: item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
-      loai: item.feeType || item.loaiToKhai || 'Chưa ký',
-      thongBao: item.status === 'COMPLETED' ? 'Đã lấy' : `TB${item.id || (index + 25)}`,
-      soTB: `TB${item.id || (index + 25)}`,
-      trangThai: getStatusDisplay(item.status || item.trangThai),
-      thanhTien: item.feeAmount || item.tongTienPhi || 500000,
-      // Additional fields from backend
-      maDoanhNghiepKhaiPhi: item.maDoanhNghiepKhaiPhi || '0201399999',
-      nguonTK: item.nguonTK,
-      rawData: item // Keep original data for detail view
-    }));
-  };
+  // (Removed duplicate transformApiDataToDisplayFormat definition)
 
   // Load fee declarations from CRM API
   const loadFeeDeclarations = async () => {
@@ -432,12 +375,12 @@ const Declare: React.FC = () => {
 
       // Test API connection first with enhanced diagnostics
       console.log('🔗 Testing CRM API connection...');
-      const connectionResult = await CrmApiService.testConnection(10000); // 10 second timeout
-      setIsApiConnected(connectionResult.connected);
-      setConnectionDetails(connectionResult.details);
+      const connectionResult2 = await CrmApiService.testConnection(10000); // 10 second timeout
+      setIsApiConnected(connectionResult2.connected);
+      setConnectionDetails(connectionResult2.details);
 
       // Kết nối với CRM API thật  
-      if (connectionResult.connected) {
+      if (connectionResult2.connected) {
         console.log('✅ CRM API connected, loading fee declarations...');
         
         // Load fee declarations from CRM API
@@ -1319,7 +1262,6 @@ const Declare: React.FC = () => {
                   Loại tờ khai
                 </th>
                 <th className="sticky-header table-header">Số thông báo</th>
-                <th className="sticky-header table-header">Trạng thái</th>
                 <th className="sticky-header w-[100px]">Thành tiền</th>
               </tr>
             </thead>
