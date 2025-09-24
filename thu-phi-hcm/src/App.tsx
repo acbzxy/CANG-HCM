@@ -18,6 +18,7 @@ const AccountPage = lazy(() => import("./pages/AccountPage"));
 const PasswordPage = lazy(() => import("./pages/PasswordPage"));
 const GuidePage = lazy(() => import("./pages/GuidePage"));
 const ReceiptLookupPage = lazy(() => import("./pages/ReceiptLookupPage"));
+const UserReceiptLookupPage = lazy(() => import("./pages/UserReceiptLookupPage"));
 const WelcomePage = lazy(() => import("./pages/WelcomePage"));
 const SystemPage = lazy(() => import("./pages/SystemPage"));
 const DataTablePage = lazy(() => import("./pages/DataTablePage"));
@@ -222,6 +223,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <GuidePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/user-receipt-lookup"
+              element={
+                <ProtectedRoute>
+                  <UserReceiptLookupPage />
                 </ProtectedRoute>
               }
             />

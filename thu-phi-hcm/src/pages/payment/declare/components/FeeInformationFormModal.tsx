@@ -39,11 +39,13 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
       const status = initialData.trangThai || '';
       console.log('🔍 Checking status for progress bar:', status);
       
-      if (status === 'Đã ký số') {
+      if (status === 'Đã ký số' || status === '01') {
         return 2; // Kích hoạt bước 2 khi đã ký số
-      } else if (status === 'Đã lấy thông báo' || status === 'Đã lấy') {
+      } else if (status === 'Đã lấy thông báo' || status === 'Đã lấy' || status === '02') {
         return 3; // Kích hoạt bước 3 khi đã lấy thông báo
-      } else if (status === 'Hoàn thành') {
+      } else if (status === 'Đã tính phí' || status === '03' || status === 'Đã ký lần 2') {
+        return 3; // Kích hoạt bước 3 khi đã tính phí hoặc đã ký lần 2
+      } else if (status === 'Hoàn thành' || status === '04') {
         return 5; // Kích hoạt bước 5 khi hoàn thành
       } else if (status === 'Đang xử lý') {
         return 4; // Kích hoạt bước 4 khi đang xử lý

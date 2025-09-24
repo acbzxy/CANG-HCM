@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { 
   MagnifyingGlassIcon,
@@ -18,16 +18,36 @@ const ReceiptLookupPage: React.FC = () => {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSearching, setIsSearching] = useState(false)
-  const [captchaUrl, setCaptchaUrl] = useState('/api/captcha.jpg')
+  const [captchaText, setCaptchaText] = useState('')
+  const [captchaInput, setCaptchaInput] = useState('')
 
   const { showInfo, showError } = useNotification()
 
+  // Generate random captcha text
+  const generateCaptcha = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+    let result = ''
+    for (let i = 0; i < 5; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    return result
+  }
+
+  // Initialize captcha on component mount
+  useEffect(() => {
+    setCaptchaText(generateCaptcha())
+  }, [])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setSearchData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    if (name === 'captcha') {
+      setCaptchaInput(value)
+    } else {
+      setSearchData(prev => ({
+        ...prev,
+        [name]: value
+      }))
+    }
 
     // Clear field error when user starts typing
     if (errors[name]) {
@@ -47,8 +67,10 @@ const ReceiptLookupPage: React.FC = () => {
       newErrors.receiptCode = 'Mã nhận biên lai phải có ít nhất 6 ký tự'
     }
 
-    if (!searchData.captcha.trim()) {
+    if (!captchaInput.trim()) {
       newErrors.captcha = 'Vui lòng nhập mã xác nhận'
+    } else if (captchaInput.toUpperCase() !== captchaText) {
+      newErrors.captcha = 'Mã xác nhận không đúng'
     }
 
     setErrors(newErrors)
@@ -78,7 +100,8 @@ const ReceiptLookupPage: React.FC = () => {
   }
 
   const refreshCaptcha = () => {
-    setCaptchaUrl(`/api/captcha.jpg?t=${Date.now()}`)
+    setCaptchaText(generateCaptcha())
+    setCaptchaInput('')
   }
 
   return (
@@ -155,12 +178,11 @@ const ReceiptLookupPage: React.FC = () => {
                   <div>
                     <label className="form-label">Mã xác nhận</label>
                     <div className="flex gap-3 mb-3">
-                      <img
-                        src={captchaUrl}
-                        alt="Captcha"
-                        className="h-12 bg-gray-200 rounded border flex-shrink-0"
-                        onError={() => refreshCaptcha()}
-                      />
+                      <div className="h-12 bg-gray-100 border border-gray-300 rounded flex items-center justify-center flex-shrink-0 min-w-[80px]">
+                        <span className="text-2xl font-bold text-gray-800 tracking-wider">
+                          {captchaText}
+                        </span>
+                      </div>
                       <button
                         type="button"
                         onClick={refreshCaptcha}
@@ -173,7 +195,7 @@ const ReceiptLookupPage: React.FC = () => {
                     <Input
                       name="captcha"
                       type="text"
-                      value={searchData.captcha}
+                      value={captchaInput}
                       onChange={handleInputChange}
                       error={errors.captcha}
                       placeholder="Nhập mã xác nhận"

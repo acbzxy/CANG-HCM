@@ -673,12 +673,12 @@ const CreateReceiptPage: React.FC = () => {
         console.log('✅ Saved idPhatHanh to localStorage:', finalIdPhatHanh);
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Error saving receipt to system:', error);
       console.error('❌ Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
+        message: (error as any)?.message,
+        stack: (error as any)?.stack,
+        name: (error as any)?.name
       });
       // Don't show error to user as this is additional save
       // The main E-Invoice save was already successful
@@ -842,9 +842,9 @@ const CreateReceiptPage: React.FC = () => {
         showError('Lỗi tạo hóa đơn điện tử: ' + (eInvoiceResponse.error || 'Unknown error'));
       }
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving receipt:', error);
-      showError('Có lỗi xảy ra khi lưu biên lai: ' + (error as Error).message);
+      showError('Có lỗi xảy ra khi lưu biên lai: ' + ((error as any)?.message || 'Unknown error'));
     } finally {
       console.log('Finally block: setting isSaving to false');
       setIsSaving(false);
@@ -856,7 +856,7 @@ const CreateReceiptPage: React.FC = () => {
   };
 
   // Map form data to FPT E-Invoice format
-  const mapToFPTEInvoiceRequest = (sidToUse?: string): FPTEInvoiceRequest => {
+  const mapToFPTEInvoiceRequest = (sidToUse?: string): any => {
     const totalAmountValue = totalAmount || 0;
     const vatAmountValue = 0; // Will be calculated from items
     const grandTotal = totalAmountValue + vatAmountValue;
@@ -1186,13 +1186,16 @@ const CreateReceiptPage: React.FC = () => {
 
   return (
     <div style={{ padding: '20px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-      <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+      <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '24px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', fontSize: '14px' }}>
+        <h2 style={{ margin: '0 0 16px 0', textAlign: 'center', fontSize: '20px', fontWeight: 700, color: '#1f2937' }}>
+          Tạo biên lai
+        </h2>
         
         {/* Company Information Section */}
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ 
             margin: '0 0 15px 0', 
-            fontSize: '14px', 
+            fontSize: '16px', 
             fontWeight: 'bold', 
             color: '#333',
             borderLeft: '3px solid #007bff',
@@ -1352,7 +1355,7 @@ const CreateReceiptPage: React.FC = () => {
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ 
             margin: '0 0 15px 0', 
-            fontSize: '14px', 
+            fontSize: '16px', 
             fontWeight: 'bold', 
             color: '#333',
             borderLeft: '3px solid #007bff',
@@ -1467,7 +1470,7 @@ const CreateReceiptPage: React.FC = () => {
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ 
             margin: '0 0 15px 0', 
-            fontSize: '14px', 
+            fontSize: '16px', 
             fontWeight: 'bold', 
             color: '#333',
             borderLeft: '3px solid #007bff',
