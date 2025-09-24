@@ -186,6 +186,24 @@ const InitializePage: React.FC = () => {
     return sourceConfig[source as keyof typeof sourceConfig] || source;
   };
 
+  // Map trạng thái đối soát NH/KB
+  const mapDsStatus = (code?: string, isDetail: boolean = false): string => {
+    if (!code) return "-";
+    switch (code) {
+      case "01":
+        return "Khớp";
+      case "02":
+        return "Lệch";
+      case "00":
+        return "Chưa đối soát";
+      case "03":
+        // 03 chỉ hiển thị trong chi tiết list
+        return isDetail ? "Không có bản kê đối soát bên Bank" : code;
+      default:
+        return code;
+    }
+  };
+
   const handleSearch = async () => {
     if (!searchDate) {
       showError("Vui lòng chọn ngày để tìm kiếm");
@@ -312,9 +330,16 @@ const InitializePage: React.FC = () => {
       setDetailLoading(true);
       setShowDetailModal(true);
 
-      // Extract ID from item.id (format: "all-0" or actual ID)
-      const id = item.id.includes("-") ? item.id.split("-")[1] : item.id;
-      const numericId = parseInt(id);
+      // Chuẩn hóa ID: nếu là số -> dùng trực tiếp; nếu là chuỗi dạng "all-<n>" -> bỏ tiền tố; còn lại -> thử parse
+      let numericId: number;
+      if (typeof item.id === "number") {
+        numericId = item.id;
+      } else if (typeof item.id === "string") {
+        const matched = item.id.match(/(\d+)$/);
+        numericId = matched ? parseInt(matched[1], 10) : NaN;
+      } else {
+        numericId = NaN;
+      }
 
       if (isNaN(numericId)) {
         showError("ID đối soát không hợp lệ");
@@ -1141,25 +1166,22 @@ const InitializePage: React.FC = () => {
                         </label>
                         <p className="text-gray-800">{doiSoatDetail.tongSo}</p>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-gray-600">
-                          Trạng thái:
-                        </label>
-                        <p className="text-gray-800">
-                          {doiSoatDetail.trangThai}
-                        </p>
-                      </div>
+                      {/* Bỏ hiển thị trạng thái tổng theo yêu cầu */}
                       <div>
                         <label className="text-sm font-medium text-gray-600">
                           NH DS:
                         </label>
-                        <p className="text-gray-800">{doiSoatDetail.nhDs}</p>
+                        <p className="text-gray-800">
+                          {mapDsStatus(doiSoatDetail.nhDs)}
+                        </p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-600">
                           KB DS:
                         </label>
-                        <p className="text-gray-800">{doiSoatDetail.kbDs}</p>
+                        <p className="text-gray-800">
+                          {mapDsStatus(doiSoatDetail.kbDs)}
+                        </p>
                       </div>
                       <div className="col-span-2">
                         <label className="text-sm font-medium text-gray-600">
@@ -1197,7 +1219,7 @@ const InitializePage: React.FC = () => {
                                   Tên DN
                                 </th>
                                 <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
-                                  Ngân hàng
+                                  NH DS
                                 </th>
                                 <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
                                   Tổng tiền phí
@@ -1227,13 +1249,16 @@ const InitializePage: React.FC = () => {
                                       {chiTiet.tenDoanhNghiep}
                                     </td>
                                     <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800">
-                                      {chiTiet.nganHang}
+                                      {mapDsStatus(chiTiet.nhDs, true)}
                                     </td>
                                     <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800 font-medium">
                                       {chiTiet.tongTienPhi}
                                     </td>
                                     <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800">
-                                      {chiTiet.ghiChu}
+                                      {mapDsStatus(chiTiet.kbDs, true) ===
+                                      "Không có bản kê đối soát bên Bank"
+                                        ? ""
+                                        : chiTiet.ghiChu}
                                     </td>
                                   </tr>
                                 )

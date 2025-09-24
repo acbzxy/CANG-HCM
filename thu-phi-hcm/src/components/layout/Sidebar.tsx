@@ -293,7 +293,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       allowedPaths.add("/account");
       allowedPaths.add("/password");
       allowedPaths.add("/guide");
-      
+
       // Thêm menu tra cứu biên lai cho tài khoản user/123456
       if (user?.username === "user") {
         allowedPaths.add("/user-receipt-lookup");
@@ -308,11 +308,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       // Override đặc thù theo tài khoản
       // Chuyển các module sang cho admin/123456 (ngoại trừ /payment theo yêu cầu)
       if (user?.username === "admin") {
-        [
-          "/fee-declaration",
-          "/receipt-management",
-          "/debt-management",
-        ].forEach((p) => allowedPaths.add(p));
+        ["/fee-declaration", "/receipt-management", "/debt-management"].forEach(
+          (p) => allowedPaths.add(p)
+        );
       }
 
       console.log(
@@ -320,8 +318,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         user.allowedFunctions.map((f) => f.funcName)
       );
       console.log("✅ Allowed menu paths:", Array.from(allowedPaths));
-      console.log("🔍 All nav items:", allNavItems.map(item => item.path));
-      console.log("🔍 Filtered nav items:", allNavItems.filter((item) => allowedPaths.has(item.path)).map(item => item.path));
+      console.log(
+        "🔍 All nav items:",
+        allNavItems.map((item) => item.path)
+      );
+      console.log(
+        "🔍 Filtered nav items:",
+        allNavItems
+          .filter((item) => allowedPaths.has(item.path))
+          .map((item) => item.path)
+      );
 
       // Loại bỏ module GETIN/GETOUT cho tài khoản admin/123456
       const filteredItems = allNavItems.filter((item) => {
@@ -445,12 +451,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         "/password",
         "/guide",
       ];
-      
+
       // Loại bỏ module GETIN/GETOUT cho tài khoản admin/123456
       return allNavItems.filter((item) => {
         // Kiểm tra nếu là tài khoản admin/123456 và module GETIN/GETOUT
         if (user?.username === "admin" && item.path === "/getin-getout") {
-          console.log("🚫 Removing GETIN/GETOUT module for admin user (fallback logic)");
+          console.log(
+            "🚫 Removing GETIN/GETOUT module for admin user (fallback logic)"
+          );
           return false;
         }
         return allowedPaths.includes(item.path);
@@ -492,7 +500,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
               {user?.username || "0108844160"} - Online
             </div>
             <div className="original-user-role">
-              {user?.groupName ||
+              {user?.companyName ||
+                user?.fullName ||
+                user?.groupName ||
                 (user?.groupId === 1
                   ? "Doanh nghiệp Cảng"
                   : user?.groupId === 2
