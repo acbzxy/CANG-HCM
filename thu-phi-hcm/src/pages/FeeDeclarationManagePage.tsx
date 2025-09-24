@@ -1255,7 +1255,7 @@ const FeeDeclarationManagePage: React.FC = () => {
                    {(() => {
                      // Find the corresponding FeeDeclaration object to get trangThai from API
                      const feeDeclaration = feeDeclarations.find(fd => String(fd.id) === item.id);
-                     const canCreateReceipt = feeDeclaration?.trangThai === '03' && feeDeclaration?.trangThaiPhatHanh !== '02';
+                     const canCreateReceipt = feeDeclaration?.trangThai === '04' && feeDeclaration?.trangThaiPhatHanh !== '02';
                      
                      return (
                        <button

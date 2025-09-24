@@ -12,15 +12,108 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    <script data-name-bot="bot-demo"
-	src="https://app.preny.ai/embed-global.js"
-	data-button-style="width:250px;height:170px;"
-	data-language="vi"
-	async
-	defer
-	data-preny-bot-id="68d2867bbdfab5c58371fdf7"
-></script>
 
+    <script data-name-bot="CẢNG VỤ ĐƯỜNG THỦY NỘI ĐỊA"
+    src="https://app.preny.ai/embed-global.js"
+    data-button-style="width:300px;height:200px;"
+    data-language="vi"
+    data-title="CẢNG VỤ ĐƯỜNG THỦY NỘI ĐỊA"
+    async
+    defer
+    data-preny-bot-id="68d2867bbdfab5c58371fdf7"
+  ></script>
+  
+  <script>
+    (function () {
+      var cachedTargets = [];
 
+      function getTargets() {
+        return document.querySelectorAll('iframe[src*="preny"], [id*="preny"], [class*="preny"], [data-preny-bot-id]');
+      }
+
+      function createButton(id, title, text) {
+        var btn = document.createElement('button');
+        btn.id = id;
+        btn.title = title;
+        btn.innerHTML = text;
+        btn.style.position = 'fixed';
+        btn.style.right = '16px';
+        btn.style.width = '32px';
+        btn.style.height = '32px';
+        btn.style.borderRadius = '50%';
+        btn.style.border = 'none';
+        btn.style.background = 'linear-gradient(135deg, #06b6d4, #3b82f6)';
+        btn.style.color = '#ffffff';
+        btn.style.cursor = 'pointer';
+        btn.style.boxShadow = '0 6px 16px rgba(59,130,246,0.35)';
+        btn.style.zIndex = '2147483646';
+        btn.style.fontSize = '16px';
+        btn.style.lineHeight = '30px';
+        btn.style.textAlign = 'center';
+        btn.style.transition = 'transform .15s ease, box-shadow .15s ease, opacity .15s ease';
+        btn.onmouseenter = function(){ btn.style.transform = 'translateY(-1px)'; btn.style.boxShadow = '0 8px 20px rgba(59,130,246,0.45)'; };
+        btn.onmouseleave = function(){ btn.style.transform = 'translateY(0)'; btn.style.boxShadow = '0 6px 16px rgba(59,130,246,0.35)'; };
+        return btn;
+      }
+
+      function createControls() {
+        if (document.getElementById('chatbot-close-btn')) return;
+
+        var closeBtn = createButton('chatbot-close-btn', 'Ẩn chatbot', '✕');
+        closeBtn.style.bottom = '84px';
+        var showBtn = createButton('chatbot-show-btn', 'Hiện chatbot', '💬');
+        showBtn.style.bottom = '84px';
+        showBtn.style.width = '44px';
+        showBtn.style.height = '44px';
+        showBtn.style.lineHeight = '42px';
+        showBtn.style.fontSize = '20px';
+        showBtn.style.display = 'none';
+
+        closeBtn.addEventListener('click', function () {
+          try {
+            cachedTargets = Array.prototype.slice.call(getTargets());
+            cachedTargets.forEach(function (el) {
+              el.dataset.prevDisplay = el.style.display || '';
+              el.style.display = 'none';
+            });
+            closeBtn.style.display = 'none';
+            showBtn.style.display = 'block';
+          } catch (_) {}
+        });
+
+        showBtn.addEventListener('click', function () {
+          try {
+            if (!cachedTargets || cachedTargets.length === 0) {
+              cachedTargets = Array.prototype.slice.call(getTargets());
+            }
+            cachedTargets.forEach(function (el) {
+              var prev = el.dataset.prevDisplay || '';
+              el.style.display = prev;
+            });
+            showBtn.style.display = 'none';
+            closeBtn.style.display = 'block';
+          } catch (_) {}
+        });
+
+        document.body.appendChild(closeBtn);
+        document.body.appendChild(showBtn);
+      }
+
+      function ensureControlsWithWidget() {
+        var foundWidget = getTargets().length > 0;
+        if (foundWidget) createControls();
+      }
+
+      window.addEventListener('load', function () {
+        ensureControlsWithWidget();
+        var tries = 0;
+        var iv = setInterval(function () {
+          ensureControlsWithWidget();
+          tries++;
+          if (tries > 50) clearInterval(iv);
+        }, 100);
+      });
+    })();
+  </script>
   </body>
 </html>
