@@ -1186,7 +1186,7 @@ const CreateReceiptPage: React.FC = () => {
 
   return (
     <div style={{ padding: '20px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
-      <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '24px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', fontSize: '14px' }}>
+      <div style={{ backgroundColor: 'white', borderRadius: '8px', padding: '24px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', fontSize: '13px' }}>
         <h2 style={{ margin: '0 0 16px 0', textAlign: 'center', fontSize: '20px', fontWeight: 700, color: '#1f2937' }}>
           Tạo biên lai
         </h2>
@@ -1195,8 +1195,8 @@ const CreateReceiptPage: React.FC = () => {
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ 
             margin: '0 0 15px 0', 
-            fontSize: '16px', 
-            fontWeight: 'bold', 
+            fontSize: '15px', 
+            fontWeight: 700, 
             color: '#333',
             borderLeft: '3px solid #007bff',
             paddingLeft: '10px'
@@ -1207,7 +1207,7 @@ const CreateReceiptPage: React.FC = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', fontSize: '13px' }}>
             <div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
                   Đơn vị được ủy quyền:
                 </label>
                 <input
@@ -1219,7 +1219,7 @@ const CreateReceiptPage: React.FC = () => {
                     padding: '6px 8px',
                     border: '1px solid #ddd',
                     borderRadius: '4px',
-                    fontSize: '12px'
+                    fontSize: '13px'
                   }}
                 />
               </div>
@@ -1233,14 +1233,14 @@ const CreateReceiptPage: React.FC = () => {
                     padding: '6px 8px',
                     border: '1px solid #ddd',
                     borderRadius: '4px',
-                    fontSize: '12px',
+                    fontSize: '13px',
                     color: '#007bff',
                     fontWeight: 'bold'
                   }}
                 />
               </div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
                   Địa chỉ đơn vị được ủy quyền:
                 </label>
                 <textarea
@@ -1252,14 +1252,14 @@ const CreateReceiptPage: React.FC = () => {
                     padding: '6px 8px',
                     border: '1px solid #ddd',
                     borderRadius: '4px',
-                    fontSize: '12px',
+                    fontSize: '13px',
                     resize: 'vertical'
                   }}
                 />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '10px' }}>
                 <div>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
                     Đơn vị trên tờ khai:
                   </label>
                   <input
@@ -1271,7 +1271,7 @@ const CreateReceiptPage: React.FC = () => {
                       padding: '6px 8px',
                       border: '1px solid #ddd',
                       borderRadius: '4px',
-                      fontSize: '12px'
+                      fontSize: '13px'
                     }}
                   />
                 </div>
@@ -1285,7 +1285,7 @@ const CreateReceiptPage: React.FC = () => {
                       padding: '6px 8px',
                       border: '1px solid #ddd',
                       borderRadius: '4px',
-                      fontSize: '12px',
+                      fontSize: '13px',
                       color: '#007bff',
                       fontWeight: 'bold',
                       marginTop: '22px' // Align with the input on the left
@@ -1297,7 +1297,7 @@ const CreateReceiptPage: React.FC = () => {
             
             <div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
                   Tên người nộp phí:
                 </label>
                 <input
@@ -1309,12 +1309,12 @@ const CreateReceiptPage: React.FC = () => {
                     padding: '6px 8px',
                     border: '1px solid #ddd',
                     borderRadius: '4px',
-                    fontSize: '12px'
+                    fontSize: '13px'
                   }}
                 />
               </div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
                   Email nộp phí:
                 </label>
                 <input
@@ -1326,12 +1326,12 @@ const CreateReceiptPage: React.FC = () => {
                     padding: '6px 8px',
                     border: '1px solid #ddd',
                     borderRadius: '4px',
-                    fontSize: '12px'
+                    fontSize: '13px'
                   }}
                 />
               </div>
               <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
                   Số cmt/điện thoại:
                 </label>
                 <input
@@ -1343,7 +1343,7 @@ const CreateReceiptPage: React.FC = () => {
                     padding: '6px 8px',
                     border: '1px solid #ddd',
                     borderRadius: '4px',
-                    fontSize: '12px'
+                    fontSize: '13px'
                   }}
                 />
               </div>
@@ -1355,8 +1355,8 @@ const CreateReceiptPage: React.FC = () => {
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ 
             margin: '0 0 15px 0', 
-            fontSize: '16px', 
-            fontWeight: 'bold', 
+            fontSize: '15px', 
+            fontWeight: 700, 
             color: '#333',
             borderLeft: '3px solid #007bff',
             paddingLeft: '10px'
@@ -1374,6 +1374,7 @@ const CreateReceiptPage: React.FC = () => {
                   type="text"
                   value={receiptCode}
                   onChange={(e) => setReceiptCode(e.target.value)}
+                  readOnly
                   style={{
                     width: '100%',
                     padding: '6px 8px',
@@ -1391,6 +1392,7 @@ const CreateReceiptPage: React.FC = () => {
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
+                  disabled
                   style={{
                     width: '100%',
                     padding: '6px 8px',
@@ -1415,6 +1417,7 @@ const CreateReceiptPage: React.FC = () => {
                   type="text"
                   value={receiptNumber}
                   onChange={(e) => setReceiptNumber(e.target.value)}
+                  readOnly
                   style={{
                     width: '100%',
                     padding: '6px 8px',
@@ -1433,6 +1436,7 @@ const CreateReceiptPage: React.FC = () => {
                   type="date"
                   value={receiptDate}
                   onChange={(e) => setReceiptDate(e.target.value)}
+                  disabled
                   style={{
                     width: '100%',
                     padding: '6px 8px',
@@ -1446,19 +1450,20 @@ const CreateReceiptPage: React.FC = () => {
           </div>
           
           <div style={{ marginBottom: '15px' }}>
-            <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '500' }}>
+            <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: 500 }}>
               Ghi chú:
             </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
+              readOnly
               style={{
                 width: '100%',
                 padding: '6px 8px',
                 border: '1px solid #ddd',
                 borderRadius: '4px',
-                fontSize: '12px',
+                fontSize: '13px',
                 resize: 'vertical'
               }}
               placeholder="Nhập ghi chú..."
@@ -1470,8 +1475,8 @@ const CreateReceiptPage: React.FC = () => {
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ 
             margin: '0 0 15px 0', 
-            fontSize: '16px', 
-            fontWeight: 'bold', 
+            fontSize: '15px', 
+            fontWeight: 700, 
             color: '#333',
             borderLeft: '3px solid #007bff',
             paddingLeft: '10px'
@@ -1604,7 +1609,7 @@ const CreateReceiptPage: React.FC = () => {
           </h3>
           
           {/* Checkboxes */}
-          <div style={{ display: 'flex', gap: '20px', marginBottom: '15px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', gap: '20px', marginBottom: '15px', fontSize: '13px' }}>
             <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
               <input
                 type="checkbox"
@@ -1650,22 +1655,22 @@ const CreateReceiptPage: React.FC = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #ddd' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8f9fa' }}>
-                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', fontSize: '12px', width: '60px' }}>
+                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', fontSize: '13px', width: '60px' }}>
                   STT
                 </th>
-                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left', fontSize: '12px' }}>
+                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'left', fontSize: '13px' }}>
                   Nội dung thu phí
                 </th>
-                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', fontSize: '12px', width: '80px' }}>
+                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', fontSize: '13px', width: '80px' }}>
                   ĐVT
                 </th>
-                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', fontSize: '12px', width: '100px' }}>
+                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'center', fontSize: '13px', width: '100px' }}>
                   Số lượng
                 </th>
-                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'right', fontSize: '12px', width: '120px' }}>
+                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'right', fontSize: '13px', width: '120px' }}>
                   Đơn giá
                 </th>
-                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'right', fontSize: '12px', width: '120px' }}>
+                <th style={{ border: '1px solid #ddd', padding: '10px', textAlign: 'right', fontSize: '13px', width: '120px' }}>
                   Thành tiền
                 </th>
               </tr>
@@ -1673,22 +1678,22 @@ const CreateReceiptPage: React.FC = () => {
             <tbody>
               {feeDetails.map((item, index) => (
                 <tr key={item.id}>
-                  <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center', fontSize: '12px' }}>
+                  <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center', fontSize: '13px' }}>
                     {index + 1}
                   </td>
-                  <td style={{ border: '1px solid #ddd', padding: '8px', fontSize: '12px' }}>
+                  <td style={{ border: '1px solid #ddd', padding: '8px', fontSize: '13px' }}>
                     {item.content}
                   </td>
-                  <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center', fontSize: '12px' }}>
+                  <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center', fontSize: '13px' }}>
                     {item.unit}
                   </td>
-                  <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center', fontSize: '12px' }}>
+                  <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'center', fontSize: '13px' }}>
                     {item.quantity}
                   </td>
-                  <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right', fontSize: '12px' }}>
+                  <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right', fontSize: '13px' }}>
                     {formatCurrency(item.price)}
                   </td>
-                  <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right', fontSize: '12px' }}>
+                  <td style={{ border: '1px solid #ddd', padding: '8px', textAlign: 'right', fontSize: '13px' }}>
                     {formatCurrency(item.total)}
                   </td>
                 </tr>
