@@ -712,43 +712,72 @@ const InitializePage: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 animate-fade-in-up">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center text-white text-2xl">
-                📊
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">
-                  Đối Soát Thủ Công
-                </h1>
-                <p className="text-gray-600">
-                  Quản lý các đợt đối soát dữ liệu
-                </p>
-              </div>
+          {/* Tiêu đề trên một dòng riêng */}
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center text-white text-2xl">
+              📊
             </div>
-            {/* Action Buttons Layout - Responsive Design */}
-            <div className="flex flex-col xl:flex-row gap-4">
-              {/* Primary Actions Group */}
-              <div className="flex flex-wrap gap-2">
-                <div className="flex items-center gap-2 bg-green-50 rounded-lg p-2">
-                  <Button
-                    variant="success"
-                    icon={<span>➕</span>}
-                    onClick={() => setShowCreateModal(true)}
-                    className="text-sm px-3 py-2 font-medium"
-                  >
-                    Tạo đối soát
-                  </Button>
-                  <Button
-                    variant="warning"
-                    icon={<span>🚀</span>}
-                    onClick={() => setShowRunModal(true)}
-                    className="text-sm px-3 py-2 font-medium"
-                  >
-                    Chạy đối soát
-                  </Button>
-                </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">Đối Soát Thủ Công</h1>
+              <p className="text-gray-600">Quản lý các đợt đối soát dữ liệu</p>
+            </div>
+          </div>
+          {/* Action Buttons Layout - sắp xếp lại hợp lý */}
+          <div className="flex flex-col xl:flex-row gap-4">
+              {/* Hành động chính */}
+              <div className="flex items-center gap-2 bg-green-50 rounded-lg p-2">
+                <Button
+                  variant="warning"
+                  icon={<span>🔄</span>}
+                  onClick={() => setShowRunModal(true)}
+                  className="text-sm px-3 py-2 font-medium !bg-orange-500 !hover:bg-orange-600 !text-white !border-transparent"
+                >
+                  Chạy đối soát
+                </Button>
+              </div>
 
+              {/* Nhóm xuất báo cáo */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="info"
+                  icon={<span>📊</span>}
+                  onClick={() => setShowExportModal(true)}
+                  className="text-sm px-3 py-2 font-medium"
+                >
+                  Xuất Excel
+                </Button>
+                <Button
+                  variant="secondary"
+                  icon={<span>📋</span>}
+                  onClick={() => setShowMasterDetailModal(true)}
+                  className="text-sm px-3 py-2 font-medium"
+                >
+                  Master-Detail
+                </Button>
+              </div>
+
+              {/* Nhóm đối soát ngoài hệ thống */}
+              <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
+                <Button
+                  variant="primary"
+                  icon={<span>🏦</span>}
+                  onClick={() => setShowBankReconcileModal(true)}
+                  className="text-sm px-3 py-2 font-medium"
+                >
+                  Đối soát Ngân Hàng
+                </Button>
+                <Button
+                  variant="success"
+                  icon={<span>💰</span>}
+                  onClick={() => setShowKbReconcileModal(true)}
+                  className="text-sm px-3 py-2 font-medium"
+                >
+                  Đối soát Kho Bạc
+                </Button>
+              </div>
+
+              {/* Tải tất cả - hành động phụ */}
+              <div className="flex items-center">
                 <Button
                   variant="outline"
                   onClick={async () => {
@@ -756,32 +785,18 @@ const InitializePage: React.FC = () => {
                       setLoading(true);
                       const res = await CrmApiService.getAllDoiSoat();
                       if (res.status === 200 && Array.isArray(res.data)) {
-                        const mapped = res.data.map(
-                          (row: any, idx: number) => ({
-                            id: String(row.id ?? `all-${idx}`),
-                            name: row.soBk
-                              ? `ĐS ${row.soBk}`
-                              : `Đối soát #${row.lanDs ?? idx + 1}`,
-                            fromDate:
-                              row.ngayBk ||
-                              row.ngayDs ||
-                              new Date().toISOString().split("T")[0],
-                            toDate:
-                              row.ngayDs ||
-                              row.ngayBk ||
-                              new Date().toISOString().split("T")[0],
-                            dataSource: "system",
-                            status: row.trangThai || "pending",
-                            createdAt:
-                              row.ngayDs ||
-                              new Date().toISOString().split("T")[0],
-                            createdBy: "Hệ thống",
-                            description: `NH: ${row.nhDs ?? "-"} | KB: ${
-                              row.kbDs ?? "-"
-                            }`,
-                            matchRate: undefined,
-                          })
-                        );
+                        const mapped = res.data.map((row: any, idx: number) => ({
+                          id: String(row.id ?? `all-${idx}`),
+                          name: row.soBk ? `ĐS ${row.soBk}` : `Đối soát #${row.lanDs ?? idx + 1}`,
+                          fromDate: row.ngayBk || row.ngayDs || new Date().toISOString().split("T")[0],
+                          toDate: row.ngayDs || row.ngayBk || new Date().toISOString().split("T")[0],
+                          dataSource: "system",
+                          status: row.trangThai || "pending",
+                          createdAt: row.ngayDs || new Date().toISOString().split("T")[0],
+                          createdBy: "Hệ thống",
+                          description: `NH: ${row.nhDs ?? "-"} | KB: ${row.kbDs ?? "-"}`,
+                          matchRate: undefined,
+                        }));
                         setReconciliationData(mapped);
                         showSuccess(`Tải ${mapped.length} đợt đối soát`);
                       } else {
@@ -800,53 +815,8 @@ const InitializePage: React.FC = () => {
                   Tải tất cả
                 </Button>
               </div>
-
-              {/* Export Actions Group */}
-              <div className="flex flex-wrap gap-2">
-                <div className="flex items-center gap-2 bg-blue-50 rounded-lg p-2">
-                  <Button
-                    variant="info"
-                    icon={<span>📊</span>}
-                    onClick={() => setShowExportModal(true)}
-                    className="text-sm px-3 py-2 font-medium"
-                  >
-                    Xuất Excel
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    icon={<span>📋</span>}
-                    onClick={() => setShowMasterDetailModal(true)}
-                    className="text-sm px-3 py-2 font-medium"
-                  >
-                    Master-Detail
-                  </Button>
-                </div>
-              </div>
-
-              {/* External Actions Group */}
-              <div className="flex flex-wrap gap-2">
-                <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
-                  <Button
-                    variant="primary"
-                    icon={<span>🏦</span>}
-                    onClick={() => setShowBankReconcileModal(true)}
-                    className="text-sm px-3 py-2 font-medium"
-                  >
-                    Đối soát Ngân Hàng
-                  </Button>
-                  <Button
-                    variant="success"
-                    icon={<span>💰</span>}
-                    onClick={() => setShowKbReconcileModal(true)}
-                    className="text-sm px-3 py-2 font-medium"
-                  >
-                    Đối soát Kho Bạc
-                  </Button>
-                </div>
-              </div>
             </div>
           </div>
-        </div>
 
         {/* Search and Filter */}
         <div className="mb-6 animate-fade-in-up">
@@ -1339,9 +1309,10 @@ const InitializePage: React.FC = () => {
                       runLoading ? (
                         <span className="animate-spin">⏳</span>
                       ) : (
-                        <span>🚀</span>
+                        <span>🔄</span>
                       )
                     }
+                    className="!bg-orange-500 !hover:bg-orange-600 !text-white !border-transparent"
                   >
                     {runLoading ? "Đang chạy..." : "Chạy đối soát"}
                   </Button>
