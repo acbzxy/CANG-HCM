@@ -52,13 +52,14 @@ const AccountPage: React.FC = () => {
       try {
         setLoadingProfile(true);
         if (!user?.username) return;
-        // Luôn lấy theo tài khoản đang đăng nhập
+        // Gọi API với username chính xác từ phiên đăng nhập
+        let data: any = null;
         const res: any = await CrmApiService.viewSysUser({
           username: user.username,
         });
+        data = (res && (res.data || res)) || null;
+
         if (!mounted) return;
-        // Một số API gói dữ liệu trong data
-        const data = (res && (res.data || res)) || null;
         setProfile(data);
         setForm({
           fullname: data?.fullname || "",

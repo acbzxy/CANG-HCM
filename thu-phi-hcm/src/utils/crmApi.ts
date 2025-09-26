@@ -1,9 +1,8 @@
 import type { ApiResponse } from "../types";
 import type { FunctionDto } from "../types";
 
-// CRM API Base URL - dùng proxy Vite: '/api' được gắn sẵn trong endpoints
-// Đặt base rỗng để các endpoint dạng `/api/...` hoạt động qua proxy
-const CRM_API_BASE_URL = "";
+// CRM API Base URL - trỏ tới backend thật
+const CRM_API_BASE_URL = "http://10.14.122.24:8081/PHT_BE";
 
 // CRM API endpoints - CẬP NHẬT từ PHT_BE backend
 const CRM_ENDPOINTS = {
