@@ -390,7 +390,7 @@ const InitializePage: React.FC = () => {
         if (data.status === "01") {
           showError(data.message || "Không thể chạy đối soát cho ngày này");
         } else {
-          showSuccess(data.message || "Chạy đối soát thủ công thành công");
+          showSuccess(data.message || "Chạy đối soát chủ động thành công");
           setShowRunModal(false);
           setRunDate("");
           // Reload danh sách đối soát
@@ -425,7 +425,7 @@ const InitializePage: React.FC = () => {
         );
       }
     } catch (error: any) {
-      console.error("Lỗi khi chạy đối soát thủ công:", error);
+      console.error("Lỗi khi chạy đối soát chủ động:", error);
       showError("Lỗi khi chạy đối soát: " + (error?.message || error));
     } finally {
       setRunLoading(false);
@@ -718,7 +718,7 @@ const InitializePage: React.FC = () => {
               📊
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Đối Soát Thủ Công</h1>
+              <h1 className="text-3xl font-bold text-gray-800">Đối Soát Chủ Động</h1>
               <p className="text-gray-600">Quản lý các đợt đối soát dữ liệu</p>
             </div>
           </div>
@@ -1262,7 +1262,7 @@ const InitializePage: React.FC = () => {
             <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
-                  Chạy đối soát thủ công
+                  Chạy đối soát chủ động
                 </h2>
                 <button
                   onClick={() => setShowRunModal(false)}

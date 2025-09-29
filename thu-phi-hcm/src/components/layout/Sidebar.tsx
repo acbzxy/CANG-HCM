@@ -109,7 +109,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           path: "/data-reconciliation/manage-list",
           label: "Tra cứu đối soát",
         },
-        { path: "/data-reconciliation/initialize", label: "Đối soát thủ công" },
+        { path: "/data-reconciliation/initialize", label: "Đối soát chủ động" },
       ],
     },
     {
@@ -336,6 +336,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           console.log("🚫 Removing GETIN/GETOUT module for admin user");
           return false;
         }
+        // Loại bỏ module GETIN/GETOUT cho tài khoản user/123456
+        if (user?.username === "user" && item.path === "/getin-getout") {
+          console.log("🚫 Removing GETIN/GETOUT module for user account");
+          return false;
+        }
         // Loại bỏ module NỘP PHÍ CƠ SỞ HẠ TẦNG cho admin/123456
         if (user?.username === "admin" && item.path === "/payment") {
           return false;
@@ -419,7 +424,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           allowedPaths = ["/dashboard", "/account", "/password", "/guide"];
       }
 
-      return allNavItems.filter((item) => allowedPaths.includes(item.path));
+      return allNavItems.filter(
+        (item) =>
+          allowedPaths.includes(item.path) &&
+          !(
+            user?.username === "user" && item.path === "/getin-getout"
+          )
+      );
     }
 
     // Fallback cũ dựa trên userType (để tương thích ngược)
@@ -436,7 +447,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         "/password",
         "/guide",
       ];
-      return allNavItems.filter((item) => allowedPaths.includes(item.path));
+      return allNavItems.filter(
+        (item) =>
+          allowedPaths.includes(item.path) &&
+          !(
+            user?.username === "user" && item.path === "/getin-getout"
+          )
+      );
     }
 
     if (user?.userType === "admin_custom") {
