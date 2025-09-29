@@ -61,6 +61,9 @@ const AccountPage: React.FC = () => {
 
         if (!mounted) return;
         setProfile(data);
+        try {
+          sessionStorage.setItem("userProfile", JSON.stringify(data || {}));
+        } catch {}
         setForm({
           fullname: data?.fullname || "",
           mail: data?.mail || "",

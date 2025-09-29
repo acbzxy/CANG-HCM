@@ -151,6 +151,15 @@ html, body, #root {
     @apply left-0;
   }
 
+  /* Overlay/modal responsive with sidebar */
+  .original-modal-overlay {
+    left: 20rem; /* sidebar width */
+    right: 0;
+  }
+  .sidebar-collapsed .original-modal-overlay {
+    left: 0;
+  }
+
   /* Button variants */
   .btn {
     @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;

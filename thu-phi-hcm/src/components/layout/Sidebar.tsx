@@ -9,6 +9,14 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const { user, logout } = useAuth();
+  const userProfile = React.useMemo(() => {
+    try {
+      const raw = sessionStorage.getItem("userProfile");
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, []);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
   const toggleSubmenu = (path: string) => {
@@ -20,6 +28,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
       path: "/dashboard",
       label: "TRANG CHỦ",
       icon: "fas fa-home",
+    },
+    {
+      path: "/parameters",
+      label: "THAM SỐ",
+      icon: "fas fa-sliders-h",
     },
     {
       path: "/fee-declaration",
@@ -311,6 +324,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         ["/fee-declaration", "/receipt-management", "/debt-management"].forEach(
           (p) => allowedPaths.add(p)
         );
+        // Thêm menu Tham số riêng cho admin
+        allowedPaths.add("/parameters");
       }
 
       console.log(
@@ -464,6 +479,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
         "/data-reconciliation",
         "/reports",
         "/business-categories",
+        "/parameters",
         "/account",
         "/password",
         "/guide",
@@ -514,24 +530,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           />
           <div className="original-user-details">
             <div className="original-user-status">
-              {user?.username || "0108844160"} - Online
+              {userProfile?.fullname || user?.companyName || user?.fullName || "Doanh nghiệp"}
             </div>
-            <div className="original-user-role">
-              {user?.companyName ||
-                user?.fullName ||
-                user?.groupName ||
-                (user?.groupId === 1
-                  ? "Doanh nghiệp Cảng"
-                  : user?.groupId === 2
-                  ? "Doanh nghiệp XNK"
-                  : user?.groupId === 3
-                  ? "Cán bộ Cảng vụ"
-                  : user?.userType === "custom"
-                  ? "Người dùng tùy chỉnh"
-                  : user?.userType === "admin_custom"
-                  ? "Quản trị viên tùy chỉnh"
-                  : "Doanh nghiệp nộp phí")}
-            </div>
+            {/* Ẩn dòng mô tả nhỏ bên dưới theo yêu cầu */}
           </div>
         </div>
       </div>

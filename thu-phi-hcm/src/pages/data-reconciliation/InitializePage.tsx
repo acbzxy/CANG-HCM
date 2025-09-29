@@ -291,17 +291,7 @@ const InitializePage: React.FC = () => {
     setShowCreateModal(false);
   };
 
-  const handleEdit = (item: ReconciliationData) => {
-    setEditingItem(item);
-    setFormData({
-      reconciliationName: item.name,
-      fromDate: item.fromDate,
-      toDate: item.toDate,
-      description: item.description,
-      dataSource: item.dataSource,
-    });
-    setShowCreateModal(true);
-  };
+  
 
   const handleUpdate = () => {
     if (!editingItem) return;
@@ -701,11 +691,7 @@ const InitializePage: React.FC = () => {
     });
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Bạn có chắc chắn muốn xóa đợt đối soát này?")) {
-      setReconciliationData((prev) => prev.filter((item) => item.id !== id));
-    }
-  };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 p-6">
@@ -736,25 +722,7 @@ const InitializePage: React.FC = () => {
                 </Button>
               </div>
 
-              {/* Nhóm xuất báo cáo */}
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="info"
-                  icon={<span>📊</span>}
-                  onClick={() => setShowExportModal(true)}
-                  className="text-sm px-3 py-2 font-medium"
-                >
-                  Xuất Excel
-                </Button>
-                <Button
-                  variant="secondary"
-                  icon={<span>📋</span>}
-                  onClick={() => setShowMasterDetailModal(true)}
-                  className="text-sm px-3 py-2 font-medium"
-                >
-                  Master-Detail
-                </Button>
-              </div>
+              {/* Nhóm xuất báo cáo - Ẩn theo yêu cầu */}
 
               {/* Nhóm đối soát ngoài hệ thống */}
               <div className="flex items-center gap-2 bg-gray-50 rounded-lg p-2">
@@ -879,6 +847,7 @@ const InitializePage: React.FC = () => {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
+                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 w-12">#</th>
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
                         Tên đợt
                       </th>
@@ -897,9 +866,6 @@ const InitializePage: React.FC = () => {
                       <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
                         Người tạo
                       </th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700">
-                        Hành động
-                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -908,6 +874,15 @@ const InitializePage: React.FC = () => {
                         key={item.id}
                         className="hover:bg-gray-50 transition-colors duration-200"
                       >
+                        <td className="px-6 py-4 text-sm text-gray-700">
+                          <button
+                            onClick={() => handleViewDetail(item)}
+                            className="text-blue-600 hover:text-blue-700"
+                            title="Xem chi tiết đối soát"
+                          >
+                            <i className="fas fa-eye"></i>
+                          </button>
+                        </td>
                         <td className="px-6 py-4">
                           <div>
                             <div className="text-sm font-medium text-gray-800">
@@ -939,29 +914,6 @@ const InitializePage: React.FC = () => {
                                 "vi-VN"
                               )}
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleViewDetail(item)}
-                              className="text-green-600 hover:text-green-800 text-sm font-medium"
-                              title="Xem chi tiết đối soát"
-                            >
-                              Chi tiết
-                            </button>
-                            <button
-                              onClick={() => handleEdit(item)}
-                              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                            >
-                              Sửa
-                            </button>
-                            <button
-                              onClick={() => handleDelete(item.id)}
-                              className="text-red-600 hover:text-red-800 text-sm font-medium"
-                            >
-                              Xóa
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -1079,8 +1031,8 @@ const InitializePage: React.FC = () => {
 
         {/* Detail Modal */}
         {showDetailModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl p-6 w-full max-w-6xl mx-4 max-h-[90vh] overflow-y-auto">
+          <div className="original-modal-overlay bg-black bg-opacity-50 fixed inset-y-0 right-0 z-50 pt-16 flex items-start justify-center">
+            <div className="bg-white rounded-xl p-6 w-full h-[90vh] max-w-none mx-4 overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">
                   Chi tiết đối soát
@@ -1105,7 +1057,7 @@ const InitializePage: React.FC = () => {
                     <h3 className="text-lg font-semibold text-gray-800 mb-4">
                       Thông tin chung
                     </h3>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 xl:grid-cols-8 gap-6 items-start">
                       <div>
                         <label className="text-sm font-medium text-gray-600">
                           ID:
@@ -1114,13 +1066,13 @@ const InitializePage: React.FC = () => {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-600">
-                          Số BK:
+                          Số bản khai:
                         </label>
                         <p className="text-gray-800">{doiSoatDetail.soBk}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-600">
-                          Ngày BK:
+                          Ngày bản khai:
                         </label>
                         <p className="text-gray-800">{doiSoatDetail.ngayBk}</p>
                       </div>
@@ -1139,7 +1091,7 @@ const InitializePage: React.FC = () => {
                       {/* Bỏ hiển thị trạng thái tổng theo yêu cầu */}
                       <div>
                         <label className="text-sm font-medium text-gray-600">
-                          NH DS:
+                          Ngân hàng đối soát:
                         </label>
                         <p className="text-gray-800">
                           {mapDsStatus(doiSoatDetail.nhDs)}
@@ -1147,13 +1099,13 @@ const InitializePage: React.FC = () => {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-600">
-                          KB DS:
+                          Kho bạc đối soát:
                         </label>
                         <p className="text-gray-800">
                           {mapDsStatus(doiSoatDetail.kbDs)}
                         </p>
                       </div>
-                      <div className="col-span-2">
+                      <div>
                         <label className="text-sm font-medium text-gray-600">
                           Tổng tiền:
                         </label>
@@ -1176,27 +1128,33 @@ const InitializePage: React.FC = () => {
                           <table className="w-full border-collapse border border-gray-300">
                             <thead className="bg-gray-100">
                               <tr>
-                                <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                                <th rowSpan={2} className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
                                   Số tờ khai
                                 </th>
-                                <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                                <th rowSpan={2} className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
                                   Ngày tờ khai
                                 </th>
-                                <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
-                                  Mã DN
+                                <th rowSpan={2} className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                                  Mã doanh nghiệp
                                 </th>
-                                <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
-                                  Tên DN
+                                <th rowSpan={2} className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                                  Tên doanh nghiệp
                                 </th>
-                                <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
-                                  NH DS
+                                <th colSpan={4} className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-800">
+                                  Ngân hàng đối soát
                                 </th>
-                                <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
-                                  Tổng tiền phí
+                                <th colSpan={3} className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-800">
+                                  Kho bạc đối soát
                                 </th>
-                                <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
-                                  Ghi chú
-                                </th>
+                              </tr>
+                              <tr>
+                                <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700">Tên ngân hàng</th>
+                                <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700">Trạng thái</th>
+                                <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700">Số tiền</th>
+                                <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700">Ghi chú</th>
+                                <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700">Số tiền</th>
+                                <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700">Trạng thái</th>
+                                <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700">Ghi chú</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -1218,18 +1176,16 @@ const InitializePage: React.FC = () => {
                                     <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800">
                                       {chiTiet.tenDoanhNghiep}
                                     </td>
-                                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800">
-                                      {mapDsStatus(chiTiet.nhDs, true)}
-                                    </td>
-                                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800 font-medium">
-                                      {chiTiet.tongTienPhi}
-                                    </td>
-                                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800">
-                                      {mapDsStatus(chiTiet.kbDs, true) ===
-                                      "Không có bản kê đối soát bên Bank"
-                                        ? ""
-                                        : chiTiet.ghiChu}
-                                    </td>
+                                    {/* Ngân hàng đối soát */}
+                                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800">Ngân hàng ACB</td>
+                                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800">{mapDsStatus(chiTiet.nhDs, true)}</td>
+                                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800 font-medium">750.000</td>
+                                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800">{chiTiet.ghiChu || ""}</td>
+
+                                    {/* Kho bạc đối soát */}
+                                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800 font-medium">750.000</td>
+                                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800">Lệch</td>
+                                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-800">{(chiTiet as any).kbGhiChu || ""}</td>
                                   </tr>
                                 )
                               )}
