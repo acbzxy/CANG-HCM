@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+// import { useNavigate } from 'react-router-dom'
 import { useNotification } from '../context/NotificationContext'
 
 // Backend API response interface
@@ -156,6 +157,7 @@ const mapApiResponseToDisplay = (apiData: BienLaiApiResponse[], startIndex = 0):
 };
 
 const DataTablePage: React.FC = () => {
+  // const navigate = useNavigate()
   const { showError, showSuccess } = useNotification()
   
   // States
@@ -176,6 +178,11 @@ const DataTablePage: React.FC = () => {
     loaiBienLai: '',
     trangThai: ''
   })
+
+  // Viewer modal states
+  const [showReceiptModal, setShowReceiptModal] = useState(false)
+  const [loadingReceipt, setLoadingReceipt] = useState(false)
+  const [receiptData, setReceiptData] = useState<any | null>(null)
 
   // Load data from API
   const loadData = async (page = 0, size = 10) => {
@@ -375,18 +382,31 @@ const DataTablePage: React.FC = () => {
     }
   }
 
-  // Handle action buttons
-  const handleAction = (action: 'huy' | 'dieu-chinh', row: BienLai) => {
-    console.log(`🔍 Action: ${action}`, row)
-    
-    if (action === 'huy') {
-      // Handle cancel action
-      showSuccess(`Đã hủy biên lai ${row.soBienLai}`)
-      // TODO: Implement cancel API call
-    } else if (action === 'dieu-chinh') {
-      // Handle adjust action
-      showSuccess(`Điều chỉnh biên lai ${row.soBienLai}`)
-      // TODO: Implement adjust functionality
+  // Handle view receipt
+  const handleViewReceipt = async (row: BienLai) => {
+    try {
+      setLoadingReceipt(true)
+      const code = row.maTraCuu || row.soBienLai
+      if (!code) {
+        showError('Không có mã tra cứu hoặc số biên lai để xem')
+        return
+      }
+      // Ưu tiên tra cứu theo mã biên lai (maTraCuu = maBl)
+      const resp = await fetch(`/api/bien-lai/search-by-mabl?maBl=${encodeURIComponent(code)}`)
+      if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status}`)
+      }
+      const result = await resp.json()
+      if (result?.status === 200 && result?.data) {
+        setReceiptData(result.data)
+        setShowReceiptModal(true)
+      } else {
+        showError('Không tìm thấy biên lai tương ứng')
+      }
+    } catch (e) {
+      showError('Lỗi khi tải biên lai: ' + (e as Error).message)
+    } finally {
+      setLoadingReceipt(false)
     }
   }
 
@@ -560,10 +580,10 @@ const DataTablePage: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="w-16 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  STT
+                  #
                 </th>
-                <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                  Loại yêu cầu
+                <th className="w-16 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                  STT
                 </th>
                 <th className="w-28 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                   Ngày yêu cầu
@@ -612,7 +632,7 @@ const DataTablePage: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={16} className="px-4 py-8 text-center">
+                  <td colSpan={17} className="px-4 py-8 text-center">
                     <div className="flex items-center justify-center">
                       <i className="fas fa-spinner fa-spin text-blue-600 text-xl mr-3"></i>
                       <span className="text-gray-600">Đang tải dữ liệu...</span>
@@ -621,7 +641,7 @@ const DataTablePage: React.FC = () => {
                 </tr>
               ) : filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={16} className="px-4 py-8 text-center">
+                  <td colSpan={17} className="px-4 py-8 text-center">
                     <div className="text-gray-500">
                       <i className="fas fa-inbox text-4xl mb-4"></i>
                       <p>Không có dữ liệu biên lai</p>
@@ -629,28 +649,19 @@ const DataTablePage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredData.map((row, index) => (
+                filteredData.map((row) => (
                   <tr key={row.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-3 py-3 text-sm text-gray-900 text-center">
-                      {row.stt}
+                      <button
+                        onClick={() => handleViewReceipt(row)}
+                        className="inline-flex items-center justify-center w-8 h-8 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
+                        title="Xem biên lai"
+                      >
+                        <i className="fas fa-eye"></i>
+                      </button>
                     </td>
-                    <td className="px-3 py-3 text-sm text-gray-900">
-                      <div className="flex flex-col gap-1">
-                        <button
-                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors whitespace-nowrap"
-                          onClick={() => handleAction('huy', row)}
-                        >
-                          <i className="fas fa-times mr-1"></i>
-                          Hủy
-                        </button>
-                        <button
-                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-colors whitespace-nowrap"
-                          onClick={() => handleAction('dieu-chinh', row)}
-                        >
-                          <i className="fas fa-edit mr-1"></i>
-                          Điều chỉnh
-                        </button>
-                      </div>
+                    <td className="px-3 py-3 text-sm text-gray-900 text-center">
+                      {row.stt}
                     </td>
                     <td className="px-3 py-3 text-sm text-gray-900">
                       {row.ngayYeuCau}
@@ -732,6 +743,50 @@ const DataTablePage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Receipt Viewer Modal */}
+      {showReceiptModal && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-start justify-start pt-16 pl-[356px] pr-4">
+          {/* Popup container */}
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-7xl h-[85vh] overflow-hidden">
+            {/* Close Button */}
+            <button
+              onClick={() => { setShowReceiptModal(false); setReceiptData(null); }}
+              className="absolute top-3 right-3 w-9 h-9 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 text-white text-xl flex items-center justify-center shadow-lg"
+              aria-label="Đóng"
+              title="Đóng"
+            >
+              ×
+            </button>
+
+            {/* Header */}
+            <div className="bg-gray-800 text-white px-4 py-3 flex items-center justify-between">
+              <div className="font-semibold">Phát hành biên lai điện tử</div>
+            </div>
+
+            {/* Body */}
+            <div className="w-full h-[calc(85vh-48px)] bg-gray-100 p-3">
+              <div className="w-full h-full bg-white rounded-md overflow-hidden">
+                {loadingReceipt ? (
+                  <div className="w-full h-full flex items-center justify-center text-gray-600">
+                    <i className="fas fa-spinner fa-spin mr-2"></i> Đang tải biên lai...
+                  </div>
+                ) : receiptData?.imageBl ? (
+                  <iframe
+                    src={`data:application/pdf;base64,${receiptData.imageBl}`}
+                    title="Receipt PDF"
+                    className="w-full h-full border-0"
+                  />
+                ) : receiptData ? (
+                  <div className="w-full h-full flex items-center justify-center text-gray-600">
+                    Không có dữ liệu PDF. Mã: {receiptData?.maBl} - Số: {receiptData?.soBl}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -248,6 +248,16 @@ const AccountPage: React.FC = () => {
 
   // Get company data based on user type
   const getCompanyData = () => {
+    // Ưu tiên tên DN cho tài khoản admin/123456
+    if (user?.username === "admin") {
+      return {
+        companyCode: user?.taxCode || "ADMIN123456",
+        companyName: "Quản trị",
+        phone: user?.phone || "1900 1286",
+        email: user?.email || "admin@example.com",
+        address: user?.address || "TP. Hồ Chí Minh",
+      };
+    }
     // Ưu tiên dữ liệu từ backend profile nếu có
     if (profile) {
       return {

@@ -34,6 +34,7 @@ const CreateReceiptPage = lazy(() => import("./pages/CreateReceiptPage"));
 const ReceiptManagePage = lazy(() => import("./pages/ReceiptManagePage"));
 const ChartDemoPage = lazy(() => import("./pages/ChartDemoPage"));
 const GetinGetoutPage = lazy(() => import("./pages/GetinGetoutPage"));
+const ParametersPage = lazy(() => import("./pages/ParametersPage"));
 
 // Reports Pages
 const ReportsPage = lazy(() => import("./pages/reports/ReportsPage"));
@@ -135,6 +136,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <GetinGetoutPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parameters"
+              element={
+                <ProtectedRoute>
+                  <ParametersPage />
                 </ProtectedRoute>
               }
             />

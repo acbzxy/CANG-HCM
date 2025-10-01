@@ -117,37 +117,83 @@ const Declare: React.FC = () => {
       
       console.log('💾 Saving new declaration:', newDeclarationData);
       
-      // TODO: Call actual API create endpoint when available
-      // const response = await CrmApiService.createFeeDeclaration(newDeclarationData);
-      
-      // For now, add to local state (mock implementation)
-      const newDeclaration = {
-        id: newDeclarationData.id,
-        soToKhai: newDeclarationData.customsDeclarationNumber || `AUTO-${Date.now()}`,
-        ngayToKhai: newDeclarationData.customsDeclarationDate || new Date().toISOString().split('T')[0],
-        tenDoanhNghiep: newDeclarationData.companyName,
-        doanhNghiepKB: newDeclarationData.companyName,
-        doanhNghiepXNK: newDeclarationData.companyName, // Sử dụng cùng tên công ty
-        maDoanhNghiep: newDeclarationData.companyTaxCode,
-        diaChi: newDeclarationData.companyAddress,
-        maHQ: newDeclarationData.customsDeclarationNumber || `${Math.floor(100000000 + Math.random() * 900000000)}`,
-        ngayHQ: newDeclarationData.customsDeclarationDate || new Date().toISOString().split('T')[0],
-        ngayPhi: newDeclarationData.feeDeclarationDate,
-        loai: 'Hàng container',
-        thongBao: 'Chưa lấy',
-        soTB: newDeclarationData.feeDeclarationReceiptNumber || `TB-${Date.now()}`,
-        trangThai: newDeclarationData.status || 'Thêm mới',
-        thanhTien: newDeclarationData.totalFeeAmount || 0,
-        ghiChu: newDeclarationData.notes || '',
-        createdAt: new Date().toISOString()
-      };
-      
-      // Add to filteredData and allData
-      setFilteredData(prevDeclarations => [newDeclaration, ...prevDeclarations]);
-      setAllData(prevDeclarations => [newDeclaration, ...prevDeclarations]);
-      
-      showSuccess('Đã lưu tờ khai mới thành công!', 'Thành công');
-      console.log('✅ New declaration saved successfully:', newDeclaration);
+      // Gọi API thực sự để tạo tờ khai mới
+      try {
+        const response = await CrmApiService.createToKhaiThongTin(newDeclarationData);
+        
+        if (response.status === 200 && response.data) {
+          console.log('✅ API tạo tờ khai thành công:', response.data);
+          
+          // Tạo object mới với dữ liệu từ API response
+          const newDeclaration = {
+            id: response.data.id,
+            soToKhai: response.data.soToKhai || newDeclarationData.soToKhai,
+            ngayToKhai: response.data.ngayToKhai || newDeclarationData.ngayToKhai,
+            tenDoanhNghiep: response.data.tenDoanhNghiepKhaiPhi || newDeclarationData.tenDoanhNghiepKhaiPhi,
+            doanhNghiepKB: response.data.tenDoanhNghiepKhaiPhi || newDeclarationData.tenDoanhNghiepKhaiPhi,
+            doanhNghiepXNK: response.data.tenDoanhNghiepXNK || newDeclarationData.tenDoanhNghiepXNK,
+            maDoanhNghiep: response.data.maDoanhNghiepKhaiPhi || newDeclarationData.maDoanhNghiepKhaiPhi,
+            diaChi: response.data.diaChiKhaiPhi || newDeclarationData.diaChiKhaiPhi,
+            maHQ: response.data.maCrm || newDeclarationData.maCrm,
+            ngayHQ: response.data.ngayToKhai || newDeclarationData.ngayToKhai,
+            ngayPhi: response.data.ngayKhaiPhi || newDeclarationData.ngayKhaiPhi,
+            loai: 'Hàng container',
+            thongBao: 'Chưa lấy',
+            soTB: response.data.soThongBaoNopPhi || newDeclarationData.soThongBaoNopPhi,
+            trangThai: response.data.trangThai || '00',
+            thanhTien: response.data.tongTienPhi || 0,
+            ghiChu: response.data.ghiChuKhaiPhi || newDeclarationData.ghiChuKhaiPhi,
+            createdAt: new Date().toISOString()
+          };
+          
+          // Add to filteredData and allData
+          setFilteredData(prevDeclarations => [newDeclaration, ...prevDeclarations]);
+          setAllData(prevDeclarations => [newDeclaration, ...prevDeclarations]);
+          
+          showSuccess('Đã lưu tờ khai mới thành công vào database!', 'Thành công');
+          console.log('✅ New declaration saved to database successfully:', newDeclaration);
+          
+          // Thông báo cho các trang khác rằng có dữ liệu mới
+          localStorage.setItem('newFeeDeclarationCreated', JSON.stringify({
+            id: response.data.id,
+            timestamp: new Date().toISOString(),
+            action: 'create'
+          }));
+        } else {
+          throw new Error(response.message || 'API trả về lỗi không xác định');
+        }
+      } catch (apiError: any) {
+        console.error('💥 API call failed, falling back to local state:', apiError);
+        
+        // Fallback: lưu vào local state nếu API thất bại
+        const newDeclaration = {
+          id: newDeclarationData.id || Date.now(),
+          soToKhai: newDeclarationData.soToKhai || `AUTO-${Date.now()}`,
+          ngayToKhai: newDeclarationData.ngayToKhai || new Date().toISOString().split('T')[0],
+          tenDoanhNghiep: newDeclarationData.tenDoanhNghiepKhaiPhi || 'N/A',
+          doanhNghiepKB: newDeclarationData.tenDoanhNghiepKhaiPhi || 'N/A',
+          doanhNghiepXNK: newDeclarationData.tenDoanhNghiepXNK || 'N/A',
+          maDoanhNghiep: newDeclarationData.maDoanhNghiepKhaiPhi || 'N/A',
+          diaChi: newDeclarationData.diaChiKhaiPhi || 'N/A',
+          maHQ: newDeclarationData.maCrm || `${Math.floor(100000000 + Math.random() * 900000000)}`,
+          ngayHQ: newDeclarationData.ngayToKhai || new Date().toISOString().split('T')[0],
+          ngayPhi: newDeclarationData.ngayKhaiPhi || new Date().toISOString().split('T')[0],
+          loai: 'Hàng container',
+          thongBao: 'Chưa lấy',
+          soTB: newDeclarationData.soThongBaoNopPhi || `TB-${Date.now()}`,
+          trangThai: newDeclarationData.trangThai || '00',
+          thanhTien: newDeclarationData.tongTienPhi || 0,
+          ghiChu: newDeclarationData.ghiChuKhaiPhi || '',
+          createdAt: new Date().toISOString()
+        };
+        
+        // Add to filteredData and allData
+        setFilteredData(prevDeclarations => [newDeclaration, ...prevDeclarations]);
+        setAllData(prevDeclarations => [newDeclaration, ...prevDeclarations]);
+        
+        showSuccess('Đã lưu tờ khai mới vào local state (API không khả dụng)!', 'Thành công');
+        console.log('✅ New declaration saved to local state (fallback):', newDeclaration);
+      }
       
     } catch (error: any) {
       console.error('💥 Save new declaration failed:', error);
@@ -1842,7 +1888,6 @@ const Declare: React.FC = () => {
                             name="certificate"
                             value={cert.serialNumber}
                             checked={selectedCertificateSerial === cert.serialNumber}
-                            onChange={() => setSelectedCertificateSerial(cert.serialNumber)}
                             onChange={() => setSelectedCertificateSerial(cert.serialNumber)}
                             style={{ marginTop: '3px' }}
                           />

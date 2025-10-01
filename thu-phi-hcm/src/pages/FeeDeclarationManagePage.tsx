@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FeeDeclarationService, type FeeDeclarationSearchParams, type TokhaiThongtinResponse } from '../utils/feeDeclarationApi';
 import { useNotification } from '../context/NotificationContext';
-import { debugLog, isDebugMode } from '../debug';
+import { debugLog } from '../debug';
 import type { FeeDeclaration } from '../types';
 // Simple PDF download using browser's print functionality
 
@@ -179,6 +179,11 @@ const FeeDeclarationManagePage: React.FC = () => {
   // Prevent duplicate API calls
   const isLoadingRef = React.useRef(false);
 
+  // Receipt viewer states
+  const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [loadingReceipt, setLoadingReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState<any | null>(null);
+
   // Load fee declarations on component mount and when filters change
   useEffect(() => {
     debugLog('Component mounted, loading fee declarations');
@@ -229,6 +234,25 @@ const FeeDeclarationManagePage: React.FC = () => {
           console.log('Fee declaration data reloaded after receipt creation');
         } catch (error) {
           console.error('Error processing receipt update:', error);
+        }
+      }
+
+      // Check for new fee declaration creation
+      const newDeclarationData = localStorage.getItem('newFeeDeclarationCreated');
+      if (newDeclarationData) {
+        try {
+          const newDeclarationInfo = JSON.parse(newDeclarationData);
+          console.log('New fee declaration creation detected:', newDeclarationInfo);
+          
+          // Reload data to get fresh data from backend
+          loadFeeDeclarations();
+          
+          // Clear the update flag
+          localStorage.removeItem('newFeeDeclarationCreated');
+          
+          console.log('Fee declaration data reloaded after new creation');
+        } catch (error) {
+          console.error('Error processing new declaration creation:', error);
         }
       }
     };
@@ -916,6 +940,30 @@ const FeeDeclarationManagePage: React.FC = () => {
     }
   };
 
+  // View receipt if available; otherwise fallback to detail
+  const handleViewReceiptOrDetail = async (displayItem: FeeDeclarationDisplay) => {
+    try {
+      // Find original item to access idBienLai
+      const original = feeDeclarations.find(fd => String(fd.id) === displayItem.id);
+      if (original && original.idBienLai && original.idBienLai !== 0) {
+        setLoadingReceipt(true);
+        setShowReceiptModal(true);
+        const resp = await fetch(`/api/bien-lai/${original.idBienLai}`);
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}`);
+        }
+        const payload = await resp.json();
+        setReceiptData(payload?.data || null);
+        setLoadingReceipt(false);
+        return;
+      }
+      // Fallback: open fee declaration detail
+      await handleViewDetail(displayItem);
+    } catch (e) {
+      setLoadingReceipt(false);
+      showError('Không thể tải biên lai: ' + (e as Error).message);
+    }
+  };
 
   // Render with error boundary
   if (window.location.search.includes('debug=error')) {
@@ -1177,8 +1225,8 @@ const FeeDeclarationManagePage: React.FC = () => {
                       fontSize: '14px',
                       padding: '4px'
                     }}
-                    onClick={() => handleViewDetail(item)}
-                    title="Xem chi tiết"
+                    onClick={() => handleViewReceiptOrDetail(item)}
+                    title="Xem biên lai (nếu có) / Chi tiết"
                   ></i>
                 </td>
                 <td style={{ padding: '8px', fontSize: '12px', color: '#0066cc' }}>
@@ -2069,6 +2117,44 @@ const FeeDeclarationManagePage: React.FC = () => {
               >
                 Đóng
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt Viewer Modal */}
+      {showReceiptModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 1100,
+          background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+          paddingTop: '64px'
+        }}>
+          <div style={{ position: 'relative', background: 'white', borderRadius: 12, width: '90%', maxWidth: 1200, height: '85vh', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
+            <button
+              onClick={() => { setShowReceiptModal(false); setReceiptData(null); }}
+              title="Đóng"
+              style={{ position: 'absolute', top: 10, right: 10, width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.55)', color: '#fff', border: 'none', cursor: 'pointer', zIndex: 2 }}
+            >
+              ×
+            </button>
+            <div style={{ background: '#1f2937', color: '#fff', padding: '10px 14px', fontWeight: 600 }}>Phát hành biên lai điện tử</div>
+            <div style={{ width: '100%', height: 'calc(85vh - 44px)', background: '#f3f4f6' }}>
+              {loadingReceipt ? (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#4b5563' }}>
+                  <i className="fas fa-spinner fa-spin" style={{ marginRight: 8 }}></i> Đang tải biên lai...
+                </div>
+              ) : receiptData?.imageBl ? (
+                <iframe
+                  title="Receipt PDF"
+                  src={`data:application/pdf;base64,${receiptData.imageBl}`}
+                  style={{ width: '100%', height: '100%', border: 0 }}
+                />
+              ) : receiptData ? (
+                <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>
+                  Không có dữ liệu PDF. Mã: {receiptData?.maBl} - Số: {receiptData?.soBl}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
