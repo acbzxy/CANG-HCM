@@ -39,6 +39,8 @@ const CRM_ENDPOINTS = {
   BIEN_LAI_CREATE: `${CRM_API_BASE_URL}/api/bien-lai/create`,
   BIEN_LAI_UPDATE: `${CRM_API_BASE_URL}/api/bien-lai/update`,
   BIEN_LAI_DELETE: `${CRM_API_BASE_URL}/api/bien-lai/delete`,
+  BIEN_LAI_BAO_CAO_BL_THU: `${CRM_API_BASE_URL}/api/bien-lai/bao-cao-bl-thu`,
+  BIEN_LAI_BAO_CAO_THEO_KHO: `${CRM_API_BASE_URL}/api/bien-lai/bao-cao-theo-kho`,
 
   // === THANH TOÁN / PAYMENTS ===
   PAYMENTS: `${CRM_API_BASE_URL}/api/payments`,
@@ -2176,6 +2178,28 @@ export class CrmApiService {
       method: "DELETE",
       body: JSON.stringify({ id }),
     });
+  }
+
+  /**
+   * Lấy báo cáo BL thu theo khoảng ngày
+   */
+  static async getBaoCaoBlThu(
+    fromDate: string,
+    toDate: string
+  ): Promise<ApiResponse<any[]>> {
+    const url = `${CRM_ENDPOINTS.BIEN_LAI_BAO_CAO_BL_THU}?fromDate=${fromDate}&toDate=${toDate}`;
+    return makeApiRequest(url);
+  }
+
+  /**
+   * Lấy báo cáo BL theo kho
+   */
+  static async getBaoCaoTheoKho(
+    fromDate: string,
+    toDate: string
+  ): Promise<ApiResponse<any[]>> {
+    const url = `${CRM_ENDPOINTS.BIEN_LAI_BAO_CAO_THEO_KHO}?fromDate=${fromDate}&toDate=${toDate}`;
+    return makeApiRequest(url);
   }
 
   // === PAYMENTS API METHODS ===
