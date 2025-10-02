@@ -1615,26 +1615,6 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
                               >
                                 Chọn
                               </button>
-                              <button
-                                className="bg-green-500 text-white px-2 py-1 rounded text-xs hover:bg-green-600"
-                                onClick={() => {
-                                  // Directly fill form with this item data
-                                  console.log('🖊️ Direct fill form with:', item);
-                                  
-                                  // Set temporary selected item for auto-fill function
-                                  const originalSelected = selectedTokhai;
-                                  setSelectedTokhai(item);
-                                  
-                                  // Use setTimeout to ensure state is updated
-                                  setTimeout(() => {
-                                    handleAutoFillForm();
-                                    // Restore original selection
-                                    setSelectedTokhai(originalSelected);
-                                  }, 100);
-                                }}
-                              >
-                                📝 Điền
-                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1722,15 +1702,6 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
                     onClick={handleAutoFillForm}
                   >
                     📝 Tự động điền form
-                  </button>
-                  <button
-                    className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700"
-                    onClick={() => {
-                      // TODO: Implement edit logic
-                      showInfo('Chức năng chỉnh sửa đang phát triển', 'Thông báo');
-                    }}
-                  >
-                    ✏️ Chỉnh sửa
                   </button>
                 </div>
               </div>

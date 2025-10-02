@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { 
   MagnifyingGlassIcon,
   DocumentTextIcon,
@@ -12,6 +12,7 @@ import Input from '../components/ui/Input'
 import Button from '../components/ui/Button'
 
 const ReceiptLookupPage: React.FC = () => {
+  const location = useLocation()
   const [searchData, setSearchData] = useState({
     receiptCode: '',
     captcha: ''
@@ -37,6 +38,40 @@ const ReceiptLookupPage: React.FC = () => {
   useEffect(() => {
     setCaptchaText(generateCaptcha())
   }, [])
+
+  // Handle URL parameters
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search)
+    const receiptNo = searchParams.get('receiptNo')
+    const code = searchParams.get('code')
+
+    if (receiptNo) {
+      setSearchData(prev => ({
+        ...prev,
+        receiptCode: receiptNo,
+      }))
+      setCaptchaInput(captchaText)
+      showInfo(`Đã tự động điền số biên lai: ${receiptNo}`)
+      setTimeout(() => {
+        const fakeEvent = { preventDefault: () => {} } as unknown as React.FormEvent
+        handleSubmit(fakeEvent)
+      }, 0)
+      return
+    }
+
+    if (code) {
+      setSearchData(prev => ({
+        ...prev,
+        receiptCode: code
+      }))
+      setCaptchaInput(captchaText)
+      showInfo(`Đã tự động điền mã tra cứu: ${code}`)
+      setTimeout(() => {
+        const fakeEvent = { preventDefault: () => {} } as unknown as React.FormEvent
+        handleSubmit(fakeEvent)
+      }, 0)
+    }
+  }, [location.search, showInfo, captchaText])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target

@@ -160,8 +160,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           id: "custom-001",
           username: "user",
           email: "user@example.com",
-          fullName: "Người dùng tùy chỉnh",
-          companyName: "Công ty tùy chỉnh",
+          fullName: "Doanh nghiệp cảng",
+          companyName: "Doanh nghiệp cảng",
           taxCode: "USER123456",
           phone: "1900 1286",
           address: "TP. Hồ Chí Minh",
@@ -185,6 +185,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         sessionStorage.setItem("isLoggedIn", "true");
         sessionStorage.setItem("loginTime", new Date().toISOString());
         sessionStorage.setItem("userType", "custom");
+        // Đồng bộ profile cho sidebar/account page
+        try {
+          const profile = {
+            fullname: "Doanh nghiệp cảng",
+            mail: customUser.email,
+            phone: customUser.phone,
+            address: customUser.address,
+            note: "",
+          } as any;
+          sessionStorage.setItem("userProfile", JSON.stringify(profile));
+        } catch {}
 
         dispatch({ type: "LOGIN_SUCCESS", payload: customUser });
         return;
@@ -200,7 +211,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           username: "admin",
           email: "admin@example.com",
           fullName: "Quản trị viên tùy chỉnh",
-          companyName: "Công ty Quản trị",
+          companyName: "Quản trị",
           taxCode: "ADMIN123456",
           phone: "1900 1286",
           address: "TP. Hồ Chí Minh",
@@ -294,8 +305,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               id: userData.userId?.toString() || "user-001",
               username: userData.username || credentials.username,
               email: userData.mail || "user@example.com",
-              fullName: userData.fullname || "Công ty Demo TPHCM",
-              companyName: userData.fullname || "Công ty Demo TPHCM",
+              fullName:
+                credentials.username === "admin"
+                  ? "Quản trị"
+                  : userData.fullname || "Công ty Demo TPHCM",
+              companyName:
+                credentials.username === "admin"
+                  ? "Quản trị"
+                  : userData.fullname || "Công ty Demo TPHCM",
               taxCode: credentials.username,
               phone: userData.phone || "1900 1286",
               address: userData.address || "TP. Hồ Chí Minh",

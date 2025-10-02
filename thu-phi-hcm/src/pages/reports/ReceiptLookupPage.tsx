@@ -1,7 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Button from '../../components/ui/Button'
+import { useLocation } from 'react-router-dom'
 
 const ReceiptLookupPage: React.FC = () => {
+  const location = useLocation()
   const [receiptId, setReceiptId] = useState('')
   const [verificationCode, setVerificationCode] = useState('')
   const [captcha, setCaptcha] = useState('JRHMG')
@@ -19,7 +21,7 @@ const ReceiptLookupPage: React.FC = () => {
     receiptSeries: 'TPHCM ngày 19 tháng 10 năm 2021',
     
     company: {
-      name: 'CÔNG TY CỔ PHẦN KỸ THUẬT ĐỒ LƯƠNG VBS',
+      name: 'CÔNG TY CỔ PHẦN KỸ THUẬT ĐỒ LƯỜNG VBS',
       taxCode: '0101556324',
       address: 'Số 298, phố Cầu Giấy Đình - Phường Cầu Giấy - Quận Ba Đình - Hà Nội'
     },
@@ -146,6 +148,22 @@ const ReceiptLookupPage: React.FC = () => {
     }
     setCaptcha(result)
   }
+
+  // Auto open viewer when having query params (code or receiptNo)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search)
+    const code = searchParams.get('code')
+    const receiptNo = searchParams.get('receiptNo')
+    const value = code || receiptNo
+    if (value) {
+      setReceiptId(value)
+      setVerificationCode(captcha) // auto pass captcha
+      // wait state set, then search
+      setTimeout(() => {
+        handleSearch()
+      }, 0)
+    }
+  }, [location.search, captcha])
 
   return (
     <div className="min-h-screen bg-gray-100">
