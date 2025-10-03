@@ -142,8 +142,9 @@ export interface TokhaiThongtinChiTietCreateRequest {
   soTien?: number
 }
 
-// API Base URL - Updated to use the new backend API with proxy
-const API_BASE_URL = '/api'
+// API Base URL
+// Gọi thẳng backend thật theo yêu cầu, bỏ qua proxy
+const API_BASE_URL = 'http://10.14.122.24:8081/PHT_BE/api'
 // For new CRM API, use crmApi.ts
 
 // Fee Declaration API endpoints - Updated for PHT_BE

@@ -110,95 +110,45 @@ const Declare: React.FC = () => {
   };
 
   // === SAVE NEW DECLARATION HANDLER ===
-  const handleSaveNewDeclaration = async (newDeclarationData: any) => {
+  const handleSaveNewDeclaration = async (createdFromModal: any) => {
     try {
       setLoading(true);
-      showInfo('Đang lưu tờ khai mới...', 'Lưu dữ liệu');
-      
-      console.log('💾 Saving new declaration:', newDeclarationData);
-      
-      // Gọi API thực sự để tạo tờ khai mới
-      try {
-        const response = await CrmApiService.createToKhaiThongTin(newDeclarationData);
-        
-        if (response.status === 200 && response.data) {
-          console.log('✅ API tạo tờ khai thành công:', response.data);
-          
-          // Tạo object mới với dữ liệu từ API response
-          const newDeclaration = {
-            id: response.data.id,
-            soToKhai: response.data.soToKhai || newDeclarationData.soToKhai,
-            ngayToKhai: response.data.ngayToKhai || newDeclarationData.ngayToKhai,
-            tenDoanhNghiep: response.data.tenDoanhNghiepKhaiPhi || newDeclarationData.tenDoanhNghiepKhaiPhi,
-            doanhNghiepKB: response.data.tenDoanhNghiepKhaiPhi || newDeclarationData.tenDoanhNghiepKhaiPhi,
-            doanhNghiepXNK: response.data.tenDoanhNghiepXNK || newDeclarationData.tenDoanhNghiepXNK,
-            maDoanhNghiep: response.data.maDoanhNghiepKhaiPhi || newDeclarationData.maDoanhNghiepKhaiPhi,
-            diaChi: response.data.diaChiKhaiPhi || newDeclarationData.diaChiKhaiPhi,
-            maHQ: response.data.maCrm || newDeclarationData.maCrm,
-            ngayHQ: response.data.ngayToKhai || newDeclarationData.ngayToKhai,
-            ngayPhi: response.data.ngayKhaiPhi || newDeclarationData.ngayKhaiPhi,
-            loai: 'Hàng container',
-            thongBao: 'Chưa lấy',
-            soTB: response.data.soThongBaoNopPhi || newDeclarationData.soThongBaoNopPhi,
-            trangThai: response.data.trangThai || '00',
-            thanhTien: response.data.tongTienPhi || 0,
-            ghiChu: response.data.ghiChuKhaiPhi || newDeclarationData.ghiChuKhaiPhi,
-            createdAt: new Date().toISOString()
-          };
-          
-          // Add to filteredData and allData
-          setFilteredData(prevDeclarations => [newDeclaration, ...prevDeclarations]);
-          setAllData(prevDeclarations => [newDeclaration, ...prevDeclarations]);
-          
-          showSuccess('Đã lưu tờ khai mới thành công vào database!', 'Thành công');
-          console.log('✅ New declaration saved to database successfully:', newDeclaration);
-          
-          // Thông báo cho các trang khác rằng có dữ liệu mới
-          localStorage.setItem('newFeeDeclarationCreated', JSON.stringify({
-            id: response.data.id,
-            timestamp: new Date().toISOString(),
-            action: 'create'
-          }));
-        } else {
-          throw new Error(response.message || 'API trả về lỗi không xác định');
-        }
-      } catch (apiError: any) {
-        console.error('💥 API call failed, falling back to local state:', apiError);
-        
-        // Fallback: lưu vào local state nếu API thất bại
-        const newDeclaration = {
-          id: newDeclarationData.id || Date.now(),
-          soToKhai: newDeclarationData.soToKhai || `AUTO-${Date.now()}`,
-          ngayToKhai: newDeclarationData.ngayToKhai || new Date().toISOString().split('T')[0],
-          tenDoanhNghiep: newDeclarationData.tenDoanhNghiepKhaiPhi || 'N/A',
-          doanhNghiepKB: newDeclarationData.tenDoanhNghiepKhaiPhi || 'N/A',
-          doanhNghiepXNK: newDeclarationData.tenDoanhNghiepXNK || 'N/A',
-          maDoanhNghiep: newDeclarationData.maDoanhNghiepKhaiPhi || 'N/A',
-          diaChi: newDeclarationData.diaChiKhaiPhi || 'N/A',
-          maHQ: newDeclarationData.maCrm || `${Math.floor(100000000 + Math.random() * 900000000)}`,
-          ngayHQ: newDeclarationData.ngayToKhai || new Date().toISOString().split('T')[0],
-          ngayPhi: newDeclarationData.ngayKhaiPhi || new Date().toISOString().split('T')[0],
-          loai: 'Hàng container',
-          thongBao: 'Chưa lấy',
-          soTB: newDeclarationData.soThongBaoNopPhi || `TB-${Date.now()}`,
-          trangThai: newDeclarationData.trangThai || '00',
-          thanhTien: newDeclarationData.tongTienPhi || 0,
-          ghiChu: newDeclarationData.ghiChuKhaiPhi || '',
-          createdAt: new Date().toISOString()
-        };
-        
-        // Add to filteredData and allData
-        setFilteredData(prevDeclarations => [newDeclaration, ...prevDeclarations]);
-        setAllData(prevDeclarations => [newDeclaration, ...prevDeclarations]);
-        
-        showSuccess('Đã lưu tờ khai mới vào local state (API không khả dụng)!', 'Thành công');
-        console.log('✅ New declaration saved to local state (fallback):', newDeclaration);
-      }
-      
+      showInfo('Đang cập nhật danh sách...', 'Lưu dữ liệu');
+
+      const newDeclaration = {
+        id: createdFromModal.id || Date.now(),
+        soToKhai: createdFromModal.soToKhai,
+        ngayToKhai: createdFromModal.ngayToKhai,
+        tenDoanhNghiep: createdFromModal.tenDoanhNghiepKhaiPhi,
+        doanhNghiepKB: createdFromModal.tenDoanhNghiepKhaiPhi,
+        doanhNghiepXNK: createdFromModal.tenDoanhNghiepXNK,
+        maDoanhNghiep: createdFromModal.maDoanhNghiepKhaiPhi,
+        diaChi: createdFromModal.diaChiKhaiPhi,
+        maHQ: createdFromModal.maHaiQuan,
+        ngayHQ: createdFromModal.ngayToKhai,
+        ngayPhi: createdFromModal.ngayKhaiPhi,
+        loai: 'Hàng container',
+        thongBao: 'Chưa lấy',
+        soTB: createdFromModal.soThongBaoNopPhi,
+        trangThai: createdFromModal.trangThai || '00',
+        thanhTien: createdFromModal.tongTienPhi || 0,
+        ghiChu: createdFromModal.ghiChuKhaiPhi || '',
+        createdAt: new Date().toISOString()
+      };
+
+      setFilteredData(prev => [newDeclaration, ...prev]);
+      setAllData(prev => [newDeclaration, ...prev]);
+
+      localStorage.setItem('newFeeDeclarationCreated', JSON.stringify({
+        id: newDeclaration.id,
+        timestamp: new Date().toISOString(),
+        action: 'create'
+      }));
+
+      showSuccess('Đã lưu tờ khai mới!', 'Thành công');
     } catch (error: any) {
       console.error('💥 Save new declaration failed:', error);
-      showError(`Lỗi lưu tờ khai: ${error?.message || 'Unknown error'}`, 'Lỗi');
-      throw error; // Re-throw để modal có thể handle
+      showError(`Lỗi lưu tờ khai mới: ${error.message}`, 'Lỗi');
     } finally {
       setLoading(false);
     }
@@ -992,20 +942,34 @@ const Declare: React.FC = () => {
 
   // Helper function to display status
   const getStatusDisplay = (status: string) => {
-  const getStatusDisplay = (status: string) => {
+    // Support numeric codes 00-04
+    switch (status) {
+      case '00':
+        return 'Mới tạo';
+      case '01':
+        return 'Đã ký số';
+      case '02':
+        return 'Đã tính phí';
+      case '03':
+        return 'Đã tạo hóa đơn';
+      case '04':
+        return 'Thành công';
+      default:
+        break;
+    }
+
     const statusMap: Record<string, string> = {
-      'DRAFT': 'Mới tạo',
-      'SUBMITTED': 'Đã ký',
-      'APPROVED': 'Đã ký',
-      'REJECTED': 'Mới tạo',
-      'COMPLETED': 'Đã ký',
-      'CANCELLED': 'Mới tạo',
-      'NEW': 'Mới tạo',
-      'SIGNED': 'Đã ký',
-      'PENDING': 'Mới tạo',
+      DRAFT: 'Mới tạo',
+      SUBMITTED: 'Đã ký',
+      APPROVED: 'Đã ký',
+      REJECTED: 'Mới tạo',
+      COMPLETED: 'Đã ký',
+      CANCELLED: 'Mới tạo',
+      NEW: 'Mới tạo',
+      SIGNED: 'Đã ký',
+      PENDING: 'Mới tạo',
     };
-    return statusMap[status] || (status ? 'Mới tạo' : 'Mới tạo');
-  };
+    return statusMap[status] || 'Mới tạo';
   };
 
   useEffect(() => {

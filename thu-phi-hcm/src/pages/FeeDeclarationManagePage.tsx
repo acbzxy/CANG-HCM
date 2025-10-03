@@ -119,21 +119,40 @@ const getDisplayStatus = (item: FeeDeclaration): string => {
     declarationNumber: item.declarationNumber
   });
   
-  // Use trangThaiPhatHanh to determine status
+  // Map explicit business statuses 00-04 per requirement
+  // 00: Mới tạo, 01: Đã ký số, 02: Đã tính phí, 03: Đã tạo hóa đơn, 04: Thành công
+  if (item.trangThai) {
+    switch (item.trangThai) {
+      case '00':
+        return 'Mới tạo';
+      case '01':
+        return 'Đã ký số';
+      case '02':
+        return 'Đã tính phí';
+      case '03':
+        return 'Đã tạo hóa đơn';
+      case '04':
+        return 'Thành công';
+      default:
+        break; // fall through to trangThaiPhatHanh mapping
+    }
+  }
+
+  // Fallback: use trangThaiPhatHanh for display when 00-04 not provided
   let displayStatus: string;
   switch (item.trangThaiPhatHanh) {
-    case '02': 
-      displayStatus = 'Phát hành'; 
+    case '02':
+      displayStatus = 'Phát hành';
       break;
-    case '01': 
-      displayStatus = 'Bản nháp'; 
+    case '01':
+      displayStatus = 'Bản nháp';
       break;
-    case '03': 
-      displayStatus = 'Đã hủy'; 
+    case '03':
+      displayStatus = 'Đã hủy';
       break;
-    case '00': 
-    default: 
-      displayStatus = 'Mới'; 
+    case '00':
+    default:
+      displayStatus = 'Mới';
       break;
   }
   
