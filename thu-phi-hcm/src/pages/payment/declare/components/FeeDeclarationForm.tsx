@@ -225,7 +225,7 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
         <div className="col-span-1 ">
           <div className="">
             <h3 className="font-bold mb-2">THÔNG TIN THU PHÍ</h3>
-            <div className="bg-white p-2">
+            <div id="feeInfoSection" className="bg-white p-2">
               {[
                 "Số thông báo nộp phí",
                 "Tổng tiền phí (VND) - Tạm tính",
