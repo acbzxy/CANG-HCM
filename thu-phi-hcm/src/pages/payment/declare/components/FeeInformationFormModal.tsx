@@ -213,6 +213,98 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
 
   const handleFeeOptionChange = (option: 'customs' | 'manual') => {
     setIsManualDeclaration(option === 'manual');
+
+    if (option === 'manual') {
+      // Clear selection and previous results
+      try {
+        setSelectedTokhai(null);
+        setShowSelectedData(false);
+        setFetchedData([]);
+      } catch (e) {
+        console.warn('Cannot reset selected tokhai state:', e);
+      }
+
+      // Helper to enable and optionally clear a field
+      const enableAndClear = (selector: string) => {
+        const el = document.querySelector(selector) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null;
+        if (!el) return;
+        try {
+          (el as any).disabled = false;
+          (el as any).readOnly = false;
+          if ((el as any).classList) {
+            (el as any).classList.remove('bg-gray-100', 'cursor-not-allowed');
+          }
+          if (el.tagName === 'SELECT') {
+            (el as HTMLSelectElement).value = '';
+          } else if (el.tagName === 'TEXTAREA') {
+            (el as HTMLTextAreaElement).value = '';
+          } else {
+            (el as HTMLInputElement).value = '';
+          }
+        } catch (e) {
+          console.warn('Cannot enable/clear field:', selector, e);
+        }
+      };
+
+      // Enable and clear main fields per requirement
+      enableAndClear('input[name="companyTaxCode"]');
+      enableAndClear('input[name="companyName"]');
+      enableAndClear('input[name="companyAddress"]');
+
+      enableAndClear('input[name="importExportCompanyTaxCode"]');
+      enableAndClear('input[name="importExportCompanyName"]');
+      enableAndClear('input[name="importExportCompanyAddress"]');
+
+      enableAndClear('input[name="feeDeclarationReceiptNumber"]');
+      enableAndClear('input[name="feeDeclarationDate"]');
+
+      enableAndClear('input[name="customsDeclarationNumber"]');
+      enableAndClear('input[name="customsDeclarationDate"]');
+
+      // Clear all dropdown fields in TỜ KHAI HẢI QUAN
+      enableAndClear('select[name="maHaiQuan"]');
+      enableAndClear('select[name="maLoaiHinh"]');
+      enableAndClear('select[name="maLuuKho"]');
+      enableAndClear('select[name="nuocXuatKhau"]');
+
+      // Clear all dropdown fields in TỜ KHAI PHÍ
+      enableAndClear('select[name="nhomLoaiPhi"]');
+      enableAndClear('select[name="loaiThanhToan"]');
+      enableAndClear('textarea[name="notes"]');
+
+      // Clear all dropdown fields in THÔNG TIN HÀNG HÓA TỜ KHAI
+      enableAndClear('select[name="maPhuongThucVC"]');
+      enableAndClear('select[name="phuongTienVC"]');
+      enableAndClear('select[name="maDiaDiemXepHang"]');
+      enableAndClear('select[name="maDiaDiemDoHang"]');
+      enableAndClear('select[name="maPhanLoaiHangHoa"]');
+      enableAndClear('select[name="mucDichVC"]');
+
+      // Keep THÔNG TIN THU PHÍ section disabled (do not enable)
+      try {
+        const feeInfoSection = document.getElementById('feeInfoSection');
+        if (feeInfoSection) {
+          const feeInputs = feeInfoSection.querySelectorAll('input, select, textarea, button');
+          feeInputs.forEach((node) => {
+            const element = node as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | HTMLButtonElement;
+            // Keep disabled state - do not enable
+            if ('disabled' in element) (element as any).disabled = true;
+            if ('readOnly' in element) (element as any).readOnly = true;
+            if ((element as any).classList) (element as any).classList.add('bg-gray-100', 'cursor-not-allowed');
+            // Clear values but keep disabled
+            if (element.tagName === 'SELECT') {
+              (element as HTMLSelectElement).value = '';
+            } else if (element.tagName === 'TEXTAREA') {
+              (element as HTMLTextAreaElement).value = '';
+            } else if (element.tagName === 'INPUT' && (element as HTMLInputElement).type !== 'button') {
+              (element as HTMLInputElement).value = '';
+            }
+          });
+        }
+      } catch (e) {
+        console.warn('Cannot keep fee info section disabled:', e);
+      }
+    }
   };
 
   const handleGetInformation = async () => {
@@ -838,6 +930,41 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
         console.warn('❌ mucDichVCField not found');
       }
 
+      // Disable specific fields after auto-fill as per requirements
+      try {
+        const disableField = (field: any) => {
+          if (!field) return;
+          try {
+            field.readOnly = true;
+            field.disabled = true;
+            if (field.classList) {
+              field.classList.add('bg-gray-100', 'cursor-not-allowed');
+            }
+          } catch (e) {
+            console.warn('Cannot disable field:', field?.name || field?.tagName, e);
+          }
+        };
+
+        // Doanh nghiệp khai phí: mã số thuế, tên, địa chỉ
+        disableField(companyTaxCodeField);
+        disableField(companyNameField);
+        disableField(companyAddressField);
+
+        // Doanh nghiệp xuất nhập khẩu: tên, địa chỉ (mã số thuế vẫn cho sửa nếu cần)
+        disableField(importExportNameField);
+        disableField(importExportAddressField);
+
+        // Tờ khai phí: số tiếp nhận, ngày khai phí
+        disableField(feeDeclarationReceiptNumberField);
+        disableField(feeDeclarationDateField);
+
+        // Tờ khai hải quan: số tờ khai, ngày tờ khai
+        disableField(customsDeclarationNumberField);
+        disableField(customsDeclarationDateField);
+      } catch (e) {
+        console.error('❌ Error disabling fields after auto-fill:', e);
+      }
+
       // Trigger change events to ensure form validation works
       console.log('🔄 Triggering change events for all filled fields...');
       const allFields = [
@@ -859,6 +986,29 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
           console.log(`🔄 Events triggered for field ${index + 1}: ${field.name || field.tagName}`);
         }
       });
+
+      // Disable all fee info inputs (THÔNG TIN THU PHÍ) after auto-fill
+      try {
+        const feeInfoSection = document.getElementById('feeInfoSection');
+        if (feeInfoSection) {
+          const feeInputs = feeInfoSection.querySelectorAll('input, select, textarea, button');
+          feeInputs.forEach((el) => {
+            const element = el as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | HTMLButtonElement;
+            // keep links intact, only disable form controls
+            if ('disabled' in element) {
+              (element as any).disabled = true;
+            }
+            if ('readOnly' in element) {
+              (element as any).readOnly = true;
+            }
+            if ((element as any).classList) {
+              (element as any).classList.add('bg-gray-100', 'cursor-not-allowed');
+            }
+          });
+        }
+      } catch (e) {
+        console.error('❌ Error disabling fee info section:', e);
+      }
 
       // Map container details to table
       console.log('🔍 Checking chiTietList for selectedTokhai:', {

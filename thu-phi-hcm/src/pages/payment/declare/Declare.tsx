@@ -1275,150 +1275,155 @@ const Declare: React.FC = () => {
           </div>
           <div className="clear-both"></div>
         </div>
-        <div className="frame-body">
-          <table className="w-full min-w-[1700px]" id="TBLDANHSACH">
-            <thead>
-              <tr>
-                <th className="sticky-header w-[50px] table-header">STT</th>
-                <th className="sticky-header w-[50px] table-header">
-                  <label>
-                    <input 
-                      type="checkbox" 
-                      name="CHECKBOX_ALL" 
-                      checked={selectedItems.length === filteredData.length && filteredData.length > 0}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                    />
-                    <span className="lbl color-key"></span>
-                  </label>
-                </th>
-                <th className="sticky-header w-[50px] table-header">#</th>
-                <th className="sticky-header table-header">Doanh nghiệp</th>
-                <th className="sticky-header w-[120px] table-header">Tính phí</th>
-                <th className="sticky-header table-header">Trạng thái</th>
-                <th className="sticky-header w-[100px] table-header">
-                  TK hải quan
-                </th>
-                <th className="sticky-header w-[100px] table-header">
-                  Ngày TK HQ
-                </th>
-                <th className="sticky-header w-[120px] table-header">
-                  Ngày khai phí
-                </th>
-                <th className="sticky-header w-[100px] table-header">
-                  Loại tờ khai
-                </th>
-                <th className="sticky-header table-header">Số thông báo</th>
-                <th className="sticky-header w-[100px]">Thành tiền</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={12} className="text-center text-blue-600">
-                    Đang tải dữ liệu...
-                  </td>
-                </tr>
-              ) : (
-                filteredData.map((row, idx) => (
-                  <tr
-                    key={row.id}
-                    className={`h-[60px] ${
-                      idx % 2 === 0 ? "bg-white" : "bg-blue-50"
-                    } hover:bg-blue-100`}
-                  >
-                    <td className="text-center">{idx + 1}</td>
-                    <td className="text-center">
-                      <input 
-                        type="checkbox" 
-                        name={`CHECKBOX_${row.id}`}
-                        checked={selectedItems.includes(row.id)}
-                        onChange={(e) => handleCheckboxChange(row.id, e.target.checked)}
-                      />
-                    </td>
-                    <td className="text-center">
-                      <button
-                        onClick={() => handleViewNote(row)}
-                        className="text-blue-600 hover:text-blue-800 cursor-pointer p-1 rounded hover:bg-blue-50"
-                        title="Xem chi tiết"
-                      >
-                        <i className="fas fa-eye"></i>
-                      </button>
-                    </td>
-                    <td>{row.doanhNghiepKB || row.doanhNghiepXNK || 'Công ty TNHH Vận Tải Biển Đông'}</td>
-                    {/* Tính phí action moved here */}
-                    <td className="text-center">
-                      {(() => {
-                        const isCalculated = row.thongBao === 'Đã lấy' || row.trangThai === 'Đã tính phí';
-                        const isEnabled = row.trangThai === 'Đã ký số' && !isCalculated && !loading;
-                        const label = isCalculated ? 'Đã tính phí' : (loading ? 'Đang xử lý...' : 'Tính phí');
-                        const className = isCalculated
-                          ? 'bg-green-100 text-green-800 border border-green-300 cursor-not-allowed'
-                          : isEnabled
-                          ? 'bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer'
-                          : 'bg-gray-200 text-gray-500 border border-gray-300 cursor-not-allowed';
-                        return (
-                          <button
-                            onClick={() => handleGetNotification(row)}
-                            disabled={!isEnabled}
-                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${className} disabled:opacity-70 disabled:cursor-not-allowed`}
-                          >
-                            {label}
-                          </button>
-                        );
-                      })()}
-                    </td>
-                    {/* Trạng thái moved here */}
-                    <td className="text-center">
-                      <span 
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          row.trangThai === 'Đã ký số' 
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
-                            : row.trangThai === 'Hoàn thành'
-                            ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                            : row.trangThai === 'Thêm mới'
-                            ? 'bg-blue-100 text-blue-800 border border-blue-300'
-                            : row.trangThai === 'Đang xử lý'
-                            ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
-                            : row.trangThai === 'Chưa ký số'
-                            ? 'bg-orange-100 text-orange-800 border border-orange-300'
-                            : 'bg-gray-100 text-gray-800 border border-gray-300'
-                        }`}
-                      >
-                        {row.trangThai}
-                      </span>
-                    </td>
-                    <td>{row.maHQ}</td>
-                    <td>{row.ngayHQ}</td>
-                    <td>{row.ngayPhi}</td>
-                    <td>{row.loai}</td>
-                    <td>{row.soTB}</td>
-                    <td className="text-right">
-                      {row.thanhTien.toLocaleString()} đ
-                    </td>
+        {/* Ẩn bảng dữ liệu khi modal thông tin tờ khai mở (chế độ thêm mới) */}
+        {!showFeeInfoModal && (
+          <>
+            <div className="frame-body">
+              <table className="w-full min-w-[1700px]" id="TBLDANHSACH">
+                <thead>
+                  <tr>
+                    <th className="sticky-header w-[50px] table-header">STT</th>
+                    <th className="sticky-header w-[50px] table-header">
+                      <label>
+                        <input 
+                          type="checkbox" 
+                          name="CHECKBOX_ALL" 
+                          checked={selectedItems.length === filteredData.length && filteredData.length > 0}
+                          onChange={(e) => handleSelectAll(e.target.checked)}
+                        />
+                        <span className="lbl color-key"></span>
+                      </label>
+                    </th>
+                    <th className="sticky-header w-[50px] table-header">#</th>
+                    <th className="sticky-header table-header">Doanh nghiệp</th>
+                    <th className="sticky-header w-[120px] table-header">Tính phí</th>
+                    <th className="sticky-header table-header">Trạng thái</th>
+                    <th className="sticky-header w-[100px] table-header">
+                      TK hải quan
+                    </th>
+                    <th className="sticky-header w-[100px] table-header">
+                      Ngày TK HQ
+                    </th>
+                    <th className="sticky-header w-[120px] table-header">
+                      Ngày khai phí
+                    </th>
+                    <th className="sticky-header w-[100px] table-header">
+                      Loại tờ khai
+                    </th>
+                    <th className="sticky-header table-header">Số thông báo</th>
+                    <th className="sticky-header w-[100px]">Thành tiền</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan={12} className="text-center text-blue-600">
+                        Đang tải dữ liệu...
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredData.map((row, idx) => (
+                      <tr
+                        key={row.id}
+                        className={`h-[60px] ${
+                          idx % 2 === 0 ? "bg-white" : "bg-blue-50"
+                        } hover:bg-blue-100`}
+                      >
+                        <td className="text-center">{idx + 1}</td>
+                        <td className="text-center">
+                          <input 
+                            type="checkbox" 
+                            name={`CHECKBOX_${row.id}`}
+                            checked={selectedItems.includes(row.id)}
+                            onChange={(e) => handleCheckboxChange(row.id, e.target.checked)}
+                          />
+                        </td>
+                        <td className="text-center">
+                          <button
+                            onClick={() => handleViewNote(row)}
+                            className="text-blue-600 hover:text-blue-800 cursor-pointer p-1 rounded hover:bg-blue-50"
+                            title="Xem chi tiết"
+                          >
+                            <i className="fas fa-eye"></i>
+                          </button>
+                        </td>
+                        <td>{row.doanhNghiepKB || row.doanhNghiepXNK || 'Công ty TNHH Vận Tải Biển Đông'}</td>
+                        {/* Tính phí action moved here */}
+                        <td className="text-center">
+                          {(() => {
+                            const isCalculated = row.thongBao === 'Đã lấy' || row.trangThai === 'Đã tính phí';
+                            const isEnabled = row.trangThai === 'Đã ký số' && !isCalculated && !loading;
+                            const label = isCalculated ? 'Đã tính phí' : (loading ? 'Đang xử lý...' : 'Tính phí');
+                            const className = isCalculated
+                              ? 'bg-green-100 text-green-800 border border-green-300 cursor-not-allowed'
+                              : isEnabled
+                              ? 'bg-blue-500 text-white border border-blue-600 hover:bg-blue-600 cursor-pointer'
+                              : 'bg-gray-200 text-gray-500 border border-gray-300 cursor-not-allowed';
+                            return (
+                              <button
+                                onClick={() => handleGetNotification(row)}
+                                disabled={!isEnabled}
+                                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${className} disabled:opacity-70 disabled:cursor-not-allowed`}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })()}
+                        </td>
+                        {/* Trạng thái moved here */}
+                        <td className="text-center">
+                          <span 
+                            className={`px-2 py-1 rounded text-xs font-medium ${
+                              row.trangThai === 'Đã ký số' 
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
+                                : row.trangThai === 'Hoàn thành'
+                                ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                                : row.trangThai === 'Thêm mới'
+                                ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                                : row.trangThai === 'Đang xử lý'
+                                ? 'bg-yellow-100 text-yellow-800 border border-yellow-300'
+                                : row.trangThai === 'Chưa ký số'
+                                ? 'bg-orange-100 text-orange-800 border border-orange-300'
+                                : 'bg-gray-100 text-gray-800 border border-gray-300'
+                            }`}
+                          >
+                            {row.trangThai}
+                          </span>
+                        </td>
+                        <td>{row.maHQ}</td>
+                        <td>{row.ngayHQ}</td>
+                        <td>{row.ngayPhi}</td>
+                        <td>{row.loai}</td>
+                        <td>{row.soTB}</td>
+                        <td className="text-right">
+                          {row.thanhTien.toLocaleString()} đ
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-        {/* Fixed Pagination */}
-        <div className="sticky bottom-0 z-10 bg-gray-100 border-t border-gray-300 px-4 py-3 flex items-center justify-between shadow-sm">
-          <div className="text-sm text-gray-600">
-            Hiển thị 1-{totalRecords} trong tổng số {totalRecords} bản ghi
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" disabled>
-              ‹ Trước
-            </Button>
-            <span className="px-3 py-1 bg-blue-500 text-white text-sm rounded">
-              1
-            </span>
-            <Button variant="outline" size="sm" disabled>
-              Sau ›
-            </Button>
-          </div>
-        </div>
+            {/* Fixed Pagination */}
+            <div className="sticky bottom-0 z-10 bg-gray-100 border-t border-gray-300 px-4 py-3 flex items-center justify-between shadow-sm">
+              <div className="text-sm text-gray-600">
+                Hiển thị 1-{totalRecords} trong tổng số {totalRecords} bản ghi
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" disabled>
+                  ‹ Trước
+                </Button>
+                <span className="px-3 py-1 bg-blue-500 text-white text-sm rounded">
+                  1
+                </span>
+                <Button variant="outline" size="sm" disabled>
+                  Sau ›
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
       {showFeeInfoModal && (
         selectedRowData ? (
