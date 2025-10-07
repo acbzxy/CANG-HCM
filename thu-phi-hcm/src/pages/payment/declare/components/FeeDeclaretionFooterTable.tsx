@@ -64,6 +64,18 @@ export default function CargoTabs() {
   const [tokhaiLienQuan, setTokhaiLienQuan] = useState<TokhaiLienQuanData[]>([]);
   const [editingTokhaiLienQuan, setEditingTokhaiLienQuan] = useState<Partial<TokhaiLienQuanData>>({});
 
+  // Đồng bộ radio LOAI_TK_NP với tab hiển thị
+  useEffect(() => {
+    // 100: HÀNG CONTAINER, 101: HÀNG RỜI/LỎNG/KIỆN, 102: HÀNG CONTAINER CFS
+    if (selectedCargoType === '100') {
+      setSelectedTab('HANG_CONTAINER');
+    } else if (selectedCargoType === '101') {
+      setSelectedTab('HANG_ROILONGKIEN');
+    } else if (selectedCargoType === '102') {
+      setSelectedTab('HANG_CONTAINER_CFS');
+    }
+  }, [selectedCargoType]);
+
   // Create stable callback for getting container data
   const handleGetContainerData = useCallback(() => {
     console.log('📦 CargoTabs received request for container data');

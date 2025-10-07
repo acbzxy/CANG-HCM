@@ -164,8 +164,8 @@ const FeeDeclarationManagePage: React.FC = () => {
   const { showError, showSuccess } = useNotification();
   
   // States for filters
-  const [fromDate, setFromDate] = useState('2021-04-06');
-  const [toDate, setToDate] = useState('2021-08-21');
+  const [fromDate, setFromDate] = useState('2025-01-01');
+  const [toDate, setToDate] = useState('2025-12-31');
   const [trangThaiTo, setTrangThaiTo] = useState('');
 
   // State for detail modal

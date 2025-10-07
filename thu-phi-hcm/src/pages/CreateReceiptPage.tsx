@@ -1034,11 +1034,10 @@ const CreateReceiptPage: React.FC = () => {
         c1: formatDateDDMMYYYY((latestDeclaration && latestDeclaration.ngayKhaiPhi) || receiptDate),
         c2: (latestDeclaration && latestDeclaration.soToKhai) || customsDeclarationNumber || "",
         c3: formatDateDDMMYYYY((latestDeclaration && latestDeclaration.ngayToKhai) || customsDeclarationDate),
-        c4: getLoaiHinh(),
-        c5: getNhomLoaiHinh(),
+        // c4: bỏ trống để tránh hiển thị trùng "Số thông báo phí" lần 2 trên mẫu
+        c4: "",
+        c5: getLoaiHinh(),
         c6: paymentMethodText,
-        // c7: Loại tờ khai (yêu cầu mới)
-        c7: (latestDeclaration && latestDeclaration.loaiToKhai) || (selectedItem as any)?.loaiToKhai || '',
         sumv: totalAmountValue,
         sum: totalAmountValue,
         totalv: grandTotal,

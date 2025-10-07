@@ -180,7 +180,6 @@ const Declare: React.FC = () => {
           ngayToKhai: createdFromModal.ngayToKhai || '',
           maLoaiHinh: createdFromModal.maLoaiHinh || '',
           nhomLoaiHinh: createdFromModal.nhomLoaiHinh || '',
-          loaiToKhai: (createdFromModal as any).loaiToKhai || ''
         };
         localStorage.setItem('latestCreatedDeclaration', JSON.stringify(latestDeclarationPayload));
       } catch (_) { /* ignore */ }
@@ -394,7 +393,7 @@ const Declare: React.FC = () => {
       maHQ: item.declarationNumber || item.soToKhai || `${Math.floor(100000000 + Math.random() * 900000000)}`,
       ngayHQ: item.createdAt ? new Date(item.createdAt).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
       ngayPhi: item.updatedAt ? new Date(item.updatedAt).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN'),
-      loai: item.feeType || item.loaiToKhai || 'Chưa ký',
+      loai: item.feeType || item.loaiToKhai || 'Container',
       thongBao: item.status === 'COMPLETED' ? 'Đã lấy' : `TB${item.id || (index + 25)}`,
       soTB: `TB${item.id || (index + 25)}`,
       trangThai: getStatusDisplay(item.status || item.trangThai),

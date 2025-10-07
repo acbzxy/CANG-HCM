@@ -9,7 +9,9 @@ const ENDPOINTS = {
   RECEIPTS: `${API_BASE_URL}/receipts`,
   RECEIPT_BY_CODE: `${API_BASE_URL}/receipts/code`,
   RECEIPT_BY_FEE_DECLARATION: `${API_BASE_URL}/receipts/fee-declaration`,
-  ISSUE_RECEIPT: `${API_BASE_URL}/receipts/{id}/issue`
+  ISSUE_RECEIPT: `${API_BASE_URL}/receipts/{id}/issue`,
+  // Endpoint riêng cho màn danh sách biên lai (Nộp phí cơ sở hạ tầng)
+  RECEIPTS_LIST_ALL: `http://10.14.122.24:8081/PHT_BE/api/bien-lai/all`
 }
 
 // Receipt interfaces
@@ -131,12 +133,13 @@ export class ReceiptApiService {
    * Get all receipts with pagination
    */
   static async getAllReceipts(
-    page = 0, 
-    size = 10, 
-    sortBy = 'receiptDate', 
-    sortDir = 'desc'
+  page = 0, 
+  size = 10, 
+  sortBy = 'ngayTao', 
+  sortDir = 'desc'
   ): Promise<ApiResponse<PageResponse<Receipt>>> {
-    const url = `${ENDPOINTS.RECEIPTS}?page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`
+    // Map đúng API danh sách biên lai của menu Nộp phí CSHT
+    const url = `${ENDPOINTS.RECEIPTS_LIST_ALL}?page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`
     return this.makeRequest(url)
   }
 
