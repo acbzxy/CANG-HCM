@@ -1,4 +1,9 @@
-export default function FeeDeclarationForm({ id }: { id?: string }) {
+interface FeeDeclarationFormProps {
+  id?: string;
+  formData?: any;
+}
+
+export default function FeeDeclarationForm({ id, formData }: FeeDeclarationFormProps) {
   return (
     <div className="min-h-screen">
       <form id="feeDeclarationForm" className="w-full">
@@ -16,7 +21,7 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   <input
                     className="w-full border px-2 py-1"
                     name="companyTaxCode"
-                    defaultValue="0201392117"
+                    value={formData?.maDoanhNghiepKhaiPhi || ''}
                     placeholder="VD: 0201392117"
                   />
                 </div>
@@ -27,7 +32,7 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   <input
                     className="w-full border px-2 py-1"
                     name="companyName"
-                    defaultValue="Công ty TNHH đầu tư vận tải Hải Sơn"
+                    value={formData?.tenDoanhNghiepKhaiPhi || ''}
                     placeholder="VD: Công ty TNHH đầu tư vận tải Hải Sơn"
                   />
                 </div>
@@ -36,7 +41,7 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   <input
                     className="w-full border px-2 py-1"
                     name="companyAddress"
-                    defaultValue="Số 123 Đường Hải Sơn, Phường 15, Quận 11, TP.HCM"
+                    value={formData?.diaChiKhaiPhi || ''}
                     placeholder="VD: Số 123 Đường Hải Sơn, Phường 15, Quận 11, TP.HCM"
                   />
                 </div>
@@ -53,7 +58,8 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   <input
                     className="w-full border px-2 py-1"
                     name="importExportCompanyTaxCode"
-                    defaultValue="0201392117"
+                    value={formData?.maDoanhNghiepXNK || ''}
+                    placeholder="VD: 0201392117"
                   />
                 </div>
                 <div className="mb-2">
@@ -63,7 +69,8 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   <input
                     className="w-full border px-2 py-1"
                     name="importExportCompanyName"
-                    defaultValue="Công ty TNHH đầu tư vận tải Hải Sơn"
+                    value={formData?.tenDoanhNghiepXNK || ''}
+                    placeholder="VD: Công ty TNHH đầu tư vận tải Hải Sơn"
                   />
                 </div>
                 <div>
@@ -71,7 +78,8 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   <input
                     className="w-full border px-2 py-1"
                     name="importExportCompanyAddress"
-                    defaultValue="Số 123 Đường Hải Sơn, Phường 15, Quận 11, TP.HCM"
+                    value={formData?.diaChiXNK || ''}
+                    placeholder="VD: Số 123 Đường Hải Sơn, Phường 15, Quận 11, TP.HCM"
                   />
                 </div>
               </div>
@@ -86,7 +94,7 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                     <input 
                       className="w-full border px-2 py-1 mb-1" 
                       name="customsDeclarationNumber"
-                      defaultValue="123123234324"
+                      value={formData?.soToKhai || ''}
                       placeholder="VD: 123123234324"
                     />
                   </div>
@@ -96,13 +104,13 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                       type="date" 
                       className="w-full border px-2 py-1" 
                       name="customsDeclarationDate"
-                      defaultValue="2022-02-16"
+                      value={formData?.ngayToKhai || ''}
                     />
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold ">Mã Hải quan</label>
-                    <select className="w-full border px-2 py-1" name="maHaiQuan">
-                      <option>-- Chọn --</option>
+                    <select className="w-full border px-2 py-1" name="maHaiQuan" value={formData?.maHaiQuan || ''}>
+                      <option value="">-- Chọn --</option>
                       <option value="HQHCM01">HQHCM01 - Chi cục Hải quan TP.HCM</option>
                       <option value="01AC">01AC - Chi cục HQ Gia Lâm</option>
                       <option value="01B1">01B1 - Chi cục HQ CK Sân bay quốc tế Nội Bài</option>
@@ -114,8 +122,8 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold ">Mã loại hình</label>
-                    <select className="w-full border px-2 py-1" name="maLoaiHinh">
-                      <option>-- Chọn --</option>
+                    <select className="w-full border px-2 py-1" name="maLoaiHinh" value={formData?.maLoaiHinh || ''}>
+                      <option value="">-- Chọn --</option>
                       <option value="A12">A12 - Nhập kinh doanh sản xuất</option>
                       <option value="A21">A21 - Chuyển tiêu thụ nội địa từ nguồn tạm nhập</option>
                       <option value="A31">A31 - Nhập hàng XK bị trả lại</option>
@@ -128,8 +136,8 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                     <label className="block text-sm font-bold ">
                       Mã lưu kho/ Dịch vụ
                     </label>
-                    <select className="w-full border px-2 py-1" name="maLuuKho">
-                      <option>-- Chọn --</option>
+                    <select className="w-full border px-2 py-1" name="maLuuKho" value={formData?.maLuuKho || ''}>
+                      <option value="">-- Chọn --</option>
                       <option value="KHO123">KHO123 - Kho lưu trữ hàng hóa 123</option>
                       <option value="02ABA01">02ABA01 - CT DVHH TAN SON NHAT</option>
                       <option value="02ABAAB">02ABAAB - SB QT TAN SON NHAT</option>
@@ -141,8 +149,8 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold ">Nước xuất khẩu</label>
-                    <select className="w-full border px-2 py-1" name="nuocXuatKhau">
-                      <option>-- Chọn --</option>
+                    <select className="w-full border px-2 py-1" name="nuocXuatKhau" value={formData?.nuocXuatKhau || ''}>
+                      <option value="">-- Chọn --</option>
                       <option value="VN">VN - Vietnam</option>
                       <option value="US">US - United States</option>
                       <option value="CN">CN - China</option>
@@ -168,7 +176,7 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                     <input
                       className="w-full border px-2 py-1"
                       name="feeDeclarationReceiptNumber"
-                      defaultValue="000000000000"
+                      value={formData?.soTiepNhanKhaiPhi || ''}
                       placeholder="VD: 000000000000"
                     />
                   </div>
@@ -180,13 +188,13 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                       type="date"
                       className="w-full border px-2 py-1 h-[33px]"
                       name="feeDeclarationDate"
-                      defaultValue="2022-02-16"
+                      value={formData?.ngayKhaiPhi || ''}
                     />
                   </div>
                   <div className="col-span-2">
                     <label className="block text-sm font-bold ">Nhóm loại phí</label>
-                    <select className="w-full border px-2 py-1" name="nhomLoaiPhi">
-                      <option>-- Chọn --</option>
+                    <select className="w-full border px-2 py-1" name="nhomLoaiPhi" value={formData?.nhomLoaiPhi || ''}>
+                      <option value="">-- Chọn --</option>
                       <option value="HẠ TẦNG CẢNG BIỂN">HẠ TẦNG CẢNG BIỂN</option>
                       <option value="TP001">TP001 - Hàng tạm nhập tái xuất; Hàng tái xuất tạm nhập; Hàng quá cảnh</option>
                       <option value="TP002">TP002 - Hàng hóa nhập khẩu, xuất khẩu mở tờ khai ngoài TP.HCM</option>
@@ -213,7 +221,7 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                       className="w-full border px-2 py-1"
                       rows={3}
                       name="notes"
-                      defaultValue="Tờ khai phí cho hàng container từ Hải Sơn"
+                      value={formData?.ghiChuKhaiPhi || ''}
                       placeholder="VD: Tờ khai phí cho hàng container từ Hải Sơn"
                     ></textarea>
                   </div>
@@ -260,8 +268,8 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                 <label className="block text-sm font-bold ">
                   Mã hiệu phương thức vận chuyển
                 </label>
-                <select className="w-full border px-2 py-1  h-[35px]" name="maPhuongThucVC">
-                  <option>-- Chọn --</option>
+                <select className="w-full border px-2 py-1  h-[35px]" name="maPhuongThucVC" value={formData?.maPhuongThucVC || ''}>
+                  <option value="">-- Chọn --</option>
                   <option value="1">1 - Đường không</option>
                   <option value="2">2 - Đường biển (Container)</option>
                   <option value="3">3 - Đường biển (Hàng rời, lỏng)</option>
@@ -273,8 +281,8 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Phương tiện vận chuyển</label>
-                <select className="w-full border px-2 py-1  h-[35px]" name="phuongTienVC">
-                  <option>-- Chọn --</option>
+                <select className="w-full border px-2 py-1  h-[35px]" name="phuongTienVC" value={formData?.phuongTienVC || ''}>
+                  <option value="">-- Chọn --</option>
                   <option value="CONTAINER SHIP">CONTAINER SHIP</option>
                   <option value="AIRPLANE">Máy bay</option>
                   <option value="SHIP">Tàu biển</option>
@@ -289,8 +297,8 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Mã địa điểm xếp hàng</label>
-                <select className="w-full border px-2 py-1  h-[35px]" name="maDiaDiemXepHang">
-                  <option>-- Chọn --</option>
+                <select className="w-full border px-2 py-1  h-[35px]" name="maDiaDiemXepHang" value={formData?.maDiaDiemXepHang || ''}>
+                  <option value="">-- Chọn --</option>
                   <option value="CANGCATLAI">CANGCATLAI - Cảng Cát Lái</option>
                   <option value="VNADTT">VNADTT - CỬA KHẨU A DOT (THUA THIEN-HUE)</option>
                   <option value="VNAPIT">VNAPIT - LỚI MỎ A PA CHAI</option>
@@ -300,8 +308,8 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Mã địa điểm dỡ hàng</label>
-                <select className="w-full border px-2 py-1  h-[35px]" name="maDiaDiemDoHang">
-                  <option>-- Chọn --</option>
+                <select className="w-full border px-2 py-1  h-[35px]" name="maDiaDiemDoHang" value={formData?.maDiaDiemDoHang || ''}>
+                  <option value="">-- Chọn --</option>
                   <option value="CANGHAIPHONG">CANGHAIPHONG - Cảng Hải Phòng</option>
                   <option value="VNHCM">VNHCM - Cảng Sài Gòn (TP.HCM)</option>
                   <option value="VNHAN">VNHAN - Cảng Hải Phòng</option>
@@ -321,8 +329,8 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
               </div>
               <div className="col-span-2">
                 <label className="block text-sm font-bold ">Mã phân loại hàng hóa</label>
-                <select className="w-full border px-2 py-1 h-[35px]" name="maPhanLoaiHangHoa">
-                  <option>-- Chọn --</option>
+                <select className="w-full border px-2 py-1 h-[35px]" name="maPhanLoaiHangHoa" value={formData?.maPhanLoaiHangHoa || ''}>
+                  <option value="">-- Chọn --</option>
                   <option value="XNK">XNK - Xuất nhập khẩu</option>
                   <option value="A">A - Hàng quá biều, quá tặng</option>
                   <option value="B">B - Hàng an ninh, quốc phòng</option>
@@ -338,8 +346,9 @@ export default function FeeDeclarationForm({ id }: { id?: string }) {
                 <select
                   className="w-full border px-2 py-1 h-[35px]"
                   name="mucDichVC"
+                  value={formData?.mucDichVC || ''}
                 >
-                  <option>-- Chọn --</option>
+                  <option value="">-- Chọn --</option>
                   <option value="Xuất khẩu hàng dệt may">Xuất khẩu hàng dệt may</option>
                   <option value="Vận chuyển hàng hóa là hành lý cá nhân">Vận chuyển hàng hóa là hành lý cá nhân</option>
                   <option value="Vận chuyển hàng hóa giữa 2 khu vực lưu giữ hàng hóa chịu sự giám sát hải quan">Vận chuyển hàng hóa giữa 2 khu vực lưu giữ hàng hóa chịu sự giám sát hải quan</option>

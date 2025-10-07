@@ -153,6 +153,7 @@ const ENDPOINTS = {
   SEARCH: `${API_BASE_URL}/tokhai-thongtin/ds-nphi`,
   ALL_TOKHAI: `${API_BASE_URL}/tokhai-thongtin/all`, // For payment/declare page
   ALL_TOKHAI_MANAGE: `${API_BASE_URL}/tokhai-thongtin/ds-nphi-03`, // For fee-declaration/manage page
+  FILTER: `${API_BASE_URL}/tokhai-thongtin/filter`, // POST body { tuNgay, denNgay, trangThai }
   HAI_QUAN_LAY_THONG_TIN: `${API_BASE_URL}/hai-quan/lay-thong-tin`,
   CREATE_TOKHAI: `${API_BASE_URL}/tokhai-thongtin/create`,
   STATISTICS: `${API_BASE_URL}/tokhai-thongtin/statistics`,
@@ -644,72 +645,38 @@ export class FeeDeclarationApiService {
     searchParams: FeeDeclarationSearchParams
   ): Promise<PageResponse<FeeDeclaration>> {
     try {
-      // Use PHT_BE API endpoint for search in fee-declaration/manage page
-      const url = ENDPOINTS.ALL_TOKHAI_MANAGE
-      console.log('Searching with params:', searchParams)
-      console.log('Fetching data from:', url)
-      
+      // Call POST /tokhai-thongtin/filter with mapped fields
+      const url = ENDPOINTS.FILTER
+      console.log('Searching with params (mapped to filter API):', searchParams)
+      console.log('Posting to:', url)
+
+      const body = {
+        tuNgay: searchParams.fromDate || undefined,
+        denNgay: searchParams.toDate || undefined,
+        trangThai: searchParams.status || undefined
+      }
+
       const response = await fetch(url, {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        body: JSON.stringify(body)
       })
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
-      
+
       const responseData: ApiResponseWrapper<TokhaiThongtinResponse[]> = await response.json()
-      console.log('Raw API response for search:', responseData)
-      
-      // Extract data from the wrapped response
-      const data: TokhaiThongtinResponse[] = responseData.data || []
-      console.log('Extracted data for search:', data)
-      
-      // Apply client-side filtering if needed
-      let filteredData = data
-      console.log('🔄 Starting with', data.length, 'records');
-      
-      // Filter by date range if provided - DISABLED FOR DEBUG
-      // if (searchParams.fromDate || searchParams.toDate) {
-      //   console.log('🔄 Filtering by date range:', searchParams.fromDate, 'to', searchParams.toDate);
-      //   filteredData = filteredData.filter(item => {
-      //     const itemDate = new Date(item.ngayToKhai)
-      //     const fromDate = searchParams.fromDate ? new Date(searchParams.fromDate) : null
-      //     const toDate = searchParams.toDate ? new Date(searchParams.toDate) : null
-      //     
-      //     if (fromDate && itemDate < fromDate) return false
-      //     if (toDate && itemDate > toDate) return false
-      //     return true
-      //   })
-      //   console.log('🔄 After date filtering:', filteredData.length, 'records remain');
-      // }
-      
-      // Filter by company tax code if provided - DISABLED FOR DEBUG
-      // if (searchParams.companyTaxCode) {
-      //   console.log('🔄 Filtering by company tax code:', searchParams.companyTaxCode);
-      //   filteredData = filteredData.filter(item => 
-      //     item.maDoanhNghiepKhaiPhi.includes(searchParams.companyTaxCode!)
-      //   )
-      //   console.log('🔄 After company tax code filtering:', filteredData.length, 'records remain');
-      // }
-      
-      // Filter by declaration number if provided - DISABLED FOR DEBUG
-      // if (searchParams.declarationNumber) {
-      //   console.log('🔄 Filtering by declaration number:', searchParams.declarationNumber);
-      //   filteredData = filteredData.filter(item => 
-      //     item.soToKhai.includes(searchParams.declarationNumber!)
-      //   )
-      //   console.log('🔄 After declaration number filtering:', filteredData.length, 'records remain');
-      // }
-      
-      // Map the filtered data to FeeDeclaration format and filter out nulls
-      console.log('🔄 Mapping', filteredData.length, 'records...');
-      const mappedData = filteredData.map(mapTokhaiToFeeDeclaration).filter(item => item !== null)
-      console.log('🔄 Search mapped data length:', mappedData.length)
-      console.log('🔄 Search sample mapped data:', mappedData.slice(0, 2))
+      console.log('Raw API response for filter:', responseData)
+
+      const data: TokhaiThongtinResponse[] = responseData?.data || []
+      console.log('Extracted data from filter:', data.length)
+
+      const mappedData = data.map(mapTokhaiToFeeDeclaration).filter(item => item !== null)
+      console.log('🔄 Filter mapped data length:', mappedData.length)
       
       // Create a PageResponse structure
       const pageResponse: PageResponse<FeeDeclaration> = {

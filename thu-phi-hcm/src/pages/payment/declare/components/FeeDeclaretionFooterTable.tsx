@@ -391,27 +391,7 @@ export default function CargoTabs() {
               >
                 <i className="fa fa-plus-circle"></i> Thêm mới
               </button>
-              <button 
-                onClick={() => {
-                  console.log('🧪 Testing combo box display...');
-                  const testContainer: ContainerData = {
-                    id: Date.now(),
-                    stt: containers.length + 1,
-                    soVanDon: 'TEST123',
-                    soHieu: 'CONT001',
-                    soSeal: 'SEAL001',
-                    loaiCont: '40HC',
-                    tinhChatCont: 'KHO',
-                    ghiChu: 'Test container',
-                    isEditing: false
-                  };
-                  setContainers(prev => [...prev, testContainer]);
-                  console.log('📦 Added test container with combo box values:', testContainer);
-                }}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-1 rounded-full flex items-center gap-1 transition-colors"
-              >
-                <i className="fa fa-flask"></i> Test Combo
-              </button>
+              {/* Removed Test Combo button */}
               <button className="bg-green-500 text-white px-4 py-1 rounded-full flex items-center gap-1">
                 <i className="fa fa-file-excel-o"></i> Import Excel
               </button>

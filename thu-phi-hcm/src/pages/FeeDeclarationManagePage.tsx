@@ -13,7 +13,6 @@ interface FeeDeclarationDisplay {
   hash1: string;
   tkNopPhi: string;
   ngayTKNP: string;
-  loaiToKhai: string;
   tkHaiQuan: string;
   doanhNghiep: string;
   trangThai: string;
@@ -167,11 +166,7 @@ const FeeDeclarationManagePage: React.FC = () => {
   // States for filters
   const [fromDate, setFromDate] = useState('2021-04-06');
   const [toDate, setToDate] = useState('2021-08-21');
-  const [loaiToKhai, setLoaiToKhai] = useState('');
-  const [thanhToan, setThanhToan] = useState('');
-  const [nguoiTao, setNguoiTao] = useState('');
   const [trangThaiTo, setTrangThaiTo] = useState('');
-  const [nhomBieuPhi, setNhomBieuPhi] = useState('');
 
   // State for detail modal
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -311,18 +306,10 @@ const FeeDeclarationManagePage: React.FC = () => {
       const searchParams: FeeDeclarationSearchParams = {
         fromDate: fromDate || undefined,
         toDate: toDate || undefined,
-        // Map frontend parameters to backend parameters
-        declarationStatus: trangThaiTo || undefined,
-        paymentStatus: thanhToan || undefined,
-        // Legacy parameters for backward compatibility
-        feeType: loaiToKhai || undefined,
-        paymentMethod: thanhToan || undefined,
-        createdBy: nguoiTao || undefined,
         status: trangThaiTo || undefined,
-        feeGroupCode: nhomBieuPhi || undefined,
         page: currentPage,
         size: pageSize,
-        sortBy: 'arrivalDate', // Use backend field name
+        sortBy: 'arrivalDate',
         sortDir: 'desc'
       };
 
@@ -347,7 +334,7 @@ const FeeDeclarationManagePage: React.FC = () => {
             hash1: '',
             tkNopPhi: item.declarationNumber,
             ngayTKNP: new Date(item.arrivalDate).toLocaleDateString('vi-VN'),
-            loaiToKhai: 'Tờ khai phí cảng',
+            
             tkHaiQuan: item.voyageNumber || '',
             doanhNghiep: `${item.company.taxCode} - ${item.company.companyName}`,
             trangThai: getDisplayStatus(item),
@@ -398,7 +385,7 @@ const FeeDeclarationManagePage: React.FC = () => {
           hash1: '',
           tkNopPhi: item.declarationNumber,
           ngayTKNP: new Date(item.arrivalDate).toLocaleDateString('vi-VN'),
-          loaiToKhai: 'Tờ khai phí cảng',
+          
           tkHaiQuan: item.voyageNumber || '',
           doanhNghiep: `${item.company.taxCode} - ${item.company.companyName}`,
           trangThai: getDisplayStatus(item),
@@ -463,11 +450,7 @@ const FeeDeclarationManagePage: React.FC = () => {
     console.log('Searching with filters:', {
       fromDate,
       toDate,
-      loaiToKhai,
-      thanhToan,
-      nguoiTao,
       trangThaiTo,
-      nhomBieuPhi
     });
     // Reset to first page and reload data
     setCurrentPage(0);
@@ -1044,59 +1027,7 @@ const FeeDeclarationManagePage: React.FC = () => {
             />
           </div>
 
-          <div style={{ width: '120px' }}>
-            <select
-              value={loaiToKhai}
-              onChange={(e) => setLoaiToKhai(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '6px 8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '12px'
-              }}
-            >
-              <option value="">-- Loại tờ khai --</option>
-              <option value="100">100 - hàng container</option>
-              <option value="101">101 - hàng đông lại</option>
-            </select>
-          </div>
-
-          <div style={{ width: '110px' }}>
-            <select
-              value={thanhToan}
-              onChange={(e) => setThanhToan(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '6px 8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '12px'
-              }}
-            >
-              <option value="">-- Thanh toán --</option>
-              <option value="da-thanh-toan">Đã thanh toán</option>
-              <option value="chua-thanh-toan">Chưa thanh toán</option>
-            </select>
-          </div>
-
-          <div style={{ width: '110px' }}>
-            <select
-              value={nguoiTao}
-              onChange={(e) => setNguoiTao(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '6px 8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '12px'
-              }}
-            >
-              <option value="">-- Người tạo --</option>
-              <option value="admin">Admin</option>
-              <option value="user">User</option>
-            </select>
-          </div>
+          {/* Loại bỏ các filter không thuộc API: Loại tờ khai, Thanh toán, Người tạo, Nhóm biểu phí */}
 
           <div style={{ width: '110px' }}>
             <select
@@ -1117,24 +1048,7 @@ const FeeDeclarationManagePage: React.FC = () => {
             </select>
           </div>
 
-          <div style={{ width: '120px' }}>
-            <select
-              value={nhomBieuPhi}
-              onChange={(e) => setNhomBieuPhi(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '6px 8px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '12px'
-              }}
-            >
-              <option value="">-- Nhóm biểu phí --</option>
-              <option value="TP003">TP003</option>
-              <option value="TP001">TP001</option>
-              <option value="TP002">TP002</option>
-            </select>
-          </div>
+          
 
           <div>
             <button
@@ -1255,7 +1169,7 @@ const FeeDeclarationManagePage: React.FC = () => {
                   {item.ngayTKNP}
                 </td>
                 <td style={{ padding: '8px', fontSize: '12px' }}>
-                  {item.loaiToKhai}
+                  
                 </td>
                 <td style={{ padding: '8px', fontSize: '12px' }}>
                   {item.tkHaiQuan}

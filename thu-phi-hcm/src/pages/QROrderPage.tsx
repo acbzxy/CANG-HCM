@@ -22,6 +22,7 @@ const toQrDataURL = async (text: string): Promise<string> => {
   return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&ecc=M&data=${encoded}`
 }
 import { useNotification } from '../context/NotificationContext'
+import { CrmApiService, type ChuKySoInfo } from '../utils/crmApi'
 
 interface QROrder {
   id: number
@@ -80,6 +81,44 @@ const QROrderPage: React.FC = () => {
   const [donHangId, setDonHangId] = useState<number | null>(null)
   const [isOrderSigned, setIsOrderSigned] = useState(false)
   const [qrPaid, setQrPaid] = useState(false)
+  const [availableCertificates, setAvailableCertificates] = useState<ChuKySoInfo[]>([])
+  const [selectedCertificateSerial, setSelectedCertificateSerial] = useState<string>('')
+  const [showCertificateModal, setShowCertificateModal] = useState(false)
+
+  // ==== Helpers to display certificate info nicely ====
+  const extractDnValue = (dn?: string, key?: string): string => {
+    try {
+      if (!dn || !key) return ''
+      const regex = new RegExp(`(?:^|,)\\s*${key}\\s*=\\s*([^,]+)`, 'i')
+      const match = dn.match(regex)
+      return match?.[1]?.trim() || ''
+    } catch {
+      return ''
+    }
+  }
+  const getCertDisplayName = (cert: ChuKySoInfo): string => {
+    // Đồng bộ cách lấy tên với Declare.tsx: ưu tiên CN từ subject
+    const subjectStr = (cert as any).subject || (cert as any).subjectDN || ''
+    const cn = subjectStr.includes('CN=')
+      ? subjectStr.split('CN=')[1]?.split(',')[0]
+      : ((cert as any).subjectCN || (cert as any).commonName || '')
+    const name = (cn || '').trim() || extractDnValue(subjectStr, 'O') || 'Certificate'
+    // Map tên test sang tên công ty thật cho đồng bộ demo
+    if (name.toLowerCase() === 'test tpb') {
+      return 'Công ty TNHH Điện Tử FOSTER (Việt Nam)'
+    }
+    return name
+  }
+  // Note: issuer displayed in full for transparency in this screen
+  const fmtDate = (d?: string): string => {
+    if (!d) return ''
+    const dt = new Date(d)
+    if (Number.isNaN(dt.getTime())) return d
+    const dd = String(dt.getDate()).padStart(2, '0')
+    const mm = String(dt.getMonth() + 1).padStart(2, '0')
+    const yyyy = dt.getFullYear()
+    return `${dd}/${mm}/${yyyy}`
+  }
   
   // Fee selection states
   const [feeFromDate, setFeeFromDate] = useState('2022-02-13')
@@ -392,26 +431,27 @@ const QROrderPage: React.FC = () => {
         throw new Error('Vui lòng chọn ít nhất một thông báo phí');
       }
       
-      // Prepare request body with validation
+      // Prepare request body with validation (map đúng từ tờ khai đã chọn)
+      const firstFee = selectedFeeNotifications[0] || ({} as any);
       const requestBody = {
-        mst: "0304126484",
-        tenDn: "Công ty TNHH Vận Tải Biển Đông",
-        diaChi: String(formData.diaChi || ""),
-        email: String(formData.email || ""),
-        sdt: String(formData.sdt || ""),
-        soDonHang: String(formData.soDonHang || ""),
-        ngayDonHang: String(formData.ngayDonHang || ""),
-        loaiThanhToan: String(formData.hinhThucThanhToan || "EC"),
+        mst: String(firstFee.maDoanhNghiepKhaiPhi || firstFee.maDoanhNghiepXNK || ''),
+        tenDn: String(firstFee.tenDoanhNghiepKhaiPhi || firstFee.tenDoanhNghiepXNK || ''),
+        diaChi: String(formData.diaChi || firstFee.diaChiKhaiPhi || firstFee.diaChiXNK || ''),
+        email: String(formData.email || ''),
+        sdt: String(formData.sdt || ''),
+        soDonHang: String(formData.soDonHang || ''),
+        ngayDonHang: String(formData.ngayDonHang || new Date().toISOString()),
+        loaiThanhToan: String(formData.hinhThucThanhToan || 'EC'),
         tongTien: Number(selectedFeeNotifications.reduce((sum, fee) => sum + (fee.thanhTien || 0), 0)),
-        nganHang: String(formData.nganHang || "VCB"),
-        trangThai: "00",
-        moTa: String(formData.moTa || ""),
-        nguoiTao: "System",
-        xmlKy: "",
+        nganHang: String(formData.nganHang || 'VCB'),
+        trangThai: '00',
+        moTa: String(formData.moTa || ''),
+        nguoiTao: 'System',
+        xmlKy: '',
         chiTietList: selectedFeeNotifications.map(fee => ({
           idTokhai: Number(fee.id || 0),
-          soThongBao: String(fee.soThongBao || ""),
-          ngayThongBao: String(fee.ngayThongBao || ""),
+          soThongBao: String(fee.soThongBao || ''),
+          ngayThongBao: String(fee.ngayThongBao || ''),
           thanhTien: Number(fee.thanhTien || 0)
         }))
       };
@@ -450,6 +490,15 @@ const QROrderPage: React.FC = () => {
       if (result.status === 200 && result.data && result.data.id) {
         setDonHangId(result.data.id);
         console.log('🔍 Saved donHangId:', result.data.id);
+        try {
+          const latestOrderSummary = {
+            id: result.data.id,
+            tongTien: requestBody.tongTien,
+            hinhThucThanhToan: requestBody.loaiThanhToan,
+            createdAt: new Date().toISOString()
+          };
+          localStorage.setItem('latestCreatedOrder', JSON.stringify(latestOrderSummary));
+        } catch (_) { /* ignore */ }
       }
       
       // Show total when save button is clicked
@@ -458,7 +507,7 @@ const QROrderPage: React.FC = () => {
       // Generate QR according to main_QRcode.js logic
       if (formData.hinhThucThanhToan === 'QR') {
         try {
-          const mst = '0304126484' // demo tax code; replace with actual
+          const mst = String((requestBody as any).mst || '0100000000')
           const uc = `${mst}.INV` // matches data.uc usage (tax.creator)
           const totalv = Number(requestBody.tongTien).toFixed(0)
           const now = new Date()
@@ -679,14 +728,42 @@ const QROrderPage: React.FC = () => {
       }
 
       console.log('🔍 Signing order with ID:', donHangId);
-      
+
+      // Lấy danh sách chứng thư số giống màn tờ khai phí
+      const certificatesResult = await CrmApiService.getDanhSachChuKySo();
+      if (certificatesResult.status !== 200 || !certificatesResult.data || certificatesResult.data.length === 0) {
+        throw new Error('Không có chứng chỉ số nào khả dụng. Vui lòng cấu hình chứng chỉ số trước.');
+      }
+      setAvailableCertificates(certificatesResult.data);
+      const serialToUse = certificatesResult.data[0]?.serialNumber || '';
+      setSelectedCertificateSerial(serialToUse);
+      // Hiện popup chọn chứng thư để người dùng xác nhận
+      setShowCertificateModal(true);
+
+    } catch (error) {
+      console.error('❌ Error signing order:', error);
+      showError('Có lỗi xảy ra khi ký số đơn hàng: ' + (error as Error).message);
+    }
+  }
+
+  const handleConfirmCertificateAndSign = async () => {
+    try {
+      if (!donHangId) {
+        showError('Không tìm thấy ID đơn hàng. Vui lòng tạo đơn hàng trước.');
+        return;
+      }
+      if (!selectedCertificateSerial) {
+        showError('Vui lòng chọn một chứng thư số để ký.');
+        return;
+      }
+
       const requestBody = {
         idDonHang: donHangId,
-        serialNumber: "97CC8605BB55E734"
+        serialNumber: selectedCertificateSerial
       };
-      
+
       console.log('🔍 Ky-so request body:', requestBody);
-      
+
       const response = await fetch('/api/don-hang/ky-so', {
         method: 'POST',
         headers: {
@@ -695,27 +772,25 @@ const QROrderPage: React.FC = () => {
         },
         body: JSON.stringify(requestBody)
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ Ky-so API Error Response:', errorText);
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
-      
+
       const result = await response.json();
       console.log('✅ Order signed successfully:', result);
-      
+
       // Update status for each selected fee notification
       console.log('🔍 Updating status for fee notifications...');
       const updatePromises = selectedFeeNotifications.map(async (fee) => {
         try {
           const updateRequestBody = {
-            id: fee.id, // idTokhai
+            id: fee.id,
             trangThai: "03"
           };
-          
-          console.log('🔍 Updating fee notification:', fee.id, 'to status 03');
-          
+
           const updateResponse = await fetch('/api/tokhai-thongtin/update-status', {
             method: 'PUT',
             headers: {
@@ -724,37 +799,28 @@ const QROrderPage: React.FC = () => {
             },
             body: JSON.stringify(updateRequestBody)
           });
-          
+
           if (!updateResponse.ok) {
             const errorText = await updateResponse.text();
-            console.error(`❌ Error updating fee ${fee.id}:`, errorText);
             throw new Error(`Failed to update fee ${fee.id}: ${errorText}`);
           }
-          
-          const updateResult = await updateResponse.json();
-          console.log(`✅ Fee notification ${fee.id} updated successfully:`, updateResult);
-          
+
+          await updateResponse.json();
         } catch (error) {
           console.error(`❌ Error updating fee notification ${fee.id}:`, error);
           throw error;
         }
       });
-      
-      // Wait for all updates to complete
+
       await Promise.all(updatePromises);
-      console.log('✅ All fee notifications updated successfully');
-      
-      // Mark order as signed
+
       setIsOrderSigned(true);
-      
-      // Start processing animation
       setIsProcessing(true);
       setCountdown(3);
-      
+      setShowCertificateModal(false);
       showSuccess('Ký số đơn hàng và cập nhật trạng thái thành công!');
-      
     } catch (error) {
-      console.error('❌ Error signing order:', error);
+      console.error('❌ Error during certificate confirm/sign:', error);
       showError('Có lỗi xảy ra khi ký số đơn hàng: ' + (error as Error).message);
     }
   }
@@ -858,6 +924,50 @@ const QROrderPage: React.FC = () => {
 
   return (
     <div style={{ padding: '20px', backgroundColor: '#f8f9fa', minHeight: '100vh' }}>
+      {/* Certificate selection modal */}
+      {showCertificateModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 8, width: 720, maxWidth: '95vw', boxShadow: '0 10px 30px rgba(0,0,0,0.25)' }}>
+            <div style={{ padding: '14px 16px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', fontWeight: 700 }}>Danh sách chữ ký số</div>
+            <div style={{ padding: 16 }}>
+              <p style={{ margin: '0 0 10px 0', color: '#374151', fontSize: 14 }}>Chọn chữ ký số để thực hiện ký đơn hàng đã chọn.</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {availableCertificates.map((cert) => (
+                  <label key={cert.serialNumber} style={{ display: 'block', border: '1px solid #e5e7eb', borderRadius: 6, padding: 12, cursor: 'pointer', background: selectedCertificateSerial === cert.serialNumber ? '#f0f7ff' : '#fff' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                      <input
+                        type="radio"
+                        name="certificate"
+                        checked={selectedCertificateSerial === cert.serialNumber}
+                        onChange={() => setSelectedCertificateSerial(cert.serialNumber)}
+                        style={{ marginTop: 4 }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 600 }}>{getCertDisplayName(cert)}</div>
+                        <div style={{ fontSize: 12, color: '#374151' }}>Serial: {cert.serialNumber}</div>
+                        {((cert as any).issuer || (cert as any).issuerDN) && (
+                          <div style={{ fontSize: 12, color: '#6b7280' }}>Issuer: {(cert as any).issuer || (cert as any).issuerDN}</div>
+                        )}
+                        {(cert as any).validFrom || (cert as any).validTo ? (
+                          <div style={{ fontSize: 12, color: '#6b7280' }}>
+                            Valid: {fmtDate((cert as any).validFrom)} — {fmtDate((cert as any).validTo)}
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div style={{ padding: 12, borderTop: '1px solid #e5e7eb', background: '#f9fafb', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+              <button onClick={() => setShowCertificateModal(false)} style={{ background: '#6b7280', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 14px', cursor: 'pointer' }}>Đóng</button>
+              <button onClick={handleConfirmCertificateAndSign} style={{ background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, padding: '8px 14px', cursor: 'pointer', fontWeight: 600 }}>
+                Thực hiện ký số
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Filter Section */}
       <div style={{ 
@@ -2808,7 +2918,7 @@ const QROrderPage: React.FC = () => {
             {/* Modal Content */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr 1fr',
+              gridTemplateColumns: '1fr 2fr 1fr',
               gap: '20px',
               marginBottom: '20px'
             }}>

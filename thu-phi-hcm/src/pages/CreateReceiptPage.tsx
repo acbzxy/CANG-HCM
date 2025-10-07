@@ -960,9 +960,54 @@ const CreateReceiptPage: React.FC = () => {
       return num.toString() + ' đồng';
     };
 
+    // Helpers: lấy dữ liệu từ bản ghi vừa tạo (tờ khai, đơn hàng) và định dạng ngày dd/MM/yyyy
+    const formatDateDDMMYYYY = (dateStr?: string) => {
+      if (!dateStr) return "";
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return "";
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    };
+
+    const latestDeclaration = (() => {
+      try { return JSON.parse(localStorage.getItem('latestCreatedDeclaration') || 'null'); } catch { return null; }
+    })();
+    const latestOrder = (() => {
+      try { return JSON.parse(localStorage.getItem('latestCreatedOrder') || 'null'); } catch { return null; }
+    })();
+
+    const getLoaiHinh = (): string => {
+      const si: any = selectedItem || {};
+      return (
+        (latestDeclaration && latestDeclaration.maLoaiHinh) ||
+        si.maLoaiHinh || (si as any).loaiHinh ||
+        (si as any)?.notificationDetail?.maLoaiHinh ||
+        (si as any)?.detail?.maLoaiHinh ||
+        ''
+      );
+    };
+
+    const getNhomLoaiHinh = (): string => {
+      const si: any = selectedItem || {};
+      return (
+        (latestDeclaration && latestDeclaration.nhomLoaiHinh) ||
+        si.nhomLoaiHinh ||
+        (si as any)?.notificationDetail?.nhomLoaiHinh ||
+        (si as any)?.detail?.nhomLoaiHinh ||
+        ''
+      );
+    };
+
+    const paymentMethodText = (() => {
+      const pm = (latestOrder && latestOrder.hinhThucThanhToan) ? String(latestOrder.hinhThucThanhToan) : String(paymentMethod || '');
+      return pm.toUpperCase() === 'CK' || pm.toUpperCase() === 'QR' ? 'Chuyển khoản' : pm;
+    })();
+
     return {
       user: {
-        username: "0304126484.bl",
+        username: "2300537991.bl",
         password: "Api@123456"
       },
       toKhaiId: toKhaiId,
@@ -974,7 +1019,7 @@ const CreateReceiptPage: React.FC = () => {
         serial: "25T",
         seq: "",
         bname: companyName,
-        btax: "0304126484",
+        btax: "2300537991",
         buyer: payerName,
         bcode: "KH001",
         baddr: companyAddress,
@@ -984,6 +1029,16 @@ const CreateReceiptPage: React.FC = () => {
         curr: "VND",
         exrt: 1,
         note: notes,
+        // c0–c6 lấy từ tờ khai vừa tạo và đơn hàng QR vừa tạo (ưu tiên localStorage), fallback về state hiện tại
+        c0: (latestDeclaration && latestDeclaration.soThongBaoNopPhi) || stbNumber || "",
+        c1: formatDateDDMMYYYY((latestDeclaration && latestDeclaration.ngayKhaiPhi) || receiptDate),
+        c2: (latestDeclaration && latestDeclaration.soToKhai) || customsDeclarationNumber || "",
+        c3: formatDateDDMMYYYY((latestDeclaration && latestDeclaration.ngayToKhai) || customsDeclarationDate),
+        c4: getLoaiHinh(),
+        c5: getNhomLoaiHinh(),
+        c6: paymentMethodText,
+        // c7: Loại tờ khai (yêu cầu mới)
+        c7: (latestDeclaration && latestDeclaration.loaiToKhai) || (selectedItem as any)?.loaiToKhai || '',
         sumv: totalAmountValue,
         sum: totalAmountValue,
         totalv: grandTotal,
@@ -1088,7 +1143,7 @@ const CreateReceiptPage: React.FC = () => {
         type: "pdf",
         sid: sidToUse, // Use appropriate sid based on status
         user: {
-          username: "0304126484.bl",
+          username: "2300537991.bl",
           password: "Api@123456"
         },
         toKhaiId: toKhaiId || 0

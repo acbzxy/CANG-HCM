@@ -59,21 +59,11 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
   // Hàm tạo style cho từng bước
   const getStepStyle = (stepNumber: number) => {
     const isActive = stepNumber <= currentStep;
-    const isCurrentStep = stepNumber === currentStep;
     
     if (isActive) {
-      // Bước 1 và bước 2 luôn giữ màu xanh dương gradient
-      if (stepNumber === 1 || stepNumber === 2) {
-        return {
-          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
-          className: 'text-white'
-        };
-      }
-      // Các bước khác (3, 4, 5)
+      // Tất cả các bước đều sử dụng màu xanh dương gradient
       return {
-        background: isCurrentStep 
-          ? 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)' 
-          : 'linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%)',
+        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%)',
         className: 'text-white'
       };
     } else {
@@ -130,18 +120,9 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
         setIsManualDeclaration(true);
         setSelectedTokhai(initialData as any);
         setShowSelectedData(true);
-        // Try auto-fill when data is ready without showing error if state not yet set
-        const tryAutoFill = (attempt: number) => {
-          if (selectedTokhai) {
-            handleAutoFillForm();
-            return;
-          }
-          if (attempt < 10) {
-            setTimeout(() => tryAutoFill(attempt + 1), 100);
-          }
-        };
+        // Form will automatically display data from selectedTokhai props
+        // No need for manual auto-fill since FeeDeclarationForm now uses props
         setTimeout(() => {
-          tryAutoFill(0);
           // Lock inputs in view mode (only inside this modal)
           const container = modalRootRef.current;
           if (container) {
@@ -180,6 +161,50 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
       }
     };
   }, [mode, initialData]);
+
+  // Auto-populate container tables whenever selectedTokhai changes and has chiTietList
+  // Prevent duplicate population for the same declaration
+  const lastPopulatedKeyRef = React.useRef<string | number | null>(null);
+
+  React.useEffect(() => {
+    if (!selectedTokhai || !Array.isArray((selectedTokhai as any).chiTietList)) return;
+    const list: any[] = (selectedTokhai as any).chiTietList || [];
+    if (list.length === 0) return;
+
+    const key = (selectedTokhai as any).id || (selectedTokhai as any).soToKhai || JSON.stringify(list);
+    if (lastPopulatedKeyRef.current === key) {
+      return; // already populated for this declaration
+    }
+
+    try {
+      const containerEvent = new CustomEvent('populateContainers', {
+        detail: {
+          containers: list.map((container: any, index: number) => ({
+            id: container.id || index + 1,
+            stt: index + 1,
+            soVanDon: container.soVanDon || '',
+            soHieu: container.soHieu || '',
+            soSeal: container.soSeal || '',
+            loaiCont: container.maLoaiCont || '20',
+            tinhChatCont: container.maTcCont || 'KHO',
+            tongTrongLuong: container.tongTrongLuong || 0,
+            donViTinh: container.donViTinh || 'KG',
+            ghiChu: container.ghiChu || '',
+            maLoaiCont: container.maLoaiCont || '20',
+            maTcCont: container.maTcCont || 'KHO',
+            donGia: container.donGia || 0,
+            soTien: container.soTien || 0,
+            isEditing: true
+          }))
+        }
+      });
+      window.dispatchEvent(containerEvent);
+      console.log('📦 Dispatched container population event from selectedTokhai change:', list.length);
+      lastPopulatedKeyRef.current = key;
+    } catch (e) {
+      console.error('❌ Failed to dispatch container population event:', e);
+    }
+  }, [selectedTokhai]);
   
   const handleCancelDeclaration = () => {
     setShowCancelConfirmModal(true);
@@ -468,6 +493,9 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
           setSelectedTokhai(singleTokhai);
           setShowSelectedData(true);
           
+          // Form will automatically display data from selectedTokhai props
+          // No need for manual auto-fill since FeeDeclarationForm now uses props
+          
           // Auto-populate container data if available
           if (singleTokhai.chiTietList && singleTokhai.chiTietList.length > 0) {
             console.log('📦 Auto-populating container data for single result:', singleTokhai.chiTietList.length, 'containers');
@@ -546,8 +574,8 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
     {
       id: 1,
       nguonTK: 1,
-      maDoanhNghiepKhaiPhi: '0304126484',
-      tenDoanhNghiepKhaiPhi: 'Công ty TNHH Vận Tải Biển Đông',
+      maDoanhNghiepKhaiPhi: '2300537991',
+      tenDoanhNghiepKhaiPhi: 'Công ty TNHH Điện Tử FOSTER (Việt Nam)',
       diaChiKhaiPhi: '167 Lưu Hữu Phước, Phường Phú Định, Thành phố Hồ Chí Minh, Việt Nam',
       maDoanhNghiepXNK: '0208765432',
       tenDoanhNghiepXNK: 'Công ty CP Xuất Nhập Khẩu Thái Bình',
@@ -1518,6 +1546,14 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
       
       showSuccess('Lưu thông tin tờ khai thành công!', 'Thành công');
       onClose();
+      // Yêu cầu: sau khi lưu tờ khai và quay lại màn khai báo nộp phí,
+      // chỉ refresh danh sách trong màn đó thay vì reload toàn trang
+      try {
+        const refreshEvent = new CustomEvent('refreshFeeDeclarations', {
+          detail: { source: 'create', id: createdTokhai?.id }
+        });
+        window.dispatchEvent(refreshEvent);
+      } catch {}
       
     } catch (error: any) {
       console.error('💥 Lỗi lưu dữ liệu:', error);
@@ -1561,7 +1597,7 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
       </div>
 
       {/* Body */}
-      <div className={asPopup ? "modal-body mt-[40px] pr-[15px] pb-[100px] pl-[15px] bg-[#E8EBEF] min-h-[278px] overflow-y-auto" : "modal-body mt-[40px] pr-[15px] pb-[100px] pl-[15px] bg-[#E8EBEF] min-h-[278px]"}>
+      <div className="modal-body mt-[40px] pr-[15px] pb-[100px] pl-[15px] bg-[#E8EBEF] min-h-[278px] overflow-y-auto max-h-[calc(100vh-200px)]">
         <div className="w-full">
           {/* Arrow Step Indicator */}
           <div className="flex items-center w-full mb-6 mt-[22px] rounded-full overflow-hidden">
@@ -1847,18 +1883,15 @@ export default function FeeInformationFormModal({ onClose, onSave, mode = 'creat
                 )}
 
                 <div className="mt-3 flex gap-2">
-                  <button
-                    className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700"
-                    onClick={handleAutoFillForm}
-                  >
-                    📝 Tự động điền form
-                  </button>
+                  <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-xs">
+                    ✅ Form đã tự động hiển thị dữ liệu
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-          <FeeDeclarationForm />
+          <FeeDeclarationForm formData={selectedTokhai} />
           <CargoTabs />
         </div>
       </div>

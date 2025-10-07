@@ -40,6 +40,20 @@ const Declare: React.FC = () => {
   const totalRecords = filteredData.length;
   
   const { showError, showSuccess, showInfo } = useNotification();
+
+  // Lắng nghe yêu cầu refresh danh sách (sau khi lưu tờ khai từ modal)
+  useEffect(() => {
+    const handleRefresh = async () => {
+      try {
+        await loadFeeDeclarations();
+      } catch (e) {
+        console.warn('Unable to refresh fee declarations after save:', e);
+      }
+    };
+    const listener = () => handleRefresh();
+    window.addEventListener('refreshFeeDeclarations', listener as EventListener);
+    return () => window.removeEventListener('refreshFeeDeclarations', listener as EventListener);
+  }, []);
   // === STATE CHỌN CHỮ KÝ SỐ ===
   const [availableCertificates, setAvailableCertificates] = useState<ChuKySoInfo[]>([]);
   const [showCertificateModal, setShowCertificateModal] = useState(false);
@@ -97,6 +111,9 @@ const Declare: React.FC = () => {
         
         showSuccess(`Đã lấy thông báo thành công! Số TB: ${notificationNumber || 'N/A'}`, 'Thành công');
         console.log('✅ Notification retrieved successfully for item:', row.id, 'Notification number:', notificationNumber);
+        try {
+          await loadFeeDeclarations();
+        } catch {}
       } else {
         throw new Error(response.message || 'Lỗi khi lấy thông báo');
       }
@@ -133,17 +150,40 @@ const Declare: React.FC = () => {
         trangThai: createdFromModal.trangThai || '00',
         thanhTien: createdFromModal.tongTienPhi || 0,
         ghiChu: createdFromModal.ghiChuKhaiPhi || '',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        // Lưu dữ liệu đầy đủ để view mode có thể hiển thị đúng
+        rawData: createdFromModal
       };
 
       setFilteredData(prev => [newDeclaration, ...prev]);
       setAllData(prev => [newDeclaration, ...prev]);
+
+      // Cập nhật selectedRowData nếu đang ở view mode để hiển thị dữ liệu mới
+      if (selectedRowData && showFeeInfoModal) {
+        console.log('🔄 Updating selectedRowData with newly created declaration');
+        setSelectedRowData(newDeclaration);
+      }
 
       localStorage.setItem('newFeeDeclarationCreated', JSON.stringify({
         id: newDeclaration.id,
         timestamp: new Date().toISOString(),
         action: 'create'
       }));
+
+      // Lưu chi tiết tờ khai vừa tạo để các màn sau (tạo biên lai) có thể map chính xác
+      try {
+        const latestDeclarationPayload = {
+          id: newDeclaration.id,
+          soThongBaoNopPhi: createdFromModal.soThongBaoNopPhi || '',
+          ngayKhaiPhi: createdFromModal.ngayKhaiPhi || createdFromModal.ngayThongBao || '',
+          soToKhai: createdFromModal.soToKhai || createdFromModal.declarationNumber || '',
+          ngayToKhai: createdFromModal.ngayToKhai || '',
+          maLoaiHinh: createdFromModal.maLoaiHinh || '',
+          nhomLoaiHinh: createdFromModal.nhomLoaiHinh || '',
+          loaiToKhai: (createdFromModal as any).loaiToKhai || ''
+        };
+        localStorage.setItem('latestCreatedDeclaration', JSON.stringify(latestDeclarationPayload));
+      } catch (_) { /* ignore */ }
 
       showSuccess('Đã lưu tờ khai mới!', 'Thành công');
     } catch (error: any) {
@@ -228,6 +268,10 @@ const Declare: React.FC = () => {
       setLoading(false);
       setShowCertificateModal(false);
       setSelectedItems([]);
+      // Refresh danh sách sau khi ký số
+      try {
+        await loadFeeDeclarations();
+      } catch {}
     }
   };
 
@@ -237,7 +281,7 @@ const Declare: React.FC = () => {
       ? cert.subject.split('CN=')[1]?.split(',')[0]
       : (cert.subject || 'Certificate');
     if ((cn || '').trim().toLowerCase() === 'test tpb') {
-      return 'Công ty TNHH Vận Tải Biển Đông';
+      return 'Công ty TNHH Điện Tử FOSTER (Việt Nam)';
     }
     return cn || 'Certificate';
   };

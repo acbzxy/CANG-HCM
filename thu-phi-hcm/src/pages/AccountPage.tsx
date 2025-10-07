@@ -200,7 +200,7 @@ const AccountPage: React.FC = () => {
       serial: "540113505151C65B4D4609FC9C2F647A",
       issuer: "CN=HILO-CA SHA-256, O=T-VAN HILO, C=VN",
       subject:
-        "OID.0.9.2342.19200300.100.1.1=MST:0109844160, CN=CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV, OU=CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV, O=CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV, L=44 đường Lê Quang Đạo - Phường Phú Đô - Quận Nam Từ Liêm - Hà Nội, S=Hà Nội, C=VN",
+        "1.2.840.113549.1.9.1=#160f74657374407470622e636f6d2e766e,CN=Test TPB,OU=Ngan hang Tien Phong,O=TPB,L=Ha Noi,ST=HN,C=VN",
       cert: "MIIFVDCCBDygAwIBAgIQVAETUFFRxltNRgn8nC9kejANBgkqhkiG9w0BAQsFADA8MQsWCQYDVQQGEWJWTJETMBEGA1UECgwKVC1WQU4gSEIMTZEYMBYGA1UEAwwPSEIMTY1DQSBTSEEtMjU2MB4XDTIzMTAyMzE2MDczM10XDTI3MDEwNDA4MT",
       validFrom: "23/10/2023",
       validTo: "04/01/2027",
@@ -269,13 +269,15 @@ const AccountPage: React.FC = () => {
       };
     }
 
-    if (user?.userType === "mst_custom" || user?.taxCode === "0304126484") {
+    if (user?.userType === "mst_custom" || user?.taxCode === "2300537991") {
       return {
-        companyCode: "0109844160",
-        companyName: "CÔNG TY TNHH THƯƠNG MẠI VÀ DỊCH VỤ SPV",
-        phone: "0916926829",
-        email: "tuannt6829@gmail.com",
-        address: "44 đường Lê Quang Đạo, Phường Tự Liêm, TP Hà Nội, Việt Nam",
+        companyCode: user?.taxCode || "2300537991",
+        companyName: "CÔNG TY TNHH ĐIỆN TỬ FOSTER (VIỆT NAM)",
+        phone: user?.phone || "1900 1286",
+        email: user?.email || "info@foster.com",
+        address:
+          user?.address ||
+          "167 Lưu Hữu Phước, Phường Phú Định, Thành phố Hồ Chí Minh, Việt Nam",
       };
     }
 
@@ -1473,7 +1475,7 @@ const AccountPage: React.FC = () => {
                   <tbody>
                     <tr>
                       <td
-                        colSpan="7"
+                        colSpan={7}
                         style={{
                           border: "1px solid #ddd",
                           padding: "20px",
@@ -1786,7 +1788,7 @@ const AccountPage: React.FC = () => {
                   <tbody>
                     <tr>
                       <td
-                        colSpan="6"
+                        colSpan={6}
                         style={{
                           border: "1px solid #ddd",
                           padding: "20px",

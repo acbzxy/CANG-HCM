@@ -530,7 +530,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
           />
           <div className="original-user-details">
             <div className="original-user-status">
-              {userProfile?.fullname || user?.companyName || user?.fullName || "Doanh nghiệp"}
+              {userProfile?.fullname || user?.fullName || user?.companyName || user?.username || "Doanh nghiệp"}
             </div>
             {/* Ẩn dòng mô tả nhỏ bên dưới theo yêu cầu */}
           </div>

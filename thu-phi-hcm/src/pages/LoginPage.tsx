@@ -69,7 +69,7 @@ const LoginPage: React.FC = () => {
   const handleUsernameDblClick = () => {
     setFormData((prev) => ({
       ...prev,
-      username: "0304126484",
+      username: "2300537991",
       password: "123456",
       captcha: captchaCode,
     }));

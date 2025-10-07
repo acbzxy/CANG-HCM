@@ -253,16 +253,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Check for MST user credentials (mst/123456)
       if (
-        credentials.username === "0304126484" &&
+        credentials.username === "2300537991" &&
         credentials.password === "123456"
       ) {
         const mstUser: User = {
           id: "mst-001",
-          username: "0304126484",
+          username: "2300537991",
           email: "info@biendongtrans.com",
-          fullName: "Công ty TNHH Vận Tải Biển Đông",
-          companyName: "Công ty TNHH Vận Tải Biển Đông",
-          taxCode: "0304126484",
+          fullName: "Công ty TNHH Điện Tử FOSTER (Việt Nam)",
+          companyName: "Công ty TNHH Điện Tử FOSTER (Việt Nam)",
+          taxCode: "2300537991",
           phone: "1900 1286",
           address:
             "167 Lưu Hữu Phước, Phường Phú Định, Thành phố Hồ Chí Minh, Việt Nam",
@@ -277,6 +277,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         sessionStorage.setItem("isLoggedIn", "true");
         sessionStorage.setItem("loginTime", new Date().toISOString());
         sessionStorage.setItem("userType", "mst_custom");
+        
+        // Đồng bộ profile cho sidebar/account page
+        try {
+          const profile = {
+            fullname: "Công ty TNHH Điện Tử FOSTER (Việt Nam)",
+            mail: mstUser.email,
+            phone: mstUser.phone,
+            address: mstUser.address,
+            note: "",
+          } as any;
+          sessionStorage.setItem("userProfile", JSON.stringify(profile));
+        } catch {}
 
         dispatch({ type: "LOGIN_SUCCESS", payload: mstUser });
         return;
@@ -308,10 +320,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
               fullName:
                 credentials.username === "admin"
                   ? "Quản trị"
+              : credentials.username === "2300537991"
+                  ? "Công ty TNHH Điện Tử FOSTER (Việt Nam)"
                   : userData.fullname || "Công ty Demo TPHCM",
               companyName:
                 credentials.username === "admin"
                   ? "Quản trị"
+                  : credentials.username === "2300537991"
+                  ? "Công ty TNHH Điện Tử FOSTER (Việt Nam)"
                   : userData.fullname || "Công ty Demo TPHCM",
               taxCode: credentials.username,
               phone: userData.phone || "1900 1286",
@@ -333,6 +349,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             sessionStorage.setItem("loginTime", new Date().toISOString());
             sessionStorage.setItem("userType", "enterprise");
 
+            // Đồng bộ profile cho sidebar/account page - đặc biệt cho tài khoản 2300537991
+            try {
+              const profile = {
+                fullname: credentials.username === "2300537991" 
+                  ? "Công ty TNHH Điện Tử FOSTER (Việt Nam)"
+                  : user.fullName,
+                mail: user.email,
+                phone: user.phone,
+                address: user.address,
+                note: "",
+              } as any;
+              sessionStorage.setItem("userProfile", JSON.stringify(profile));
+            } catch {}
+
             dispatch({ type: "LOGIN_SUCCESS", payload: user });
             return;
           }
@@ -348,8 +378,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           id: "user-001",
           username: credentials.username,
           email: "user@example.com",
-          fullName: "Công ty Demo TPHCM",
-          companyName: "Công ty Demo TPHCM",
+          fullName: credentials.username === "2300537991" 
+            ? "Công ty TNHH Điện Tử FOSTER (Việt Nam)" 
+            : "Công ty Demo TPHCM",
+          companyName: credentials.username === "2300537991" 
+            ? "Công ty TNHH Điện Tử FOSTER (Việt Nam)" 
+            : "Công ty Demo TPHCM",
           taxCode: credentials.username,
           phone: "1900 1286",
           address: "TP. Hồ Chí Minh",
@@ -364,6 +398,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         sessionStorage.setItem("isLoggedIn", "true");
         sessionStorage.setItem("loginTime", new Date().toISOString());
         sessionStorage.setItem("userType", "enterprise");
+
+        // Đồng bộ profile cho sidebar/account page - đặc biệt cho tài khoản 2300537991
+        try {
+          const profile = {
+            fullname: credentials.username === "2300537991" 
+              ? "Công ty TNHH Điện Tử FOSTER (Việt Nam)"
+              : user.fullName,
+            mail: user.email,
+            phone: user.phone,
+            address: user.address,
+            note: "",
+          } as any;
+          sessionStorage.setItem("userProfile", JSON.stringify(profile));
+        } catch {}
 
         dispatch({ type: "LOGIN_SUCCESS", payload: user });
         return;
